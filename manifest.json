@@ -1,8 +1,8 @@
 {
   "manifestVersion": 5,
-  "id": "com.huangtools.photoshoptools.diagnostic",
-  "name": "PS Tools Diagnostic",
-  "version": "0.0.1",
+  "id": "com.huangtools.photoshoptools.staticmenu",
+  "name": "PS Tools Static Menu Test",
+  "version": "0.0.3",
   "main": "index.html",
   "host": {
     "app": "PS",
@@ -15,9 +15,9 @@
   "entrypoints": [
     {
       "type": "panel",
-      "id": "diagnosticPanel",
+      "id": "staticMenuPanel",
       "label": {
-        "default": "PS Tools Diagnostic"
+        "default": "PS Tools Static Menu Test"
       },
       "minimumSize": {
         "width": 240,
