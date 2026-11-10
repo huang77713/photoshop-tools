@@ -103,6 +103,74 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   <section><div class="section-title">③ 效果预览 <span id="destLabel" class="hint"></span></div><div class="output-wrap"><img id="outputCanvas" alt="九宫格效果预览"></div><div class="hint">可更改宽高并自动更新；生成结果为实际像素尺寸。</div></section>
   </div><div class="footer"><button id="sameDoc" class="primary">生成到新图层</button><button id="newDoc" class="secondary">生成到新文档</button><div id="status" class="hint">建议先使用“生成到新文档”，不会影响原图。</div></div>
 </div></div>
+    <div id="spriteFontView" style="display:none"><main class="panel">
+    <header class="header">
+      <div>
+        <div class="title">图片数字排版器</div>
+        <div class="subtitle">Sprite Font Composer</div>
+      </div>
+      <button id="btnImport" class="button primary">导入字库</button>
+    </header>
+
+    <section class="card">
+      <div class="row between gap8">
+        <label class="label grow">
+          字库
+          <select id="librarySelect" class="field"></select>
+        </label>
+        <button id="btnDelete" class="button danger small">删除</button>
+      </div>
+
+      <label class="label">
+        字库名称
+        <input id="libraryName" class="field" type="text" placeholder="例如：大厅金币数字" />
+      </label>
+
+      <label class="label">
+        字符映射（按图片从左到右、从上到下）
+        <input id="mappingInput" class="field mono" type="text" placeholder="例如：₹,.0123456789" />
+      </label>
+
+      <div class="row between meta-row">
+        <span id="glyphCount" class="muted">尚未导入字库</span>
+        <button id="btnSaveLibrary" class="button small">保存字库</button>
+      </div>
+
+      <div id="glyphPreview" class="glyph-preview empty">导入一张透明 PNG 字库后，这里会显示自动拆分结果。</div>
+    </section>
+
+    <section class="card">
+      <label class="label">
+        输入内容
+        <input id="textInput" class="field text-input mono" type="text" value="300" placeholder="例如：300 / ₹12,500 / 2.5x" />
+      </label>
+
+      <div class="two-col">
+        <label class="label">
+          字间距 px
+          <input id="spacingInput" class="field" type="number" value="0" step="1" />
+        </label>
+        <label class="label">
+          缩放 %
+          <input id="scaleInput" class="field" type="number" value="100" min="10" max="500" step="5" />
+        </label>
+      </div>
+
+      <label class="checkbox-row">
+        <input id="groupCheck" type="checkbox" checked />
+        <span>生成后自动成组（每个字符仍是独立图层）</span>
+      </label>
+
+      <button id="btnGenerate" class="button primary wide">生成到当前 Photoshop 文档</button>
+      <div id="status" class="status muted">生成内容会自动居中放到当前画布。</div>
+    </section>
+
+    <section class="tips">
+      <div class="tips-title">使用逻辑</div>
+      <div>导入图片 → 自动拆字符 → 填映射 → 保存 → 输入数字 → 生成图层。</div>
+      <div class="muted">推荐透明 PNG；纯色背景图片也可尝试自动识别。</div>
+    </section>
+  </main></div>
     <div id="heading">菜单交互测试</div>
     <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
     <div class="spacer">滚动测试：可向下滑动直到末尾。</div>
