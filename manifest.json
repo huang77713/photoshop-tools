@@ -1,8 +1,8 @@
 {
   "manifestVersion": 5,
-  "id": "com.huangtools.photoshoptools.externalmenu",
-  "name": "PS Tools Menu External JS",
-  "version": "0.0.5",
+  "id": "com.huangtools.photoshoptools.nineslicetest",
+  "name": "PS Tools Nine Slice Test",
+  "version": "0.0.6",
   "main": "index.html",
   "host": {
     "app": "PS",
@@ -15,9 +15,9 @@
   "entrypoints": [
     {
       "type": "panel",
-      "id": "externalMenuPanel",
+      "id": "nineSliceTestPanel",
       "label": {
-        "default": "PS Tools Menu External JS"
+        "default": "PS Tools Nine Slice Test"
       },
       "minimumSize": {
         "width": 280,
