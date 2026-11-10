@@ -1,9 +1,39 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>PS Tools Diagnostic</title></head>
-<body style="background:#292929;color:#eeeeee;font-family:Arial,sans-serif;padding:16px;">
-  <h3>PS Tools Diagnostic</h3>
-  <p>Minimal UI loaded successfully.</p>
-  <p>There is no JavaScript and no Photoshop API call in this test.</p>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PS Tools Menu Test</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#292929;color:#f1f1f1;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px}
+  #selector{height:50px;background:#252525;border-bottom:1px solid #454545;position:relative}
+  #toggle{width:100%;height:50px;display:flex;align-items:center;gap:10px;border:0;background:none;color:#f1f1f1;text-align:left;padding:0 16px;font-size:15px}
+  #toggle img,.item img{width:23px;height:23px;object-fit:contain}
+  #arrow{font-size:20px}
+  #menu{position:absolute;left:8px;right:8px;top:49px;background:#353535;border:1px solid #5c5c5c;border-radius:5px;padding:4px 0;z-index:10}
+  .item{display:flex;align-items:center;gap:10px;width:100%;height:46px;padding:0 12px;color:#eee;background:none;border:0;text-align:left;font-size:13px}
+  .item:hover,.item.active{background:#454545}
+  .check{margin-left:auto;color:#6aa7ff}
+  #content{padding:22px 16px;line-height:1.65}
+  #toolTitle{font-size:17px;font-weight:bold;margin:0 0 10px}
+  #note{color:#bbb}
+</style>
+</head>
+<body>
+<div id="selector">
+  <button id="toggle" type="button"><img id="currentIcon" src="icons/panel.png" alt=""><span id="currentName">选择工具</span><span id="arrow">⌄</span></button>
+  <div id="menu" style="display:none">
+    <button class="item" type="button" data-name="九宫格拉伸"><img src="icons/panel.png" alt="">九宫格拉伸<span class="check"></span></button>
+    <button class="item" type="button" data-name="图片数字排版"><img src="icons/panel.png" alt="">图片数字排版<span class="check"></span></button>
+    <button class="item" type="button" data-name="透明对象拆分"><img src="icons/panel.png" alt="">透明对象拆分<span class="check"></span></button>
+    <button class="item" type="button" data-name="文字批量切图"><img src="icons/panel.png" alt="">文字批量切图<span class="check"></span></button>
+  </div>
+</div>
+<div id="content">
+  <div id="toolTitle">菜单交互测试</div>
+  <div id="note">点击左上角下拉菜单，选择任一功能。这个版本只测试切换界面，不执行 Photoshop 功能代码。</div>
+</div>
+<script src="menu.js"></script>
 </body>
 </html>
