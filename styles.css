@@ -396,3 +396,8 @@ html,body{height:100%;width:100%;margin:0;overflow:hidden;background:#292929;col
 .feature-nine #status{white-space:normal}
 .feature .panel,.feature .scroll-area{scrollbar-width:auto}
 #toolError{display:none;position:absolute;top:6px;left:8px;right:8px;padding:9px;color:#ffb0a8;background:#392b2b;border:1px solid #8d5353;border-radius:5px;font-size:11px;z-index:3}
+
+/* Lazy feature container: the only visible content at initial startup is the switcher. */
+#toolContainer{height:100%;width:100%;min-height:0;min-width:0;overflow:hidden}
+#toolContainer>.feature{height:100%;width:100%;min-width:0;min-height:0;overflow:hidden}
+#toolError{display:none;position:absolute;top:4px;left:8px;right:8px;color:#ffc0b6;background:#4a2d2d;padding:10px;border:1px solid #914a4a;border-radius:5px;z-index:5}
