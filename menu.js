@@ -1,13 +1,15 @@
-/* Tested Photoshop Tools selector; only two feature modules are active. */
+/* Tested Photoshop Tools selector; four features loaded on first selection. */
 (function () {
   var picker = document.getElementById("picker");
   var menu = document.getElementById("dropdown");
   var label = document.getElementById("pickerName");
   var heading = document.getElementById("heading");
-  var message = document.getElementById("message");
+  var message = document.querySelector("#bodyArea > #message");
   var options = menu.querySelectorAll(".item");
   var loadedNineSlice = false;
   var loadedSpriteFont = false;
+  var loadedRemoveBg = false;
+  var loadedTextCutter = false;
   var bodyArea = document.getElementById("bodyArea");
   function setMenuOpen(open) {
     // Some UXP input controls render above CSS z-index layers. Hiding only
@@ -24,6 +26,8 @@
       var name = this.getAttribute("data-name");
       var showNine = name === "九宫格拉伸";
       var showSprite = name === "图片数字排版";
+      var showRemoveBg = name === "透明对象拆分";
+      var showTextCutter = name === "文字批量切图";
       label.textContent = name;
       heading.textContent = name;
       message.textContent = "此工具将在后续测试阶段接入。";
@@ -33,9 +37,13 @@
       }
       var nineView = document.getElementById("nineSliceView");
       var spriteView = document.getElementById("spriteFontView");
+      var removeView = document.getElementById("removeBgView");
+      var textView = document.getElementById("textCutterView");
       nineView.style.display = showNine ? "block" : "none";
       spriteView.style.display = showSprite ? "block" : "none";
-      var showFallback = !showNine && !showSprite;
+      removeView.style.display = showRemoveBg ? "block" : "none";
+      textView.style.display = showTextCutter ? "block" : "none";
+      var showFallback = !showNine && !showSprite && !showRemoveBg && !showTextCutter;
       heading.style.display = showFallback ? "block" : "none";
       message.style.display = showFallback ? "block" : "none";
       document.querySelector(".spacer").style.display = showFallback ? "block" : "none";
@@ -69,6 +77,32 @@
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "图片数字排版工具启动失败";
+          message.textContent = String(error && error.message || error);
+        }
+      }
+      if (showRemoveBg && !loadedRemoveBg) {
+        try {
+          require("./remove-bg.js")(removeView);
+          loadedRemoveBg = true;
+        } catch (error) {
+          console.error("[Photoshop Tools] Transparent Split failed:", error);
+          removeView.style.display = "none";
+          heading.style.display = "block";
+          message.style.display = "block";
+          heading.textContent = "透明对象拆分工具启动失败";
+          message.textContent = String(error && error.message || error);
+        }
+      }
+      if (showTextCutter && !loadedTextCutter) {
+        try {
+          require("./text-cutter.js")(textView);
+          loadedTextCutter = true;
+        } catch (error) {
+          console.error("[Photoshop Tools] Text Cutter failed:", error);
+          textView.style.display = "none";
+          heading.style.display = "block";
+          message.style.display = "block";
+          heading.textContent = "文字批量切图工具启动失败";
           message.textContent = String(error && error.message || error);
         }
       }
