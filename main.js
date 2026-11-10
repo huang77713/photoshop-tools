@@ -31,7 +31,10 @@ function showTool(id) {
   if (!instances[id]) {
     // Lazy loading prevents the other three tools from running during startup.
     try {
-      const tool = require(toolFiles[id]);
+      const tool = id === "nineSlicePanel" ? require("./tools/nine-slice/index.js")
+        : id === "spriteFontComposerPanel" ? require("./tools/sprite-font/index.js")
+        : id === "removeBgPanel" ? require("./tools/remove-bg/index.js")
+        : require("./tools/text-cutter/index.js");
       const root = document.getElementById("view-" + id);
       if (!root || !tool || typeof tool.mount !== "function") {
         throw new Error("Missing tool container or mount function: " + id);
