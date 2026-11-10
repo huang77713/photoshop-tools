@@ -1,5 +1,6 @@
-/* Original Photoshop processing logic retained; only DOM scope and entrypoint changed. */
-module.exports = function mount(root) {
+/* Original Sprite Font Composer Photoshop algorithms unchanged.
+ * Scoped DOM references and standalone UXP panel registration removed. */
+module.exports = function mountSpriteFont(root) {
 const { app, core, imaging, constants } = require("photoshop");
 const { storage } = require("uxp");
 

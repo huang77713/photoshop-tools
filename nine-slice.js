@@ -1,5 +1,7 @@
-/* Original Photoshop processing logic retained; only DOM scope and entrypoint changed. */
-module.exports = function mount(root) {
+/* Nine Slice Resize: functional code from original repository.
+   Only change: DOM operations are restricted to the selected panel view.
+   Processing algorithms and Photoshop actions are unchanged. */
+module.exports = function mountNineSlice(root) {
 /* Nine Slice Resize - UXP Photoshop. No external dependencies. */
 const ps = require('photoshop');
 const { app, imaging, core } = ps;

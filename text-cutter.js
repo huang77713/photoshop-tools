@@ -1,4 +1,5 @@
-/* Original Photoshop processing logic retained; only DOM scope and entrypoint changed. */
+/* Integrated from ps-text-cutter-uxp. Photoshop processing logic unchanged.
+   DOM queries are isolated to this tool's own view. */
 module.exports = function mount(root) {
 const { app, core, constants } = require("photoshop");
 const { storage } = require("uxp");

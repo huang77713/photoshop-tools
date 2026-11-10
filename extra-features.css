@@ -1,0 +1,296 @@
+/* Original tool styles isolated by view selectors. */
+
+/* ps-remove-bg-tool */
+#removeBgView{
+  --bg: var(--uxp-host-background-color, #2b2b2b);
+  --panel: rgba(255,255,255,0.055);
+  --panel-strong: rgba(255,255,255,0.08);
+  --line: rgba(255,255,255,0.12);
+  --text: var(--uxp-host-text-color, #f3f3f3);
+  --muted: rgba(220,220,220,0.68);
+  --accent: #4c9aff;
+  --accent-hover: #69aaff;
+  --danger: #ff6b6b;
+  --success: #6bd18a;
+  --test: #ffb84d;
+}
+#removeBgView *{ box-sizing: border-box; }
+#removeBgView, #removeBgView{ width: 100%; height: 100%; min-height: 0; }
+#removeBgView{
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+#removeBgView .panel{
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 14px 14px 28px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#removeBgView .header{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+#removeBgView .title{ font-size: 17px; font-weight: 700; line-height: 1.3; }
+#removeBgView .subtitle{ margin-top: 4px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+#removeBgView .test-badge{
+  flex: 0 0 auto;
+  color: var(--test);
+  border: 1px solid rgba(255,184,77,0.45);
+  background: rgba(255,184,77,0.08);
+  border-radius: 5px;
+  padding: 3px 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+#removeBgView .card{
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+#removeBgView .template-card{ background: var(--panel-strong); }
+#removeBgView .note-card{ margin-top: 10px; }
+#removeBgView .row{ display: flex; align-items: center; gap: 8px; }
+#removeBgView .between{ justify-content: space-between; }
+#removeBgView .grow{ flex: 1; min-width: 0; }
+#removeBgView .section-title, #removeBgView .label{
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+#removeBgView .status{ font-size: 11px; margin-top: 4px; word-break: break-all; }
+#removeBgView .muted{ color: var(--muted); }
+#removeBgView .success{ color: var(--success); }
+#removeBgView .error{ color: var(--danger); }
+#removeBgView input[type="text"], #removeBgView input[type="number"]{
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.22);
+  color: var(--text);
+  padding: 8px 9px;
+  font-size: 13px;
+  outline: none;
+}
+#removeBgView input[type="text"]:focus, #removeBgView input[type="number"]:focus{ border-color: var(--accent); }
+#removeBgView .field + .field{ margin-top: 11px; }
+#removeBgView .hint{ color: var(--muted); font-size: 10px; margin-top: 5px; line-height: 1.5; }
+#removeBgView .button{
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  background: rgba(255,255,255,0.07);
+  padding: 7px 10px;
+  font-size: 12px;
+}
+#removeBgView .button:hover{ background: rgba(255,255,255,0.12); }
+#removeBgView .button.primary{ background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+#removeBgView .button.primary:hover{ background: var(--accent-hover); }
+#removeBgView .button.secondary{ background: rgba(255,255,255,0.07); }
+#removeBgView .button.small{ padding: 6px 8px; font-size: 11px; }
+#removeBgView .button.full{ width: 100%; }
+#removeBgView .button:disabled{ opacity: 0.45; }
+#removeBgView .run-button{ min-height: 40px; margin-top: 2px; }
+#removeBgView .flow-list{
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.65;
+}
+#removeBgView .flow-list div + div{ margin-top: 2px; }
+#removeBgView .message{
+  min-height: 18px;
+  margin-top: 9px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.45;
+}
+@media (max-width: 310px){
+#removeBgView .between{ align-items: flex-start; flex-direction: column; }
+}
+
+/* ps-text-cutter-uxp */
+#textCutterView{
+  --bg: var(--uxp-host-background-color, #2b2b2b);
+  --panel: rgba(255,255,255,0.055);
+  --panel-strong: rgba(255,255,255,0.08);
+  --line: rgba(255,255,255,0.12);
+  --text: var(--uxp-host-text-color, #f3f3f3);
+  --muted: rgba(220,220,220,0.68);
+  --accent: #4c9aff;
+  --accent-hover: #69aaff;
+  --danger: #ff6b6b;
+  --success: #6bd18a;
+}
+#textCutterView *{ box-sizing: border-box; }
+#textCutterView, #textCutterView{
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+#textCutterView{
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, "Microsoft YaHei", sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+#textCutterView .panel{
+  width: 100%;
+  height: 100%;
+  max-height: 100vh;
+  min-width: 260px;
+  min-height: 0;
+  padding: 14px 14px 28px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+#textCutterView .panel::-webkit-scrollbar{ width: 10px; }
+#textCutterView .panel::-webkit-scrollbar-track{ background: rgba(255,255,255,0.035); }
+#textCutterView .panel::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,0.22);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+#textCutterView .panel::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,0.34);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+#textCutterView .header{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+#textCutterView .title{ font-size: 17px; font-weight: 700; line-height: 1.3; }
+#textCutterView .subtitle{ margin-top: 4px; color: var(--muted); font-size: 11px; }
+#textCutterView .version{ color: var(--muted); font-size: 10px; padding-top: 3px; }
+#textCutterView .card{
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+#textCutterView .template-card{ background: var(--panel-strong); }
+#textCutterView .row{ display: flex; align-items: center; gap: 8px; }
+#textCutterView .between{ justify-content: space-between; }
+#textCutterView .grow{ flex: 1; min-width: 0; }
+#textCutterView .section-title, #textCutterView .label{
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+#textCutterView .status{ font-size: 11px; margin-top: 4px; word-break: break-all; }
+#textCutterView .muted{ color: var(--muted); }
+#textCutterView .success{ color: var(--success); }
+#textCutterView .error{ color: var(--danger); }
+#textCutterView textarea, #textCutterView input[type="text"], #textCutterView input[type="number"]{
+  display: block;
+  width: 100%;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.22);
+  color: var(--text);
+  padding: 8px 9px;
+  font-size: 13px;
+  outline: none;
+}
+#textCutterView textarea{ resize: vertical; min-height: 68px; line-height: 1.45; }
+#textCutterView textarea:focus, #textCutterView input:focus{ border-color: var(--accent); }
+#textCutterView .field + .field{ margin-top: 11px; }
+#textCutterView .hint{ color: var(--muted); font-size: 10px; margin-top: 5px; line-height: 1.45; }
+#textCutterView .param-stack{
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+#textCutterView .param-stack .field + .field{ margin-top: 0; }
+#textCutterView .param-field{ display: block; width: 100%; }
+#textCutterView .parameter-card{ min-height: 170px; }
+#textCutterView .preset-row{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+#textCutterView .button, #textCutterView .chip{
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  background: rgba(255,255,255,0.07);
+  padding: 7px 10px;
+  font-size: 12px;
+}
+#textCutterView .button:hover, #textCutterView .chip:hover{ background: rgba(255,255,255,0.12); }
+#textCutterView .button.primary{ background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+#textCutterView .button.primary:hover{ background: var(--accent-hover); }
+#textCutterView .button.secondary{ background: rgba(255,255,255,0.07); }
+#textCutterView .button.small{ padding: 6px 8px; font-size: 11px; }
+#textCutterView .button.full{ width: 100%; }
+#textCutterView .button:disabled{ opacity: 0.45; }
+#textCutterView .chip{ padding: 5px 8px; font-size: 11px; }
+#textCutterView .folder-path{
+  min-height: 34px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px dashed var(--line);
+  background: rgba(0,0,0,0.12);
+  margin-bottom: 8px;
+  word-break: break-all;
+  line-height: 1.4;
+}
+#textCutterView .check-row{ display: flex; align-items: center; gap: 8px; cursor: pointer; }
+#textCutterView .check-row input{ margin: 0; }
+#textCutterView .run-button{ min-height: 38px; margin-top: 2px; }
+#textCutterView .message{ min-height: 18px; margin-top: 9px; text-align: center; font-size: 11px; line-height: 1.4; }
+@media (max-width: 310px){
+#textCutterView .between{ align-items: flex-start; flex-direction: column; }
+}
+
+/* UXP integration: one parent scroll area; no nested full-viewport panels. */
+#removeBgView,#textCutterView{width:100%;min-width:0;min-height:100%;color:var(--uxp-host-text-color,#f3f3f3);font-family:Arial,"Microsoft YaHei",sans-serif;}
+#removeBgView .panel,#textCutterView .panel{width:100%;height:auto;max-height:none;min-height:0;min-width:0;overflow:visible;padding:14px 14px 28px;}
+#removeBgView .header,#textCutterView .header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+#removeBgView .row,#textCutterView .row{display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;}
+#removeBgView .grow,#textCutterView .grow{flex:1;min-width:0;}
+#removeBgView .field input,#textCutterView .field input,#textCutterView textarea{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;visibility:visible!important;opacity:1!important;}
+#removeBgView .card,#textCutterView .card{margin-bottom:10px;}
+#removeBgView .field+.field,#textCutterView .field+.field{margin-top:12px;}
+#textCutterView .param-stack{display:flex;flex-direction:column;width:100%;}
+#textCutterView .param-stack .param-field{display:block;width:100%;margin-bottom:14px;}
+#textCutterView .param-stack .param-field:last-child{margin-bottom:0;}
+#textCutterView .preset-row{display:flex;flex-wrap:wrap;margin-top:8px;}
+#textCutterView .preset-row .chip{margin-right:6px;margin-bottom:6px;}
+#removeBgView .run-button,#textCutterView .run-button{display:block;width:100%;margin-top:12px;}
+
+/* Scroll fix: the original full-height view was clipping content.
+   Use #bodyArea as the single scroll container for both long tools.
+   This deliberately does not change the validated Nine Slice / Sprite Font UI. */
+#removeBgView,
+#textCutterView{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+#removeBgView > .panel,
+#textCutterView > .panel{
+  display:block;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding-bottom:32px!important;
+}

@@ -1,4 +1,5 @@
-/* Original Photoshop processing logic retained; only DOM scope and entrypoint changed. */
+/* Integrated from ps-remove-bg-tool. Photoshop processing logic unchanged.
+   DOM queries are isolated to this tool's own view. */
 module.exports = function mount(root) {
 const { app, core, action, constants, imaging } = require("photoshop");
 

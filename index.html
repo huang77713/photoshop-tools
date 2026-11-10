@@ -1,13 +1,392 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photoshop Tools</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PS Tools Menu Test</title>
+<style>
+* {box-sizing:border-box;}
+html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#eee;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px;}
+#app {height:100%;width:100%;display:flex;flex-direction:column;min-height:0;min-width:0;}
+#topbar {height:52px;min-height:52px;position:relative;z-index:10;border-bottom:1px solid #494949;background:#252525;}
+#picker {height:52px;width:100%;display:flex;align-items:center;padding:0 15px;gap:9px;cursor:pointer;user-select:none;}
+#pickerIcon {display:none;}
+#pickerName {font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#pickerArrow {display:block;flex:none;width:9px;height:9px;border-right:2px solid #dddddd;border-bottom:2px solid #dddddd;transform:rotate(45deg);margin-left:4px;margin-top:-5px;}
+#dropdown {position:absolute;top:50px;left:9px;right:9px;background:#343434;border:1px solid #595959;border-radius:5px;padding:5px 0;z-index:30;max-height:250px;overflow-y:auto;}
+.item {min-height:45px;display:flex;align-items:center;gap:10px;padding:10px 13px;cursor:pointer;border-bottom:1px solid #434343;}
+.item:last-child {border-bottom:0;}
+.item.selected {background:#444;}
+.item img {display:none;}
+.item .check {margin-left:auto;color:#77adff;}
+#bodyArea {min-height:0;flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 16px 30px;}
+#heading {font-size:17px;font-weight:700;margin:0 0 12px;}
+#message {line-height:1.6;color:#c3c3c3;}
+.spacer {height:640px;border-top:1px solid #4a4a4a;margin-top:20px;padding-top:16px;color:#999;}
+#bottomText {padding:10px 0;}
+
+/* Original nine-slice styles, isolated inside its view */
+#nineSliceView *{box-sizing:border-box}
+#nineSliceView, #nineSliceView{margin:0;width:100%;height:100%;overflow:hidden;background:#25242c;color:#eeeaf6;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
+#nineSliceView .root{height:100vh;width:100%;display:flex;flex-direction:column;overflow:hidden;min-width:255px}
+#nineSliceView .scroll-area{min-height:0;overflow-y:scroll;overflow-x:hidden;flex:1;padding:12px 14px 8px}
+#nineSliceView header{display:flex;align-items:center;gap:10px;border-bottom:1px solid #444150;padding:4px 2px 14px;margin-bottom:12px}
+#nineSliceView header img{width:37px;height:37px}
+#nineSliceView header strong{font-size:17px;display:block}
+#nineSliceView header small{font-size:11px;color:#ada7c0;display:block;margin-top:4px}
+#nineSliceView section{border:1px solid #484453;border-radius:9px;background:#302e38;padding:12px;margin-bottom:11px;display:block}
+#nineSliceView .section-title{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:13px;font-weight:bold;margin-bottom:10px}
+#nineSliceView .field-title{margin:12px 0 8px;font-size:12px;color:#d6d0e5}
+#nineSliceView .hint{color:#bbb5ca;font-size:11px;line-height:1.55;word-break:break-word}
+#nineSliceView button{border:1px solid #6c657d;background:#443f4f;color:#f9f7fc;border-radius:5px;padding:8px 12px;min-height:34px;font-size:12px;cursor:pointer}
+#nineSliceView button:hover{background:#62566e}
+#nineSliceView .primary{background:#8141e6;border-color:#b58bff;font-weight:bold}
+#nineSliceView .secondary{background:#464251}
+#nineSliceView .preview-wrap, #nineSliceView .output-wrap{position:relative;background:#494651;border:1px solid #5e5a6a;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;min-height:170px;margin:8px 0 12px}
+#nineSliceView .output-wrap{min-height:140px;max-height:260px}
+#nineSliceView #sourceCanvas{display:block;max-width:100%;max-height:290px;object-fit:contain}
+#nineSliceView #outputCanvas{max-width:100%;max-height:240px;object-fit:contain}
+#nineSliceView #guides{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+#nineSliceView .guide{position:absolute;pointer-events:auto;z-index:3}
+#nineSliceView .guide.v{top:0;height:100%;width:12px;margin-left:-6px;border-left:1px dashed #33dfff;cursor:ew-resize}
+#nineSliceView .guide.h{left:0;width:100%;height:12px;margin-top:-6px;border-top:1px dashed #33dfff;cursor:ns-resize}
+#nineSliceView .four, #nineSliceView .two{width:100%;display:flex;flex-wrap:wrap;gap:10px}
+#nineSliceView .four .field, #nineSliceView .two .field{display:block;flex:1 1 42%;min-width:85px}
+#nineSliceView .field label{display:block;color:#e3dff0;font-size:12px;margin-bottom:5px}
+#nineSliceView .field input{display:block!important;width:100%!important;height:37px!important;padding:7px 9px!important;color:#fff!important;background:#1e1d27!important;border:1px solid #767082!important;border-radius:5px!important;font-size:15px!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
+#nineSliceView .actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}
+#nineSliceView .actions .hint{flex:1;min-width:145px}
+#nineSliceView .mode{display:flex;flex-wrap:wrap;gap:14px;padding-top:15px}
+#nineSliceView .mode label{display:flex;align-items:center;gap:5px}
+#nineSliceView .footer{flex:none;border-top:1px solid #4f475c;background:#2a2833;padding:11px 14px 12px;display:flex;flex-wrap:wrap;gap:8px}
+#nineSliceView .footer button{flex:1;min-width:125px}
+#nineSliceView .footer #status{width:100%;max-height:90px;overflow-y:auto}
+#nineSliceView .error{color:#ffaca5!important}
+#nineSliceView .ok{color:#a1efb7!important}
+#nineSliceView .diagnostic{padding:3px 0 5px;color:#d4cde3;user-select:text}
+#nineSliceView #destLabel{font-weight:normal}
+#bodyArea.nine-active{padding:0;overflow:hidden}
+#nineSliceView{height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;background:#25242c;color:#eeeaf6}
+#nineSliceView .root{height:100%;min-width:0}
+/* UXP-compatible layout: original flex rows instead of unsupported CSS Grid. */
+/* UXP Flex does not consistently implement gap: use explicit column widths and margins. */
+#nineSliceView .four, #nineSliceView .two{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;gap:0!important;width:100%}
+#nineSliceView .four .field, #nineSliceView .two .field{display:block!important;flex:0 0 48%!important;width:48%!important;max-width:48%!important;min-width:0!important;margin:0 0 14px 0!important}
+#nineSliceView .four .field:nth-child(odd), #nineSliceView .two .field:nth-child(odd){margin-right:4%!important}
+#nineSliceView .four .field label, #nineSliceView .two .field label{display:block!important;margin:0 0 7px!important}
+#nineSliceView .four .field input, #nineSliceView .two .field input{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:37px!important;box-sizing:border-box!important;margin:0!important;opacity:1!important;visibility:visible!important}
+#nineSliceView .four .field:nth-last-child(-n+2), #nineSliceView .two .field:nth-last-child(-n+2){margin-bottom:0!important}
+
+
+/* Sprite Font Composer original scoped rules */
+#spriteFontView{--bg: #1f1f1f;
+  --card: #292929;
+  --card-2: #242424;
+  --border: #3a3a3a;
+  --text: #eeeeee;
+  --muted: #a6a6a6;
+  --field: #1b1b1b;
+  --accent: #5b8cff;
+  --accent-hover: #6f9aff;
+  --danger: #c85d5d;
+  --success: #7dc992;
+  --warning: #e5b567;}
+#spriteFontView *{box-sizing: border-box;}
+#spriteFontView, #spriteFontView{margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 12px;}
+#spriteFontView{min-width: 270px;}
+#spriteFontView .panel{padding: 12px; display: flex; flex-direction: column; gap: 10px;}
+#spriteFontView .header{display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 0 4px;}
+#spriteFontView .title{font-size: 16px; font-weight: 700; line-height: 1.2;}
+#spriteFontView .subtitle{color: var(--muted); margin-top: 2px; font-size: 10px;}
+#spriteFontView .card{background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 9px;}
+#spriteFontView .label{display: flex; flex-direction: column; gap: 5px; color: #d8d8d8;}
+#spriteFontView .field{width: 100%; min-height: 30px; border: 1px solid #444; border-radius: 5px; background: var(--field); color: var(--text); padding: 6px 8px; outline: none;}
+#spriteFontView .field:focus{border-color: var(--accent);}
+#spriteFontView .text-input{font-size: 16px; letter-spacing: 0.4px;}
+#spriteFontView .mono{font-family: Consolas, "SFMono-Regular", monospace;}
+#spriteFontView .row{display: flex; align-items: flex-end;}
+#spriteFontView .between{justify-content: space-between;}
+#spriteFontView .gap8{gap: 8px;}
+#spriteFontView .grow{flex: 1;}
+#spriteFontView .two-col{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+#spriteFontView .meta-row{align-items: center;}
+#spriteFontView .button{border: 1px solid #4b4b4b; border-radius: 5px; min-height: 30px; padding: 6px 10px; background: #353535; color: var(--text); cursor: pointer;}
+#spriteFontView .button:hover{background: #404040;}
+#spriteFontView .button:disabled{opacity: .45; cursor: default;}
+#spriteFontView .button.primary{background: var(--accent); border-color: var(--accent); color: #fff;}
+#spriteFontView .button.primary:hover{background: var(--accent-hover);}
+#spriteFontView .button.danger{color: #f4c1c1; border-color: #704747;}
+#spriteFontView .button.small{min-height: 28px; padding: 5px 9px;}
+#spriteFontView .button.wide{width: 100%; margin-top: 2px;}
+#spriteFontView .checkbox-row{display: flex; align-items: center; gap: 7px; color: #d8d8d8;}
+#spriteFontView .checkbox-row input{margin: 0;}
+#spriteFontView .glyph-preview{min-height: 72px; max-height: 180px; overflow-y: auto; background: var(--card-2); border: 1px solid #363636; border-radius: 6px; padding: 7px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px;}
+#spriteFontView .glyph-preview.empty{display: block; color: var(--muted); line-height: 1.6;}
+#spriteFontView .glyph-chip{min-width: 42px; border: 1px solid #454545; background: #1f1f1f; border-radius: 5px; padding: 5px 6px; display: flex; flex-direction: column; gap: 2px;}
+#spriteFontView .glyph-char{font-size: 15px; font-weight: 700; line-height: 1.1;}
+#spriteFontView .glyph-index{color: var(--muted); font-size: 9px;}
+#spriteFontView .glyph-size{color: #858585; font-size: 9px;}
+#spriteFontView .muted{color: var(--muted);}
+#spriteFontView .status{min-height: 16px; line-height: 1.45;}
+#spriteFontView .status.success{color: var(--success);}
+#spriteFontView .status.error{color: #f08b8b;}
+#spriteFontView .status.warning{color: var(--warning);}
+#spriteFontView .tips{color: #c7c7c7; line-height: 1.55; padding: 0 2px 4px;}
+#spriteFontView .tips-title{font-weight: 700; margin-bottom: 2px;}
+
+/* Compatibility with the single UXP panel and existing Nine Slice. */
+#spriteFontView{width:100%;min-height:100%;background:#1f1f1f;color:#eee;overflow:visible;}
+#spriteFontView .panel{padding:14px;display:flex;flex-direction:column;width:100%;min-width:0;}
+#spriteFontView .panel>.card,#spriteFontView .panel>.header,#spriteFontView .panel>.tips{margin-bottom:12px;}
+#spriteFontView .card>*{margin-bottom:9px;}
+#spriteFontView .card>*:last-child{margin-bottom:0;}
+#spriteFontView .label{display:flex;flex-direction:column;margin-bottom:8px;}
+#spriteFontView .label .field{display:block;width:100%;margin-top:6px;min-width:0;}
+#spriteFontView .two-col{display:flex;flex-direction:row;flex-wrap:wrap;gap:0;width:100%;}
+#spriteFontView .two-col>.label{display:block;flex:0 0 48%;width:48%;min-width:0;}
+#spriteFontView .two-col>.label:first-child{margin-right:4%;}
+#spriteFontView .two-col .field{display:block;margin-top:6px;width:100%;}
+#spriteFontView .row{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;}
+#spriteFontView .grow{flex:1;min-width:100px;}
+#spriteFontView .button{flex:none;}
+#spriteFontView .glyph-preview{max-height:180px;overflow-y:auto;}
+
+</style>
+<link rel="stylesheet" href="extra-features.css">
 </head>
 <body>
-  <!-- UXP creates the panel root. main.js mounts the interface into it. -->
-  <script src="main.js"></script>
+<div id="app">
+  <div id="topbar">
+    <div id="picker" role="button" tabindex="0" aria-label="选择工具">
+      
+      <span id="pickerName">选择工具</span>
+      <span id="pickerArrow" aria-hidden="true"></span>
+    </div>
+    <div id="dropdown" style="display:none;">
+      <div class="item" data-name="九宫格拉伸"><span>九宫格拉伸</span><span class="check"></span></div>
+      <div class="item" data-name="图片数字排版"><span>图片数字排版</span><span class="check"></span></div>
+      <div class="item" data-name="透明对象拆分"><span>透明对象拆分</span><span class="check"></span></div>
+      <div class="item" data-name="文字批量切图"><span>文字批量切图</span><span class="check"></span></div>
+    </div>
+  </div>
+  <div id="bodyArea">
+    <div id="nineSliceView" style="display:none"><div class="root"><div class="scroll-area">
+  <header><div><strong>Nine Slice Resize</strong><small>九宫格自由拉伸 · 保持圆角不变</small></div></header>
+  <section><div class="section-title">① 选择图层 <button id="load" class="secondary">读取选中图层</button></div><div id="sourceInfo" class="hint diagnostic">请在 Photoshop 中选中一个像素图层</div><div class="preview-wrap" id="sourceWrap"><img id="sourceCanvas" alt="源图预览"><div id="guides"><div class="guide v" data-guide="left"></div><div class="guide v" data-guide="right"></div><div class="guide h" data-guide="top"></div><div class="guide h" data-guide="bottom"></div></div></div>
+  <div class="field-title">固定区域尺寸（单位：px，可手动输入）</div><div class="four"><div class="field"><label>左边 L</label><input id="left" type="text" inputmode="numeric" min="0" value="20"></div><div class="field"><label>右边 R</label><input id="right" type="text" inputmode="numeric" min="0" value="20"></div><div class="field"><label>上边 T</label><input id="top" type="text" inputmode="numeric" min="0" value="20"></div><div class="field"><label>下边 B</label><input id="bottom" type="text" inputmode="numeric" min="0" value="20"></div></div><div class="actions"><button id="reset" class="secondary">均分默认</button><span class="hint">只需移动四条青色虚线。四个角保持原尺寸；边和中心拉伸。</span></div></section>
+  <section><div class="section-title">② 输出尺寸</div><div class="field-title">输出宽度和高度（单位：px）</div><div class="two"><div class="field"><label>宽度 W</label><input id="width" type="text" inputmode="numeric" min="1" max="12000" value="1000"></div><div class="field"><label>高度 H</label><input id="height" type="text" inputmode="numeric" min="1" max="12000" value="650"></div></div><div class="mode"><label><input type="radio" name="mode" value="stretch" checked> 拉伸 Stretch</label><label><input type="radio" name="mode" value="tile"> 平铺 Tile</label></div></section>
+  <section><div class="section-title">③ 效果预览 <span id="destLabel" class="hint"></span></div><div class="output-wrap"><img id="outputCanvas" alt="九宫格效果预览"></div><div class="hint">可更改宽高并自动更新；生成结果为实际像素尺寸。</div></section>
+  </div><div class="footer"><button id="sameDoc" class="primary">生成到新图层</button><button id="newDoc" class="secondary">生成到新文档</button><div id="status" class="hint">建议先使用“生成到新文档”，不会影响原图。</div></div>
+</div></div>
+    <div id="spriteFontView" style="display:none"><main class="panel">
+    <header class="header">
+      <div>
+        <div class="title">图片数字排版器</div>
+        <div class="subtitle">Sprite Font Composer</div>
+      </div>
+      <button id="btnImport" class="button primary">导入字库</button>
+    </header>
+
+    <section class="card">
+      <div class="row between gap8">
+        <label class="label grow">
+          字库
+          <select id="librarySelect" class="field"></select>
+        </label>
+        <button id="btnDelete" class="button danger small">删除</button>
+      </div>
+
+      <label class="label">
+        字库名称
+        <input id="libraryName" class="field" type="text" placeholder="例如：大厅金币数字" />
+      </label>
+
+      <label class="label">
+        字符映射（按图片从左到右、从上到下）
+        <input id="mappingInput" class="field mono" type="text" placeholder="例如：₹,.0123456789" />
+      </label>
+
+      <div class="row between meta-row">
+        <span id="glyphCount" class="muted">尚未导入字库</span>
+        <button id="btnSaveLibrary" class="button small">保存字库</button>
+      </div>
+
+      <div id="glyphPreview" class="glyph-preview empty">导入一张透明 PNG 字库后，这里会显示自动拆分结果。</div>
+    </section>
+
+    <section class="card">
+      <label class="label">
+        输入内容
+        <input id="textInput" class="field text-input mono" type="text" value="300" placeholder="例如：300 / ₹12,500 / 2.5x" />
+      </label>
+
+      <div class="two-col">
+        <label class="label">
+          字间距 px
+          <input id="spacingInput" class="field" type="number" value="0" step="1" />
+        </label>
+        <label class="label">
+          缩放 %
+          <input id="scaleInput" class="field" type="number" value="100" min="10" max="500" step="5" />
+        </label>
+      </div>
+
+      <label class="checkbox-row">
+        <input id="groupCheck" type="checkbox" checked />
+        <span>生成后自动成组（每个字符仍是独立图层）</span>
+      </label>
+
+      <button id="btnGenerate" class="button primary wide">生成到当前 Photoshop 文档</button>
+      <div id="status" class="status muted">生成内容会自动居中放到当前画布。</div>
+    </section>
+
+    <section class="tips">
+      <div class="tips-title">使用逻辑</div>
+      <div>导入图片 → 自动拆字符 → 填映射 → 保存 → 输入数字 → 生成图层。</div>
+      <div class="muted">推荐透明 PNG；纯色背景图片也可尝试自动识别。</div>
+    </section>
+  </main></div>
+    <div id="removeBgView" class="extra-tool" style="display:none"><main class="panel">
+    <header class="header">
+      <div>
+        <div class="title">透明对象拆分工具</div>
+        <div class="subtitle">选中已去背景透明图层 → 自动拆分独立元素 → 每层转智能对象</div>
+      </div>
+    </header>
+
+    <section class="card template-card">
+      <div class="row between">
+        <div class="grow">
+          <div class="section-title">当前透明图层</div>
+          <div id="layerStatus" class="status muted">未读取当前图层</div>
+        </div>
+        <button id="refreshLayerBtn" class="button secondary small">读取当前图层</button>
+      </div>
+      <div class="hint">请先自己把背景去干净，再选中这个透明图层。工具不会执行 AI 去背景，也不会修改、隐藏或删除原始图层。</div>
+    </section>
+
+    <section class="card">
+      <div class="field">
+        <label class="label" for="groupName">结果组名称</label>
+        <input id="groupName" type="text" value="Split_Objects" spellcheck="false" />
+      </div>
+
+      <div class="field">
+        <label class="label" for="layerPrefix">拆分图层名称前缀</label>
+        <input id="layerPrefix" type="text" value="Object" spellcheck="false" />
+        <div class="hint">例如：Object_01、Object_02、Object_03…</div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="minAreaPercent">最小元素面积 (%)</label>
+        <input id="minAreaPercent" type="number" value="0.002" min="0" max="10" step="0.001" />
+        <div class="hint">过滤透明图里很小的脏点或碎片。正常保持默认；小元素被漏掉时调小。</div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="padding">识别边距 Padding (px)</label>
+        <input id="padding" type="number" value="8" min="0" max="200" step="1" />
+        <div class="hint">识别框向外多留一点范围，用来保住柔边、阴影和低透明像素；相邻元素很近时会自动限制，避免把旁边元素带进去。</div>
+      </div>
+    </section>
+
+    <section class="card options">
+      <div class="section-title">固定处理流程</div>
+      <div class="flow-list">
+        <div>1. 复制当前透明图层到临时工作层</div>
+        <div>2. 读取透明 Alpha，识别彼此分开的独立元素</div>
+        <div>3. 从临时工作层直接 Layer Via Copy 拆成单独图层</div>
+        <div>4. 每个拆分层自动转成智能对象</div>
+        <div>5. 全部放进结果组</div>
+        <div>6. 删除临时工作层，原始图层保持原样</div>
+      </div>
+    </section>
+
+    <button id="runBtn" class="button primary full run-button">拆分并转智能对象</button>
+    <div id="message" class="message muted">等待操作</div>
+
+    <section class="card note-card">
+      <div class="section-title">识别规则</div>
+      <div class="hint">不限定元素数量、位置或尺寸。透明区域之间真正断开的内容会被拆成不同图层；如果两个元素在透明图里实际连在一起，会被视为同一个元素。</div>
+    </section>
+  </main></div>
+    <div id="textCutterView" class="extra-tool" style="display:none"><main class="panel">
+    <header class="header">
+      <div>
+        <div class="title">文字批量切图</div>
+        <div class="subtitle">复制临时 PSD → 改文字 → 只抽取目标层 → 干净单层文档 → 导出 PNG</div>
+      </div>
+      <div class="version">v1.0</div>
+    </header>
+
+    <section class="card template-card">
+      <div class="row between">
+        <div class="grow">
+          <div class="section-title">文字样式模板</div>
+          <div id="layerStatus" class="status muted">未读取当前图层</div>
+        </div>
+        <button id="refreshLayerBtn" class="button secondary small">读取当前图层</button>
+      </div>
+      <div class="hint">只读取当前选中的文字图层。原 PSD 不修改。</div>
+    </section>
+
+    <section class="card">
+      <label class="label" for="characters">字符内容</label>
+      <textarea id="characters" rows="3" spellcheck="false">0123456789₹,.+-</textarea>
+      <div class="preset-row">
+        <button id="presetDigits" class="chip">0-9</button>
+        <button id="presetDefault" class="chip">数字 + 符号</button>
+        <button id="clearChars" class="chip">清空</button>
+      </div>
+      <div class="hint">整串内容写入同一个文字图层，不拆成多个字符层。</div>
+    </section>
+
+    <section class="card parameter-card">
+      <div class="section-title">参数</div>
+      <div class="param-stack">
+        <div class="field param-field">
+          <label class="label" for="tracking">字间距 / Tracking</label>
+          <input id="tracking" type="number" value="400" min="-1000" max="1000" step="10" />
+          <div class="hint">默认 400，可直接修改。</div>
+        </div>
+        <div class="field param-field">
+          <label class="label" for="padding">PNG 外边距 Padding（px）</label>
+          <input id="padding" type="number" value="80" min="0" max="2000" step="1" />
+          <div class="hint">默认 80 px，按最终文字边界四周增加透明留白。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="field">
+        <label class="label" for="outputName">图层 / PNG 名称</label>
+        <input id="outputName" type="text" value="mid_num" spellcheck="false" />
+        <div class="hint">例如 mid_num：最终文字层叫 mid_num，并导出 mid_num.png。</div>
+      </div>
+      <div class="field folder-field">
+        <label class="label">保存路径</label>
+        <div id="folderPath" class="folder-path muted">尚未选择文件夹</div>
+        <button id="chooseFolderBtn" class="button secondary full">选择保存文件夹</button>
+      </div>
+    </section>
+
+    <section class="card options">
+      <label class="check-row">
+        <input id="keepWorkDoc" type="checkbox" checked />
+        <span>导出后保留干净工作文档</span>
+      </label>
+      <div class="hint">勾选：最后保留只含 1 个目标文字层的工作文档；取消：PNG 导出后自动关闭。</div>
+    </section>
+
+    <button id="runBtn" class="button primary full run-button">生成并导出 PNG</button>
+    <div id="message" class="message muted">等待操作</div>
+  </main></div>
+    <div id="heading">菜单交互测试</div>
+    <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
+    <div class="spacer">滚动测试：可向下滑动直到末尾。</div>
+    <div id="bottomText">已经到达底部。以后完整工具的内容会在这个区域内滚动。</div>
+  </div>
+</div>
+<script src="menu.js"></script>
 </body>
 </html>
