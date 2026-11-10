@@ -18,50 +18,38 @@
   "entrypoints": [
     {
       "type": "panel",
-      "id": "nineSlicePanel",
-      "label": { "default": "Nine Slice Resize" },
-      "minimumSize": { "width": 280, "height": 430 },
-      "maximumSize": { "width": 1400, "height": 1800 },
-      "preferredDockedSize": { "width": 340, "height": 730 },
-      "preferredFloatingSize": { "width": 420, "height": 820 },
+      "id": "photoshopToolsPanel",
+      "label": {
+        "default": "Photoshop Tools"
+      },
+      "minimumSize": {
+        "width": 300,
+        "height": 440
+      },
+      "maximumSize": {
+        "width": 1500,
+        "height": 2000
+      },
+      "preferredDockedSize": {
+        "width": 390,
+        "height": 750
+      },
+      "preferredFloatingSize": {
+        "width": 450,
+        "height": 830
+      },
       "icons": [
-        { "width": 23, "height": 23, "path": "icons/nine-slice.png", "scale": [1], "theme": ["all"] }
-      ]
-    },
-    {
-      "type": "panel",
-      "id": "spriteFontComposerPanel",
-      "label": { "default": "图片数字排版器" },
-      "minimumSize": { "width": 280, "height": 420 },
-      "maximumSize": { "width": 1200, "height": 2000 },
-      "preferredDockedSize": { "width": 320, "height": 620 },
-      "preferredFloatingSize": { "width": 360, "height": 680 },
-      "icons": [
-        { "width": 23, "height": 23, "path": "icons/sprite-font.png", "scale": [1], "theme": ["all"] }
-      ]
-    },
-    {
-      "type": "panel",
-      "id": "removeBgPanel",
-      "label": { "default": "透明对象拆分工具" },
-      "minimumSize": { "width": 280, "height": 360 },
-      "maximumSize": { "width": 1000, "height": 1400 },
-      "preferredDockedSize": { "width": 340, "height": 620 },
-      "preferredFloatingSize": { "width": 380, "height": 680 },
-      "icons": [
-        { "width": 23, "height": 23, "path": "icons/remove-bg.png", "scale": [1], "theme": ["all"] }
-      ]
-    },
-    {
-      "type": "panel",
-      "id": "textCutterPanel",
-      "label": { "default": "文字批量切图" },
-      "minimumSize": { "width": 280, "height": 380 },
-      "maximumSize": { "width": 1200, "height": 1600 },
-      "preferredDockedSize": { "width": 340, "height": 650 },
-      "preferredFloatingSize": { "width": 390, "height": 720 },
-      "icons": [
-        { "width": 23, "height": 23, "path": "icons/text-cutter.png", "scale": [1], "theme": ["all"] }
+        {
+          "width": 23,
+          "height": 23,
+          "path": "icons/plugin.png",
+          "scale": [
+            1
+          ],
+          "theme": [
+            "all"
+          ]
+        }
       ]
     }
   ],
@@ -70,8 +58,12 @@
       "width": 48,
       "height": 48,
       "path": "icons/plugin.png",
-      "scale": [1],
-      "theme": ["all"],
+      "scale": [
+        1
+      ],
+      "theme": [
+        "all"
+      ],
       "species": "pluginList"
     }
   ]
