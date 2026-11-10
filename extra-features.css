@@ -274,3 +274,23 @@
 #textCutterView .preset-row{display:flex;flex-wrap:wrap;margin-top:8px;}
 #textCutterView .preset-row .chip{margin-right:6px;margin-bottom:6px;}
 #removeBgView .run-button,#textCutterView .run-button{display:block;width:100%;margin-top:12px;}
+
+/* Scroll fix: the original full-height view was clipping content.
+   Use #bodyArea as the single scroll container for both long tools.
+   This deliberately does not change the validated Nine Slice / Sprite Font UI. */
+#removeBgView,
+#textCutterView{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+#removeBgView > .panel,
+#textCutterView > .panel{
+  display:block;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding-bottom:32px!important;
+}
