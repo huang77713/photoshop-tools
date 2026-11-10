@@ -67,7 +67,17 @@ function selectTool(id) {
   }
 }
 
-function initPanel() {
+function initPanel(rootNode) {
+  // In UXP, the visible panel has its own rootNode. The markup in index.html
+  // must be attached to that node; otherwise Photoshop can show a blank panel.
+  const shell = document.getElementById("suite-shell");
+  if (!shell) {
+    console.error("[Photoshop Tools] Missing suite-shell in index.html");
+    return;
+  }
+  if (rootNode && rootNode !== shell && !rootNode.contains(shell)) {
+    rootNode.appendChild(shell);
+  }
   if (initialized) return;
   const picker = document.getElementById("toolPicker");
   const menu = document.getElementById("toolMenu");
@@ -92,6 +102,9 @@ function initPanel() {
 
 entrypoints.setup({
   panels: {
-    photoshopToolsPanel: { show() { initPanel(); } }
+    photoshopToolsPanel: {
+      create(rootNode) { initPanel(rootNode); },
+      show(rootNode) { initPanel(rootNode); }
+    }
   }
 });
