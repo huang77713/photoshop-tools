@@ -10,16 +10,19 @@
 
 <div class="suite-shell" id="suite-shell">
   <div class="suite-top">
-    <div class="suite-heading">Photoshop Tools</div>
-    <div class="suite-nav" id="suite-nav">
-      <button type="button" class="suite-tab" data-panel="nineSlicePanel"><img src="icons/nine-slice.png" width="19" height="19" alt=""><span>九宫格拉伸</span></button>
-      <button type="button" class="suite-tab" data-panel="spriteFontComposerPanel"><img src="icons/sprite-font.png" width="19" height="19" alt=""><span>图片数字排版</span></button>
-      <button type="button" class="suite-tab" data-panel="removeBgPanel"><img src="icons/remove-bg.png" width="19" height="19" alt=""><span>透明对象拆分</span></button>
-      <button type="button" class="suite-tab" data-panel="textCutterPanel"><img src="icons/text-cutter.png" width="19" height="19" alt=""><span>文字批量切图</span></button>
+    <button id="toolPicker" type="button" class="tool-picker" aria-expanded="false">
+      <img id="currentToolIcon" src="icons/nine-slice.png" alt="">
+      <span id="currentToolName">九宫格拉伸</span>
+      <span class="picker-chevron">⌄</span>
+    </button>
+    <div id="toolMenu" class="tool-menu" style="display:none">
+      <button type="button" class="tool-menu-item" data-panel="nineSlicePanel"><img src="icons/nine-slice.png" alt=""><span>九宫格拉伸</span><span class="tool-check">✓</span></button>
+      <button type="button" class="tool-menu-item" data-panel="spriteFontComposerPanel"><img src="icons/sprite-font.png" alt=""><span>图片数字排版</span><span class="tool-check"></span></button>
+      <button type="button" class="tool-menu-item" data-panel="removeBgPanel"><img src="icons/remove-bg.png" alt=""><span>透明对象拆分</span><span class="tool-check"></span></button>
+      <button type="button" class="tool-menu-item" data-panel="textCutterPanel"><img src="icons/text-cutter.png" alt=""><span>文字批量切图</span><span class="tool-check"></span></button>
     </div>
   </div>
   <div class="suite-body">
-    <div class="suite-home" id="suite-home">请选择上方工具开始使用</div>
     <div id="view-nineSlicePanel" class="suite-view" style="display:none">
   <div class="tool tool-nine">
     <div class="root"><div class="scroll-area">
