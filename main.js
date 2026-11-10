@@ -27,6 +27,8 @@ function showTool(id) {
     tab.classList.toggle("is-active", isActive);
     tab.setAttribute("aria-selected", String(isActive));
   }
+  const home = document.getElementById("suite-home");
+  if (home) home.style.display = "none";
   activeId = id;
   if (!instances[id]) {
     // Lazy loading prevents the other three tools from running during startup.
@@ -61,7 +63,7 @@ function initialize() {
   for (const tab of tabs) {
     tab.addEventListener("click", () => showTool(tab.getAttribute("data-panel")));
   }
-  showTool("nineSlicePanel");
+  // The host opens only the lightweight navigator; no tool JS runs until click.
 }
 
 entrypoints.setup({
