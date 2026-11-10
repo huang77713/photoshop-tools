@@ -77,6 +77,80 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #nineSliceView .four .field input, #nineSliceView .two .field input{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:37px!important;box-sizing:border-box!important;margin:0!important;opacity:1!important;visibility:visible!important}
 #nineSliceView .four .field:nth-last-child(-n+2), #nineSliceView .two .field:nth-last-child(-n+2){margin-bottom:0!important}
 
+
+/* Sprite Font Composer original scoped rules */
+#spriteFontView{--bg: #1f1f1f;
+  --card: #292929;
+  --card-2: #242424;
+  --border: #3a3a3a;
+  --text: #eeeeee;
+  --muted: #a6a6a6;
+  --field: #1b1b1b;
+  --accent: #5b8cff;
+  --accent-hover: #6f9aff;
+  --danger: #c85d5d;
+  --success: #7dc992;
+  --warning: #e5b567;}
+#spriteFontView *{box-sizing: border-box;}
+#spriteFontView, #spriteFontView{margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 12px;}
+#spriteFontView{min-width: 270px;}
+#spriteFontView .panel{padding: 12px; display: flex; flex-direction: column; gap: 10px;}
+#spriteFontView .header{display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 0 4px;}
+#spriteFontView .title{font-size: 16px; font-weight: 700; line-height: 1.2;}
+#spriteFontView .subtitle{color: var(--muted); margin-top: 2px; font-size: 10px;}
+#spriteFontView .card{background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 9px;}
+#spriteFontView .label{display: flex; flex-direction: column; gap: 5px; color: #d8d8d8;}
+#spriteFontView .field{width: 100%; min-height: 30px; border: 1px solid #444; border-radius: 5px; background: var(--field); color: var(--text); padding: 6px 8px; outline: none;}
+#spriteFontView .field:focus{border-color: var(--accent);}
+#spriteFontView .text-input{font-size: 16px; letter-spacing: 0.4px;}
+#spriteFontView .mono{font-family: Consolas, "SFMono-Regular", monospace;}
+#spriteFontView .row{display: flex; align-items: flex-end;}
+#spriteFontView .between{justify-content: space-between;}
+#spriteFontView .gap8{gap: 8px;}
+#spriteFontView .grow{flex: 1;}
+#spriteFontView .two-col{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
+#spriteFontView .meta-row{align-items: center;}
+#spriteFontView .button{border: 1px solid #4b4b4b; border-radius: 5px; min-height: 30px; padding: 6px 10px; background: #353535; color: var(--text); cursor: pointer;}
+#spriteFontView .button:hover{background: #404040;}
+#spriteFontView .button:disabled{opacity: .45; cursor: default;}
+#spriteFontView .button.primary{background: var(--accent); border-color: var(--accent); color: #fff;}
+#spriteFontView .button.primary:hover{background: var(--accent-hover);}
+#spriteFontView .button.danger{color: #f4c1c1; border-color: #704747;}
+#spriteFontView .button.small{min-height: 28px; padding: 5px 9px;}
+#spriteFontView .button.wide{width: 100%; margin-top: 2px;}
+#spriteFontView .checkbox-row{display: flex; align-items: center; gap: 7px; color: #d8d8d8;}
+#spriteFontView .checkbox-row input{margin: 0;}
+#spriteFontView .glyph-preview{min-height: 72px; max-height: 180px; overflow-y: auto; background: var(--card-2); border: 1px solid #363636; border-radius: 6px; padding: 7px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px;}
+#spriteFontView .glyph-preview.empty{display: block; color: var(--muted); line-height: 1.6;}
+#spriteFontView .glyph-chip{min-width: 42px; border: 1px solid #454545; background: #1f1f1f; border-radius: 5px; padding: 5px 6px; display: flex; flex-direction: column; gap: 2px;}
+#spriteFontView .glyph-char{font-size: 15px; font-weight: 700; line-height: 1.1;}
+#spriteFontView .glyph-index{color: var(--muted); font-size: 9px;}
+#spriteFontView .glyph-size{color: #858585; font-size: 9px;}
+#spriteFontView .muted{color: var(--muted);}
+#spriteFontView .status{min-height: 16px; line-height: 1.45;}
+#spriteFontView .status.success{color: var(--success);}
+#spriteFontView .status.error{color: #f08b8b;}
+#spriteFontView .status.warning{color: var(--warning);}
+#spriteFontView .tips{color: #c7c7c7; line-height: 1.55; padding: 0 2px 4px;}
+#spriteFontView .tips-title{font-weight: 700; margin-bottom: 2px;}
+
+/* Compatibility with the single UXP panel and existing Nine Slice. */
+#spriteFontView{width:100%;min-height:100%;background:#1f1f1f;color:#eee;overflow:visible;}
+#spriteFontView .panel{padding:14px;display:flex;flex-direction:column;width:100%;min-width:0;}
+#spriteFontView .panel>.card,#spriteFontView .panel>.header,#spriteFontView .panel>.tips{margin-bottom:12px;}
+#spriteFontView .card>*{margin-bottom:9px;}
+#spriteFontView .card>*:last-child{margin-bottom:0;}
+#spriteFontView .label{display:flex;flex-direction:column;margin-bottom:8px;}
+#spriteFontView .label .field{display:block;width:100%;margin-top:6px;min-width:0;}
+#spriteFontView .two-col{display:flex;flex-direction:row;flex-wrap:wrap;gap:0;width:100%;}
+#spriteFontView .two-col>.label{display:block;flex:0 0 48%;width:48%;min-width:0;}
+#spriteFontView .two-col>.label:first-child{margin-right:4%;}
+#spriteFontView .two-col .field{display:block;margin-top:6px;width:100%;}
+#spriteFontView .row{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;}
+#spriteFontView .grow{flex:1;min-width:100px;}
+#spriteFontView .button{flex:none;}
+#spriteFontView .glyph-preview{max-height:180px;overflow-y:auto;}
+
 </style>
 </head>
 <body>
