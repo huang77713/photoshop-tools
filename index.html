@@ -8,7 +8,18 @@
 </head>
 <body>
 
-<template id="tpl-nineSlicePanel">
+<div class="suite-shell" id="suite-shell">
+  <div class="suite-top">
+    <div class="suite-heading">Photoshop Tools</div>
+    <div class="suite-nav" id="suite-nav">
+      <button type="button" class="suite-tab is-active" data-panel="nineSlicePanel"><img src="icons/nine-slice.png" width="19" height="19" alt=""><span>九宫格拉伸</span></button>
+      <button type="button" class="suite-tab" data-panel="spriteFontComposerPanel"><img src="icons/sprite-font.png" width="19" height="19" alt=""><span>图片数字排版</span></button>
+      <button type="button" class="suite-tab" data-panel="removeBgPanel"><img src="icons/remove-bg.png" width="19" height="19" alt=""><span>透明对象拆分</span></button>
+      <button type="button" class="suite-tab" data-panel="textCutterPanel"><img src="icons/text-cutter.png" width="19" height="19" alt=""><span>文字批量切图</span></button>
+    </div>
+  </div>
+  <div class="suite-body">
+    <div id="view-nineSlicePanel" class="suite-view">
   <div class="tool tool-nine">
     <div class="root"><div class="scroll-area">
       <header><div><strong>Nine Slice Resize</strong><small>九宫格自由拉伸 · 保持圆角不变</small></div></header>
@@ -18,9 +29,9 @@
       <section><div class="section-title">③ 效果预览 <span id="destLabel" class="hint"></span></div><div class="output-wrap"><img id="outputCanvas" alt="九宫格效果预览"></div><div class="hint">可更改宽高并自动更新；生成结果为实际像素尺寸。</div></section>
     </div><div class="footer"><button id="sameDoc" class="primary">生成到新图层</button><button id="newDoc" class="secondary">生成到新文档</button><div id="status" class="hint">建议先使用“生成到新文档”，不会影响原图。</div></div></div>
   </div>
-</template>
+</div>
 
-<template id="tpl-spriteFontComposerPanel">
+<div id="view-spriteFontComposerPanel" class="suite-view" style="display:none">
   <div class="tool tool-sprite">
     <main class="panel">
       <header class="header"><div><div class="title">图片数字排版器</div><div class="subtitle">Sprite Font Composer</div></div><button id="btnImport" class="button primary">导入字库</button></header>
@@ -29,9 +40,9 @@
       <section class="tips"><div class="tips-title">使用逻辑</div><div>导入图片 → 自动拆字符 → 填映射 → 保存 → 输入数字 → 生成图层。</div><div class="muted">推荐透明 PNG；纯色背景图片也可尝试自动识别。</div></section>
     </main>
   </div>
-</template>
+</div>
 
-<template id="tpl-removeBgPanel">
+<div id="view-removeBgPanel" class="suite-view" style="display:none">
   <div class="tool tool-remove">
     <main class="panel">
       <header class="header"><div><div class="title">透明对象拆分工具</div><div class="subtitle">选中已去背景透明图层 → 自动拆分独立元素 → 每层转智能对象</div></div></header>
@@ -42,9 +53,9 @@
       <section class="card note-card"><div class="section-title">识别规则</div><div class="hint">不限定元素数量、位置或尺寸。透明区域之间真正断开的内容会被拆成不同图层；如果两个元素在透明图里实际连在一起，会被视为同一个元素。</div></section>
     </main>
   </div>
-</template>
+</div>
 
-<template id="tpl-textCutterPanel">
+<div id="view-textCutterPanel" class="suite-view" style="display:none">
   <div class="tool tool-text">
     <main class="panel">
       <header class="header"><div><div class="title">文字批量切图</div><div class="subtitle">复制临时 PSD → 改文字 → 只抽取目标层 → 干净单层文档 → 导出 PNG</div></div><div class="version">v1.0</div></header>
@@ -56,7 +67,9 @@
       <button id="runBtn" class="button primary full run-button">生成并导出 PNG</button><div id="message" class="message muted">等待操作</div>
     </main>
   </div>
-</template>
+</div>
+  </div>
+</div>
 
 <script src="main.js"></script>
 </body>
