@@ -75,7 +75,7 @@ function initPanel(rootNode) {
     console.error("[Photoshop Tools] Missing suite-shell in index.html");
     return;
   }
-  if (rootNode && rootNode !== shell && !rootNode.contains(shell)) {
+  if (rootNode && rootNode !== shell && shell.parentNode !== rootNode) {
     rootNode.appendChild(shell);
   }
   if (initialized) return;
