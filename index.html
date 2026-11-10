@@ -24,6 +24,54 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #message {line-height:1.6;color:#c3c3c3;}
 .spacer {height:640px;border-top:1px solid #4a4a4a;margin-top:20px;padding-top:16px;color:#999;}
 #bottomText {padding:10px 0;}
+
+/* Original nine-slice styles, isolated inside its view */
+#nineSliceView *{box-sizing:border-box}
+#nineSliceView, #nineSliceView{margin:0;width:100%;height:100%;overflow:hidden;background:#25242c;color:#eeeaf6;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
+#nineSliceView .root{height:100vh;width:100%;display:flex;flex-direction:column;overflow:hidden;min-width:255px}
+#nineSliceView .scroll-area{min-height:0;overflow-y:scroll;overflow-x:hidden;flex:1;padding:12px 14px 8px}
+#nineSliceView header{display:flex;align-items:center;gap:10px;border-bottom:1px solid #444150;padding:4px 2px 14px;margin-bottom:12px}
+#nineSliceView header img{width:37px;height:37px}
+#nineSliceView header strong{font-size:17px;display:block}
+#nineSliceView header small{font-size:11px;color:#ada7c0;display:block;margin-top:4px}
+#nineSliceView section{border:1px solid #484453;border-radius:9px;background:#302e38;padding:12px;margin-bottom:11px;display:block}
+#nineSliceView .section-title{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:13px;font-weight:bold;margin-bottom:10px}
+#nineSliceView .field-title{margin:12px 0 8px;font-size:12px;color:#d6d0e5}
+#nineSliceView .hint{color:#bbb5ca;font-size:11px;line-height:1.55;word-break:break-word}
+#nineSliceView button{border:1px solid #6c657d;background:#443f4f;color:#f9f7fc;border-radius:5px;padding:8px 12px;min-height:34px;font-size:12px;cursor:pointer}
+#nineSliceView button:hover{background:#62566e}
+#nineSliceView .primary{background:#8141e6;border-color:#b58bff;font-weight:bold}
+#nineSliceView .secondary{background:#464251}
+#nineSliceView .preview-wrap, #nineSliceView .output-wrap{position:relative;background:#494651;border:1px solid #5e5a6a;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;min-height:170px;margin:8px 0 12px}
+#nineSliceView .output-wrap{min-height:140px;max-height:260px}
+#nineSliceView #sourceCanvas{display:block;max-width:100%;max-height:290px;object-fit:contain}
+#nineSliceView #outputCanvas{max-width:100%;max-height:240px;object-fit:contain}
+#nineSliceView #guides{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+#nineSliceView .guide{position:absolute;pointer-events:auto;z-index:3}
+#nineSliceView .guide.v{top:0;height:100%;width:12px;margin-left:-6px;border-left:1px dashed #33dfff;cursor:ew-resize}
+#nineSliceView .guide.h{left:0;width:100%;height:12px;margin-top:-6px;border-top:1px dashed #33dfff;cursor:ns-resize}
+#nineSliceView .four, #nineSliceView .two{width:100%;display:flex;flex-wrap:wrap;gap:10px}
+#nineSliceView .four .field, #nineSliceView .two .field{display:block;flex:1 1 42%;min-width:85px}
+#nineSliceView .field label{display:block;color:#e3dff0;font-size:12px;margin-bottom:5px}
+#nineSliceView .field input{display:block!important;width:100%!important;height:37px!important;padding:7px 9px!important;color:#fff!important;background:#1e1d27!important;border:1px solid #767082!important;border-radius:5px!important;font-size:15px!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
+#nineSliceView .actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}
+#nineSliceView .actions .hint{flex:1;min-width:145px}
+#nineSliceView .mode{display:flex;flex-wrap:wrap;gap:14px;padding-top:15px}
+#nineSliceView .mode label{display:flex;align-items:center;gap:5px}
+#nineSliceView .footer{flex:none;border-top:1px solid #4f475c;background:#2a2833;padding:11px 14px 12px;display:flex;flex-wrap:wrap;gap:8px}
+#nineSliceView .footer button{flex:1;min-width:125px}
+#nineSliceView .footer #status{width:100%;max-height:90px;overflow-y:auto}
+#nineSliceView .error{color:#ffaca5!important}
+#nineSliceView .ok{color:#a1efb7!important}
+#nineSliceView .diagnostic{padding:3px 0 5px;color:#d4cde3;user-select:text}
+#nineSliceView #destLabel{font-weight:normal}
+#bodyArea.nine-active{padding:0;overflow:hidden}
+#nineSliceView{height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;background:#25242c;color:#eeeaf6}
+#nineSliceView .root{height:100%;min-width:0}
+#nineSliceView .four,#nineSliceView .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#nineSliceView .four .field,#nineSliceView .two .field{flex:none;min-width:0;width:100%;margin:0}
+#nineSliceView .field input{width:100%!important;max-width:100%!important;margin:0!important;box-sizing:border-box!important}
+
 </style>
 </head>
 <body>
