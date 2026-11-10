@@ -1,4 +1,4 @@
-/* Stable UXP menu. Only Nine Slice is connected in this test branch. */
+/* Tested Photoshop Tools selector; only two feature modules are active. */
 (function () {
   var picker = document.getElementById("picker");
   var menu = document.getElementById("dropdown");
@@ -7,12 +7,15 @@
   var message = document.getElementById("message");
   var options = menu.querySelectorAll(".item");
   var loadedNineSlice = false;
+  var loadedSpriteFont = false;
   picker.addEventListener("click", function () {
     menu.style.display = menu.style.display === "none" ? "block" : "none";
   });
   for (var i = 0; i < options.length; i++) {
     options[i].addEventListener("click", function () {
       var name = this.getAttribute("data-name");
+      var showNine = name === "九宫格拉伸";
+      var showSprite = name === "图片数字排版";
       label.textContent = name;
       heading.textContent = name;
       message.textContent = "此工具将在后续测试阶段接入。";
@@ -20,18 +23,21 @@
         options[j].className = options[j] === this ? "item selected" : "item";
         options[j].querySelector(".check").textContent = options[j] === this ? "✓" : "";
       }
-      var activeNine = name === "九宫格拉伸";
       var nineView = document.getElementById("nineSliceView");
-      nineView.style.display = activeNine ? "block" : "none";
-      heading.style.display = activeNine ? "none" : "block";
-      message.style.display = activeNine ? "none" : "block";
-      document.querySelector(".spacer").style.display = activeNine ? "none" : "block";
-      document.getElementById("bottomText").style.display = activeNine ? "none" : "block";
+      var spriteView = document.getElementById("spriteFontView");
+      nineView.style.display = showNine ? "block" : "none";
+      spriteView.style.display = showSprite ? "block" : "none";
+      var showFallback = !showNine && !showSprite;
+      heading.style.display = showFallback ? "block" : "none";
+      message.style.display = showFallback ? "block" : "none";
+      document.querySelector(".spacer").style.display = showFallback ? "block" : "none";
+      document.getElementById("bottomText").style.display = showFallback ? "block" : "none";
       var area = document.getElementById("bodyArea");
-      if (activeNine) area.classList.add("nine-active");
+      if (showNine) area.classList.add("nine-active");
       else area.classList.remove("nine-active");
       menu.style.display = "none";
-      if (activeNine && !loadedNineSlice) {
+
+      if (showNine && !loadedNineSlice) {
         try {
           require("./nine-slice.js")(nineView);
           loadedNineSlice = true;
@@ -42,6 +48,19 @@
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "九宫格工具启动失败";
+          message.textContent = String(error && error.message || error);
+        }
+      }
+      if (showSprite && !loadedSpriteFont) {
+        try {
+          require("./sprite-font.js")(spriteView);
+          loadedSpriteFont = true;
+        } catch (error) {
+          console.error("[Photoshop Tools] Sprite Font failed:", error);
+          spriteView.style.display = "none";
+          heading.style.display = "block";
+          message.style.display = "block";
+          heading.textContent = "图片数字排版工具启动失败";
           message.textContent = String(error && error.message || error);
         }
       }
