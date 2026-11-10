@@ -2,7 +2,7 @@
   "manifestVersion": 5,
   "id": "com.huangtools.photoshoptools",
   "name": "Photoshop Tools",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "index.html",
   "host": {
     "app": "PS",
@@ -42,7 +42,7 @@
         {
           "width": 23,
           "height": 23,
-          "path": "icons/plugin.png",
+          "path": "icons/nine-slice.png",
           "scale": [
             1
           ],
