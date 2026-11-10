@@ -9,9 +9,9 @@
 
 ## 结构
 
-- `manifest.json`：统一插件清单，包含 4 个 panel entrypoint
-- `index.html`：4 个 panel 的独立界面模板
-- `main.js`：统一注册 4 个 panel，并把各自 UI 挂载到独立 rootNode
+- `manifest.json`：统一插件清单，包含 1 个 panel entrypoint 和 4 个可切换工具
+- `index.html`：4 个工具的独立界面模板
+- `main.js`：注册单个 Photoshop Tools panel，在顶部标签栏切换 4 个工具，并将各自 UI 挂载到独立容器
 - `tools/nine-slice/index.js`
 - `tools/sprite-font/index.js`
 - `tools/remove-bg/index.js`
@@ -37,7 +37,7 @@
 
 为了让四个工具能够在同一个插件中共存，只做了以下整合层修改：
 
-- 把每个工具的 DOM 查找范围限制在自己的 panel rootNode 内，避免重复 ID 冲突。
+- 把每个工具的 DOM 查找范围限制在自己的工具容器内，避免重复 ID 冲突。
 - 把原本各自独立的加载入口改为由统一的 `main.js` 挂载。
 - 移除子工具内部重复的 `entrypoints.setup()`，由统一入口只注册一次。
 - 保留各工具原有 localStorage key，避免设置互相覆盖。
@@ -46,4 +46,10 @@
 
 用 UXP Developer Tool 加载本仓库根目录，或后续打包为 CCX 后安装。
 
-Photoshop 中会显示 4 个独立 Panel，但它们属于同一个插件，因此只需要安装一次。
+Photoshop 中只显示一个 Photoshop Tools Panel。面板顶部有 4 个工具切换按钮，安装一次即可使用全部工具。
+
+## 统一面板（v1.0.1）
+
+只有一个 Photoshop Tools 面板，顶部以 2×2 按钮切换：九宫格拉伸、图片数字排版、透明对象拆分、文字批量切图。首次切换时才初始化对应工具，之后切换保持页面输入和预览状态。为避免输入框错位，九宫格的 L/R/T/B 和 W/H 改用两列 Grid 布局。
+
+原 Photoshop 处理算法及操作逻辑没有改动。本版本尚需在真实 Photoshop / UXP Developer Tool 中进行交互回归验证。
