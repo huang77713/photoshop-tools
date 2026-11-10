@@ -1,22 +1,53 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>PS Tools Static Menu Test</title>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PS Tools Menu Test</title>
 <style>
-body{margin:0;padding:0;background:#2b2b2b;color:#eeeeee;font-family:Arial,sans-serif;font-size:13px}
-.header{padding:14px 16px;background:#252525;border-bottom:1px solid #444;font-size:16px}
-.menu{margin:12px;border:1px solid #555;background:#303030;border-radius:4px;padding:6px}
-.item{display:block;padding:12px 8px;border-bottom:1px solid #444}
-.item:last-child{border-bottom:0}
-.hint{padding:16px;color:#aaa;line-height:1.5}
+* {box-sizing:border-box;}
+html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#eee;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px;}
+#app {height:100%;width:100%;display:flex;flex-direction:column;min-height:0;min-width:0;}
+#topbar {height:52px;min-height:52px;position:relative;z-index:10;border-bottom:1px solid #494949;background:#252525;}
+#picker {height:52px;width:100%;display:flex;align-items:center;padding:0 15px;gap:9px;cursor:pointer;user-select:none;}
+#pickerIcon {width:23px;height:23px;object-fit:contain;flex:none;}
+#pickerName {font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#pickerArrow {font-size:20px;padding-left:4px;}
+#dropdown {position:absolute;top:50px;left:9px;right:9px;background:#343434;border:1px solid #595959;border-radius:5px;padding:5px 0;z-index:30;max-height:250px;overflow-y:auto;}
+.item {min-height:45px;display:flex;align-items:center;gap:10px;padding:10px 13px;cursor:pointer;border-bottom:1px solid #434343;}
+.item:last-child {border-bottom:0;}
+.item.selected {background:#444;}
+.item img {width:23px;height:23px;object-fit:contain;flex:none;}
+.item .check {margin-left:auto;color:#77adff;}
+#bodyArea {min-height:0;flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 16px 30px;}
+#heading {font-size:17px;font-weight:700;margin:0 0 12px;}
+#message {line-height:1.6;color:#c3c3c3;}
+.spacer {height:640px;border-top:1px solid #4a4a4a;margin-top:20px;padding-top:16px;color:#999;}
+#bottomText {padding:10px 0;}
 </style>
 </head>
 <body>
-<div class="header">PS Tools Static Menu</div>
-<div class="menu">
-  <div class="item">九宫格拉伸</div>
-  <div class="item">图片数字排版</div>
-  <div class="item">透明对象拆分</div>
-  <div class="item">文字批量切图</div>
+<div id="app">
+  <div id="topbar">
+    <div id="picker" role="button" tabindex="0" aria-label="选择工具">
+      <img id="pickerIcon" src="icons/panel.png" alt="">
+      <span id="pickerName">选择工具</span>
+      <span id="pickerArrow">⌄</span>
+    </div>
+    <div id="dropdown" style="display:none;">
+      <div class="item" data-name="九宫格拉伸"><img src="icons/panel.png" alt=""><span>九宫格拉伸</span><span class="check"></span></div>
+      <div class="item" data-name="图片数字排版"><img src="icons/panel.png" alt=""><span>图片数字排版</span><span class="check"></span></div>
+      <div class="item" data-name="透明对象拆分"><img src="icons/panel.png" alt=""><span>透明对象拆分</span><span class="check"></span></div>
+      <div class="item" data-name="文字批量切图"><img src="icons/panel.png" alt=""><span>文字批量切图</span><span class="check"></span></div>
+    </div>
+  </div>
+  <div id="bodyArea">
+    <div id="heading">菜单交互测试</div>
+    <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
+    <div class="spacer">滚动测试：可向下滑动直到末尾。</div>
+    <div id="bottomText">已经到达底部。以后完整工具的内容会在这个区域内滚动。</div>
+  </div>
 </div>
-<div class="hint">静态菜单测试：没有 JavaScript，没有 Photoshop API，没有交互事件。</div>
-</body></html>
+<script src="menu.js"></script>
+</body>
+</html>
