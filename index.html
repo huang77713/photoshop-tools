@@ -10,14 +10,14 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #app {height:100%;width:100%;display:flex;flex-direction:column;min-height:0;min-width:0;}
 #topbar {height:52px;min-height:52px;position:relative;z-index:10;border-bottom:1px solid #494949;background:#252525;}
 #picker {height:52px;width:100%;display:flex;align-items:center;padding:0 15px;gap:9px;cursor:pointer;user-select:none;}
-#pickerIcon {width:23px;height:23px;object-fit:contain;flex:none;}
+#pickerIcon {display:none;}
 #pickerName {font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#pickerArrow {font-size:20px;padding-left:4px;}
+#pickerArrow {display:block;flex:none;width:9px;height:9px;border-right:2px solid #dddddd;border-bottom:2px solid #dddddd;transform:rotate(45deg);margin-left:4px;margin-top:-5px;}
 #dropdown {position:absolute;top:50px;left:9px;right:9px;background:#343434;border:1px solid #595959;border-radius:5px;padding:5px 0;z-index:30;max-height:250px;overflow-y:auto;}
 .item {min-height:45px;display:flex;align-items:center;gap:10px;padding:10px 13px;cursor:pointer;border-bottom:1px solid #434343;}
 .item:last-child {border-bottom:0;}
 .item.selected {background:#444;}
-.item img {width:23px;height:23px;object-fit:contain;flex:none;}
+.item img {display:none;}
 .item .check {margin-left:auto;color:#77adff;}
 #bodyArea {min-height:0;flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 16px 30px;}
 #heading {font-size:17px;font-weight:700;margin:0 0 12px;}
@@ -158,20 +158,20 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 <div id="app">
   <div id="topbar">
     <div id="picker" role="button" tabindex="0" aria-label="选择工具">
-      <img id="pickerIcon" src="icons/panel.png" alt="">
+      
       <span id="pickerName">选择工具</span>
-      <span id="pickerArrow">⌄</span>
+      <span id="pickerArrow" aria-hidden="true"></span>
     </div>
     <div id="dropdown" style="display:none;">
-      <div class="item" data-name="九宫格拉伸"><img src="icons/panel.png" alt=""><span>九宫格拉伸</span><span class="check"></span></div>
-      <div class="item" data-name="图片数字排版"><img src="icons/panel.png" alt=""><span>图片数字排版</span><span class="check"></span></div>
-      <div class="item" data-name="透明对象拆分"><img src="icons/panel.png" alt=""><span>透明对象拆分</span><span class="check"></span></div>
-      <div class="item" data-name="文字批量切图"><img src="icons/panel.png" alt=""><span>文字批量切图</span><span class="check"></span></div>
+      <div class="item" data-name="九宫格拉伸"><span>九宫格拉伸</span><span class="check"></span></div>
+      <div class="item" data-name="图片数字排版"><span>图片数字排版</span><span class="check"></span></div>
+      <div class="item" data-name="透明对象拆分"><span>透明对象拆分</span><span class="check"></span></div>
+      <div class="item" data-name="文字批量切图"><span>文字批量切图</span><span class="check"></span></div>
     </div>
   </div>
   <div id="bodyArea">
     <div id="nineSliceView" style="display:none"><div class="root"><div class="scroll-area">
-  <header><img src="icons/plugin.png"/><div><strong>Nine Slice Resize</strong><small>九宫格自由拉伸 · 保持圆角不变</small></div></header>
+  <header><div><strong>Nine Slice Resize</strong><small>九宫格自由拉伸 · 保持圆角不变</small></div></header>
   <section><div class="section-title">① 选择图层 <button id="load" class="secondary">读取选中图层</button></div><div id="sourceInfo" class="hint diagnostic">请在 Photoshop 中选中一个像素图层</div><div class="preview-wrap" id="sourceWrap"><img id="sourceCanvas" alt="源图预览"><div id="guides"><div class="guide v" data-guide="left"></div><div class="guide v" data-guide="right"></div><div class="guide h" data-guide="top"></div><div class="guide h" data-guide="bottom"></div></div></div>
   <div class="field-title">固定区域尺寸（单位：px，可手动输入）</div><div class="four"><div class="field"><label>左边 L</label><input id="left" type="text" inputmode="numeric" min="0" value="20"></div><div class="field"><label>右边 R</label><input id="right" type="text" inputmode="numeric" min="0" value="20"></div><div class="field"><label>上边 T</label><input id="top" type="text" inputmode="numeric" min="0" value="20"></div><div class="field"><label>下边 B</label><input id="bottom" type="text" inputmode="numeric" min="0" value="20"></div></div><div class="actions"><button id="reset" class="secondary">均分默认</button><span class="hint">只需移动四条青色虚线。四个角保持原尺寸；边和中心拉伸。</span></div></section>
   <section><div class="section-title">② 输出尺寸</div><div class="field-title">输出宽度和高度（单位：px）</div><div class="two"><div class="field"><label>宽度 W</label><input id="width" type="text" inputmode="numeric" min="1" max="12000" value="1000"></div><div class="field"><label>高度 H</label><input id="height" type="text" inputmode="numeric" min="1" max="12000" value="650"></div></div><div class="mode"><label><input type="radio" name="mode" value="stretch" checked> 拉伸 Stretch</label><label><input type="radio" name="mode" value="tile"> 平铺 Tile</label></div></section>
