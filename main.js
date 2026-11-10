@@ -35,6 +35,8 @@ function selectTool(id) {
     if (check) check.textContent = active ? "✓" : "";
   }
   selectedTool = id;
+  const home = document.getElementById("toolWelcome");
+  if (home) home.style.display = "none";
   setMenu(false);
   if (loaded[id]) return;
   // Literal CommonJS imports keep UXP's module resolver deterministic.
