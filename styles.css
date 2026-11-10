@@ -121,3 +121,5 @@ body{overflow:hidden}
 .tool-nine .actions{min-width:0}
 .tool-nine .footer{min-width:0}
 @media(max-width:360px){.suite-tab{padding:6px;font-size:10px}.suite-tab img{width:16px;height:16px}.tool-nine .four,.tool-nine .two{gap:8px}}
+
+.suite-home{height:100%;width:100%;display:flex;align-items:center;justify-content:center;color:#a9b2c3;font-size:12px;padding:20px;text-align:center}
