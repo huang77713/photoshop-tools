@@ -1,8 +1,8 @@
 {
   "manifestVersion": 5,
-  "id": "com.huangtools.photoshoptools",
-  "name": "Photoshop Tools",
-  "version": "2.1.1",
+  "id": "com.huangtools.photoshoptools.diagnostic",
+  "name": "PS Tools Diagnostic",
+  "version": "0.0.1",
   "main": "index.html",
   "host": {
     "app": "PS",
@@ -12,37 +12,30 @@
       "loadEvent": "use"
     }
   },
-  "requiredPermissions": {
-    "localFileSystem": "request"
-  },
   "entrypoints": [
     {
       "type": "panel",
-      "id": "photoshopToolsPanel",
+      "id": "diagnosticPanel",
       "label": {
-        "default": "Photoshop Tools"
+        "default": "PS Tools Diagnostic"
       },
       "minimumSize": {
-        "width": 280,
-        "height": 400
-      },
-      "maximumSize": {
-        "width": 1400,
-        "height": 1900
+        "width": 240,
+        "height": 220
       },
       "preferredDockedSize": {
-        "width": 370,
-        "height": 700
+        "width": 300,
+        "height": 420
       },
       "preferredFloatingSize": {
-        "width": 420,
-        "height": 760
+        "width": 320,
+        "height": 450
       },
       "icons": [
         {
           "width": 23,
           "height": 23,
-          "path": "icons/nine-slice.png",
+          "path": "icons/panel.png",
           "scale": [
             1
           ],
