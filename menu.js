@@ -8,8 +8,16 @@
   var options = menu.querySelectorAll(".item");
   var loadedNineSlice = false;
   var loadedSpriteFont = false;
+  var bodyArea = document.getElementById("bodyArea");
+  function setMenuOpen(open) {
+    // Some UXP input controls render above CSS z-index layers. Hiding only
+    // the content's visibility prevents them from covering the selector.
+    // Visibility preserves DOM, input values, layout, and scroll position.
+    bodyArea.style.visibility = open ? "hidden" : "visible";
+    menu.style.display = open ? "block" : "none";
+  }
   picker.addEventListener("click", function () {
-    menu.style.display = menu.style.display === "none" ? "block" : "none";
+    setMenuOpen(menu.style.display === "none");
   });
   for (var i = 0; i < options.length; i++) {
     options[i].addEventListener("click", function () {
@@ -35,7 +43,7 @@
       var area = document.getElementById("bodyArea");
       if (showNine) area.classList.add("nine-active");
       else area.classList.remove("nine-active");
-      menu.style.display = "none";
+      setMenuOpen(false);
 
       if (showNine && !loadedNineSlice) {
         try {
