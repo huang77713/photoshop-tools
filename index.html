@@ -1,22 +1,62 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>PS Tools Static Menu Test</title>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PS Tools Interaction Test</title>
 <style>
-body{margin:0;padding:0;background:#2b2b2b;color:#eeeeee;font-family:Arial,sans-serif;font-size:13px}
-.header{padding:14px 16px;background:#252525;border-bottom:1px solid #444;font-size:16px}
-.menu{margin:12px;border:1px solid #555;background:#303030;border-radius:4px;padding:6px}
-.item{display:block;padding:12px 8px;border-bottom:1px solid #444}
-.item:last-child{border-bottom:0}
-.hint{padding:16px;color:#aaa;line-height:1.5}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;background:#2b2b2b;color:#eee;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px}
+#app{height:100%;display:flex;flex-direction:column;min-width:0}
+.topbar{flex:none;background:#252525;border-bottom:1px solid #454545;padding:0 10px}
+#picker{width:100%;min-height:48px;display:flex;gap:12px;align-items:center;border:0;background:transparent;color:#f2f2f2;text-align:left;font-size:15px;font-family:inherit;padding:0 8px}
+#picker .arrow{font-size:21px}
+#menu{flex:none;margin:8px 10px 0;border:1px solid #575757;background:#303030;border-radius:5px;padding:4px;max-height:210px;overflow-y:auto;overflow-x:hidden}
+.option{display:block;width:100%;min-height:42px;padding:9px 11px;border:0;border-bottom:1px solid #444;background:transparent;color:#eee;text-align:left;font-size:13px;font-family:inherit}
+.option:last-child{border-bottom:0}
+.option.active{background:#414141}
+#workarea{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:18px 16px 28px}
+#heading{font-size:17px;font-weight:700;margin:0 0 10px}
+#description{color:#bbb;line-height:1.6}
+.test-spacer{height:440px;margin-top:20px;padding-top:20px;color:#8e8e8e;border-top:1px solid #444}
 </style>
 </head>
 <body>
-<div class="header">PS Tools Static Menu</div>
-<div class="menu">
-  <div class="item">九宫格拉伸</div>
-  <div class="item">图片数字排版</div>
-  <div class="item">透明对象拆分</div>
-  <div class="item">文字批量切图</div>
+<div id="app">
+  <div class="topbar"><button id="picker" type="button"><span id="current">选择工具</span><span class="arrow">⌄</span></button></div>
+  <div id="menu" style="display:none">
+    <button class="option" type="button" data-tool="九宫格拉伸">九宫格拉伸</button>
+    <button class="option" type="button" data-tool="图片数字排版">图片数字排版</button>
+    <button class="option" type="button" data-tool="透明对象拆分">透明对象拆分</button>
+    <button class="option" type="button" data-tool="文字批量切图">文字批量切图</button>
+  </div>
+  <div id="workarea">
+    <div id="heading">菜单切换测试</div>
+    <div id="description">点击左上角选择工具，观察名称是否改变。此版本不包含任何 Photoshop 功能代码。</div>
+    <div class="test-spacer">滚动测试：向下滑动面板，应该可以看到这一段文字继续向下移动。</div>
+    <div>已到达滚动区域底部。</div>
+  </div>
 </div>
-<div class="hint">静态菜单测试：没有 JavaScript，没有 Photoshop API，没有交互事件。</div>
+<script>
+(function () {
+  var picker = document.getElementById("picker");
+  var menu = document.getElementById("menu");
+  var options = menu.querySelectorAll(".option");
+  picker.addEventListener("click", function () {
+    menu.style.display = menu.style.display === "none" ? "block" : "none";
+  });
+  for (var i = 0; i < options.length; i++) {
+    options[i].addEventListener("click", function () {
+      var name = this.getAttribute("data-tool");
+      document.getElementById("current").textContent = name;
+      document.getElementById("heading").textContent = name;
+      document.getElementById("description").textContent = "切换成功：" + name + "。这里是同一个面板的内容区域。";
+      for (var j = 0; j < options.length; j++) {
+        options[j].className = options[j] === this ? "option active" : "option";
+      }
+      menu.style.display = "none";
+    });
+  }
+}());
+</script>
 </body></html>
