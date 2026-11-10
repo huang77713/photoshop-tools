@@ -1,110 +1,75 @@
-/* One Photoshop UXP plugin, one panel, four independently mounted tools. */
-const { entrypoints } = require("uxp");
-const definitions = {
-  nineSlicePanel: { title: "九宫格拉伸", icon: "icons/nine-slice.png" },
-  spriteFontComposerPanel: { title: "图片数字排版", icon: "icons/sprite-font.png" },
-  removeBgPanel: { title: "透明对象拆分", icon: "icons/remove-bg.png" },
-  textCutterPanel: { title: "文字批量切图", icon: "icons/text-cutter.png" }
+/* Simple UXP panel controller. All Photoshop functions are isolated in /features. */
+const tools = {
+  nineSlicePanel: {label:"九宫格拉伸",icon:"icons/nine-slice.png"},
+  spriteFontComposerPanel: {label:"图片数字排版",icon:"icons/sprite-font.png"},
+  removeBgPanel: {label:"透明对象拆分",icon:"icons/remove-bg.png"},
+  textCutterPanel: {label:"文字批量切图",icon:"icons/text-cutter.png"}
 };
-const loaded = Object.create(null);
-let selectedTool = "";
-let initialized = false;
+const initialized = Object.create(null);
+let active = null;
 let menuOpen = false;
+let ready = false;
+const byId = id => document.getElementById(id);
 
 function setMenu(open) {
   menuOpen = !!open;
-  const menu = document.getElementById("toolMenu");
-  const picker = document.getElementById("toolPicker");
-  if (menu) menu.style.display = menuOpen ? "block" : "none";
-  if (picker) picker.setAttribute("aria-expanded", String(menuOpen));
+  byId("switchMenu").style.display = menuOpen ? "block" : "none";
+  byId("switchButton").setAttribute("aria-expanded", menuOpen ? "true" : "false");
 }
-function selectTool(id) {
-  if (!Object.prototype.hasOwnProperty.call(definitions, id)) return;
-  const details = definitions[id];
-  const views = document.querySelectorAll(".suite-view");
-  for (const view of views) {
-    view.style.display = view.id === "view-" + id ? "block" : "none";
-  }
-  document.getElementById("currentToolName").textContent = details.title;
-  document.getElementById("currentToolIcon").src = details.icon;
-  const options = document.querySelectorAll(".tool-menu-item");
-  for (const option of options) {
-    const active = option.getAttribute("data-panel") === id;
-    option.classList.toggle("is-active", active);
-    const check = option.querySelector(".tool-check");
-    if (check) check.textContent = active ? "✓" : "";
-  }
-  selectedTool = id;
-  const home = document.getElementById("toolWelcome");
-  if (home) home.style.display = "none";
+
+function openTool(key) {
+  if (!Object.prototype.hasOwnProperty.call(tools, key)) return;
   setMenu(false);
-  if (loaded[id]) return;
-  // Literal CommonJS imports keep UXP's module resolver deterministic.
+  byId("welcome").style.display = "none";
+  for (const id of Object.keys(tools)) {
+    byId("view-" + id).style.display = id === key ? "block" : "none";
+  }
+  byId("switchLabel").textContent = tools[key].label;
+  byId("switchIcon").src = tools[key].icon;
+  const items = byId("switchMenu").querySelectorAll("[data-tool]");
+  for (const item of items) {
+    const selected = item.getAttribute("data-tool") === key;
+    item.classList.toggle("active", selected);
+    item.querySelector(".check").textContent = selected ? "✓" : "";
+  }
+  active = key;
+  if (initialized[key]) return;
   try {
-    let module;
-    if (id === "nineSlicePanel") module = require("./tools/nine-slice/index.js");
-    else if (id === "spriteFontComposerPanel") module = require("./tools/sprite-font/index.js");
-    else if (id === "removeBgPanel") module = require("./tools/remove-bg/index.js");
-    else module = require("./tools/text-cutter/index.js");
-    const root = document.getElementById("view-" + id);
-    if (!root || !module || typeof module.mount !== "function") {
-      throw new Error("无法加载工具模块：" + id);
-    }
-    module.mount(root);
-    loaded[id] = true;
+    // No Photoshop code is executed until its tool is chosen.
+    let mount;
+    if (key === "nineSlicePanel") mount = require("./features/nine-slice.js");
+    else if (key === "spriteFontComposerPanel") mount = require("./features/sprite-font.js");
+    else if (key === "removeBgPanel") mount = require("./features/remove-bg.js");
+    else mount = require("./features/text-cutter.js");
+    if (typeof mount !== "function") throw new Error("功能模块未正确导出");
+    mount(byId("view-" + key));
+    initialized[key] = true;
   } catch (error) {
-    console.error("[Photoshop Tools] " + id, error);
-    const root = document.getElementById("view-" + id);
-    if (root) {
-      let warning = root.querySelector(".suite-error");
-      if (!warning) {
-        warning = document.createElement("div");
-        warning.className = "suite-error";
-        root.insertBefore(warning, root.firstChild);
-      }
-      warning.textContent = "工具启动失败：" + (error.message || String(error));
+    console.error("[Photoshop Tools] "+key,error);
+    const view = byId("view-" + key);
+    let message = view.querySelector(".feature-error");
+    if (!message) {
+      message = document.createElement("div");
+      message.className = "feature-error";
+      message.style.cssText = "padding:10px;color:#ffb0a8;background:#392b2b;border:1px solid #8d5353;";
+      view.insertBefore(message, view.firstChild);
     }
+    message.textContent = "加载失败：" + (error.message || String(error));
   }
 }
 
-function initPanel(rootNode) {
-  // In UXP, the visible panel has its own rootNode. The markup in index.html
-  // must be attached to that node; otherwise Photoshop can show a blank panel.
-  const shell = document.getElementById("suite-shell");
-  if (!shell) {
-    console.error("[Photoshop Tools] Missing suite-shell in index.html");
-    return;
+function init() {
+  if (ready) return;
+  const button = byId("switchButton");
+  const menu = byId("switchMenu");
+  if (!button || !menu) return;
+  ready = true;
+  button.addEventListener("click", () => setMenu(!menuOpen));
+  for (const item of menu.querySelectorAll("[data-tool]")) {
+    item.addEventListener("click", () => openTool(item.getAttribute("data-tool")));
   }
-  if (rootNode && rootNode !== shell && shell.parentNode !== rootNode) {
-    rootNode.appendChild(shell);
-  }
-  if (initialized) return;
-  const picker = document.getElementById("toolPicker");
-  const menu = document.getElementById("toolMenu");
-  if (!picker || !menu) return;
-  initialized = true;
-  picker.addEventListener("click", () => setMenu(!menuOpen));
-  const options = menu.querySelectorAll(".tool-menu-item");
-  for (const option of options) {
-    option.addEventListener("click", () => selectTool(option.getAttribute("data-panel")));
-  }
-  // Show the first view without executing any Photoshop processing code at launch.
-  // It is mounted when the user explicitly chooses it from the dropdown.
-  selectedTool = "";
   setMenu(false);
-  const views = document.querySelectorAll(".suite-view");
-  for (const view of views) view.style.display = "none";
-  document.getElementById("currentToolName").textContent = "选择工具";
-  document.getElementById("currentToolIcon").src = "icons/plugin.png";
-  const home = document.getElementById("toolWelcome");
-  if (home) home.style.display = "flex";
+  // Startup is intentionally UI-only, to minimize host crash risk.
 }
-
-entrypoints.setup({
-  panels: {
-    photoshopToolsPanel: {
-      create(rootNode) { initPanel(rootNode); },
-      show(rootNode) { initPanel(rootNode); }
-    }
-  }
-});
+if (document.readyState === "loading") window.addEventListener("load", init);
+else init();
