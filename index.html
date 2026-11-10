@@ -1,9 +1,22 @@
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>PS Tools Diagnostic</title></head>
-<body style="background:#292929;color:#eeeeee;font-family:Arial,sans-serif;padding:16px;">
-  <h3>PS Tools Diagnostic</h3>
-  <p>Minimal UI loaded successfully.</p>
-  <p>There is no JavaScript and no Photoshop API call in this test.</p>
-</body>
-</html>
+<head><meta charset="UTF-8"><title>PS Tools Static Menu Test</title>
+<style>
+body{margin:0;padding:0;background:#2b2b2b;color:#eeeeee;font-family:Arial,sans-serif;font-size:13px}
+.header{padding:14px 16px;background:#252525;border-bottom:1px solid #444;font-size:16px}
+.menu{margin:12px;border:1px solid #555;background:#303030;border-radius:4px;padding:6px}
+.item{display:block;padding:12px 8px;border-bottom:1px solid #444}
+.item:last-child{border-bottom:0}
+.hint{padding:16px;color:#aaa;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="header">PS Tools Static Menu</div>
+<div class="menu">
+  <div class="item">九宫格拉伸</div>
+  <div class="item">图片数字排版</div>
+  <div class="item">透明对象拆分</div>
+  <div class="item">文字批量切图</div>
+</div>
+<div class="hint">静态菜单测试：没有 JavaScript，没有 Photoshop API，没有交互事件。</div>
+</body></html>
