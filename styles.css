@@ -1,0 +1,95 @@
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;min-height:0;background:var(--uxp-host-background-color,#2b2b2b);color:var(--uxp-host-text-color,#f3f3f3);font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
+body{overflow:hidden}
+.tool{width:100%;height:100%;min-height:0;background:var(--uxp-host-background-color,#2b2b2b);color:var(--uxp-host-text-color,#f3f3f3)}
+.tool .panel{width:100%;height:100%;min-height:0;padding:14px 14px 28px;overflow-y:auto;overflow-x:hidden}
+.tool .header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+.tool .title{font-size:17px;font-weight:700;line-height:1.3}
+.tool .subtitle{margin-top:4px;color:rgba(220,220,220,.68);font-size:11px;line-height:1.45}
+.tool .version{color:rgba(220,220,220,.68);font-size:10px;padding-top:3px}
+.tool .card{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);border-radius:8px;padding:12px;margin-bottom:10px}
+.tool .template-card{background:rgba(255,255,255,.08)}
+.tool .note-card{margin-top:10px}
+.tool .row{display:flex;align-items:center;gap:8px}
+.tool .between{justify-content:space-between}
+.tool .gap8{gap:8px}
+.tool .grow{flex:1;min-width:0}
+.tool .section-title,.tool .label{display:block;font-weight:600;margin-bottom:6px}
+.tool .status{font-size:11px;margin-top:4px;word-break:break-all;min-height:16px;line-height:1.45}
+.tool .muted{color:rgba(220,220,220,.68)}
+.tool .success{color:#6bd18a!important}
+.tool .error{color:#ff6b6b!important}
+.tool .warning{color:#e5b567!important}
+.tool input[type="text"],.tool input[type="number"],.tool select,.tool textarea{width:100%;border:1px solid rgba(255,255,255,.12);border-radius:6px;background:rgba(0,0,0,.22);color:var(--uxp-host-text-color,#f3f3f3);padding:8px 9px;font-size:13px;outline:none}
+.tool textarea{resize:vertical;min-height:68px;line-height:1.45}
+.tool input:focus,.tool textarea:focus,.tool select:focus{border-color:#4c9aff}
+.tool .field+.field{margin-top:11px}
+.tool .hint{color:rgba(220,220,220,.68);font-size:10px;margin-top:5px;line-height:1.5;word-break:break-word}
+.tool .button,.tool .chip,.tool button{border:1px solid rgba(255,255,255,.12);border-radius:6px;color:var(--uxp-host-text-color,#f3f3f3);background:rgba(255,255,255,.07);padding:7px 10px;font-size:12px;cursor:pointer}
+.tool .button:hover,.tool .chip:hover,.tool button:hover{background:rgba(255,255,255,.12)}
+.tool .button.primary,.tool .primary{background:#4c9aff;border-color:#4c9aff;color:#fff;font-weight:700}
+.tool .button.primary:hover,.tool .primary:hover{background:#69aaff}
+.tool .button.secondary,.tool .secondary{background:rgba(255,255,255,.07)}
+.tool .button.small{padding:6px 8px;font-size:11px}
+.tool .button.full{width:100%}
+.tool .button.wide{width:100%;margin-top:2px}
+.tool .button.danger{color:#f4c1c1;border-color:#704747}
+.tool .button:disabled,.tool button:disabled{opacity:.45}
+.tool .run-button{min-height:40px;margin-top:2px}
+.tool .message{min-height:18px;margin-top:9px;text-align:center;font-size:11px;line-height:1.45}
+.tool .flow-list{color:rgba(220,220,220,.68);font-size:11px;line-height:1.65}
+.tool .flow-list div+div{margin-top:2px}
+.tool .preset-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tool .chip{padding:5px 8px;font-size:11px}
+.tool .param-stack{display:flex;flex-direction:column;gap:14px;width:100%}
+.tool .param-stack .field+.field{margin-top:0}
+.tool .param-field{display:block;width:100%}
+.tool .parameter-card{min-height:170px}
+.tool .folder-path{min-height:34px;padding:8px;border-radius:6px;border:1px dashed rgba(255,255,255,.12);background:rgba(0,0,0,.12);margin-bottom:8px;word-break:break-all;line-height:1.4}
+.tool .check-row,.tool .checkbox-row{display:flex;align-items:center;gap:8px;cursor:pointer}
+.tool .check-row input,.tool .checkbox-row input{margin:0}
+.tool .two-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tool .meta-row{align-items:center}
+.tool .mono{font-family:Consolas,"SFMono-Regular",monospace}
+.tool .text-input{font-size:16px;letter-spacing:.4px}
+.tool .glyph-preview{min-height:72px;max-height:180px;overflow-y:auto;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:7px;display:flex;flex-wrap:wrap;align-content:flex-start;gap:5px}
+.tool .glyph-preview.empty{display:block;color:rgba(220,220,220,.68);line-height:1.6}
+.tool .glyph-chip{min-width:42px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.22);border-radius:5px;padding:5px 6px;display:flex;flex-direction:column;gap:2px}
+.tool .glyph-char{font-size:15px;font-weight:700;line-height:1.1}
+.tool .glyph-index,.tool .glyph-size{color:rgba(220,220,220,.6);font-size:9px}
+.tool .tips{color:#c7c7c7;line-height:1.55;padding:0 2px 4px}
+.tool .tips-title{font-weight:700;margin-bottom:2px}
+
+.tool-nine{font-size:12px}
+.tool-nine .root{height:100%;width:100%;display:flex;flex-direction:column;overflow:hidden;min-width:255px}
+.tool-nine .scroll-area{min-height:0;overflow-y:scroll;overflow-x:hidden;flex:1;padding:12px 14px 8px}
+.tool-nine header{display:flex;align-items:center;gap:10px;border-bottom:1px solid #444150;padding:4px 2px 14px;margin-bottom:12px}
+.tool-nine header strong{font-size:17px;display:block}
+.tool-nine header small{font-size:11px;color:#ada7c0;display:block;margin-top:4px}
+.tool-nine section{border:1px solid #484453;border-radius:9px;background:#302e38;padding:12px;margin-bottom:11px;display:block}
+.tool-nine .section-title{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:13px;font-weight:bold;margin-bottom:10px}
+.tool-nine .field-title{margin:12px 0 8px;font-size:12px;color:#d6d0e5}
+.tool-nine .hint{color:#bbb5ca;font-size:11px;line-height:1.55}
+.tool-nine .preview-wrap,.tool-nine .output-wrap{position:relative;background:#494651;border:1px solid #5e5a6a;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;min-height:170px;margin:8px 0 12px}
+.tool-nine .output-wrap{min-height:140px;max-height:260px}
+.tool-nine #sourceCanvas{display:block;max-width:100%;max-height:290px;object-fit:contain}
+.tool-nine #outputCanvas{max-width:100%;max-height:240px;object-fit:contain}
+.tool-nine #guides{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+.tool-nine .guide{position:absolute;pointer-events:auto;z-index:3}
+.tool-nine .guide.v{top:0;height:100%;width:12px;margin-left:-6px;border-left:1px dashed #33dfff;cursor:ew-resize}
+.tool-nine .guide.h{left:0;width:100%;height:12px;margin-top:-6px;border-top:1px dashed #33dfff;cursor:ns-resize}
+.tool-nine .four,.tool-nine .two{width:100%;display:flex;flex-wrap:wrap;gap:10px}
+.tool-nine .four .field,.tool-nine .two .field{display:block;flex:1 1 42%;min-width:85px}
+.tool-nine .field label{display:block;color:#e3dff0;font-size:12px;margin-bottom:5px}
+.tool-nine .field input{display:block!important;width:100%!important;height:37px!important;padding:7px 9px!important;color:#fff!important;background:#1e1d27!important;border:1px solid #767082!important;border-radius:5px!important;font-size:15px!important}
+.tool-nine .actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}
+.tool-nine .actions .hint{flex:1;min-width:145px}
+.tool-nine .mode{display:flex;flex-wrap:wrap;gap:14px;padding-top:15px}
+.tool-nine .mode label{display:flex;align-items:center;gap:5px}
+.tool-nine .footer{flex:none;border-top:1px solid #4f475c;background:#2a2833;padding:11px 14px 12px;display:flex;flex-wrap:wrap;gap:8px}
+.tool-nine .footer button{flex:1;min-width:125px}
+.tool-nine .footer #status{width:100%;max-height:90px;overflow-y:auto}
+.tool-nine .diagnostic{padding:3px 0 5px;color:#d4cde3;user-select:text}
+.tool-nine #destLabel{font-weight:normal}
+
+@media(max-width:310px){.tool .between{align-items:flex-start;flex-direction:column}}
