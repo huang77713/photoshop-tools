@@ -1,8 +1,8 @@
 {
   "manifestVersion": 5,
   "id": "com.huangtools.photoshoptools.fourfeaturetest",
-  "name": "PS Tools Four Features Test",
-  "version": "0.0.8",
+  "name": "Photoshop Tools Test",
+  "version": "0.0.9",
   "main": "index.html",
   "host": {
     "app": "PS",
@@ -17,7 +17,7 @@
       "type": "panel",
       "id": "fourFeaturesTestPanel",
       "label": {
-        "default": "PS Tools Four Features Test"
+        "default": "Photoshop Tools Test"
       },
       "minimumSize": {
         "width": 280,
