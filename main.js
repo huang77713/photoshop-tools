@@ -1,75 +1,95 @@
-/* Photoshop Tools: one panel, four isolated tool views.
-   Avoid dynamic HTML template APIs and initialize one tool on demand. */
+/* One Photoshop UXP plugin, one panel, four independently mounted tools. */
 const { entrypoints } = require("uxp");
-
-const toolFiles = {
-  nineSlicePanel: "./tools/nine-slice/index.js",
-  spriteFontComposerPanel: "./tools/sprite-font/index.js",
-  removeBgPanel: "./tools/remove-bg/index.js",
-  textCutterPanel: "./tools/text-cutter/index.js"
+const definitions = {
+  nineSlicePanel: { title: "九宫格拉伸", icon: "icons/nine-slice.png" },
+  spriteFontComposerPanel: { title: "图片数字排版", icon: "icons/sprite-font.png" },
+  removeBgPanel: { title: "透明对象拆分", icon: "icons/remove-bg.png" },
+  textCutterPanel: { title: "文字批量切图", icon: "icons/text-cutter.png" }
 };
-const instances = {};
-let activeId = null;
-let navigationReady = false;
+const loaded = Object.create(null);
+let selectedTool = "";
+let initialized = false;
+let menuOpen = false;
 
-function showTool(id) {
-  if (!Object.prototype.hasOwnProperty.call(toolFiles, id)) return;
-  if (id === activeId) return;
-
-  // First make the target visible, so the existing tool can measure its UI.
+function setMenu(open) {
+  menuOpen = !!open;
+  const menu = document.getElementById("toolMenu");
+  const picker = document.getElementById("toolPicker");
+  if (menu) menu.style.display = menuOpen ? "block" : "none";
+  if (picker) picker.setAttribute("aria-expanded", String(menuOpen));
+}
+function selectTool(id) {
+  if (!Object.prototype.hasOwnProperty.call(definitions, id)) return;
+  const details = definitions[id];
   const views = document.querySelectorAll(".suite-view");
   for (const view of views) {
     view.style.display = view.id === "view-" + id ? "block" : "none";
   }
-  const tabs = document.querySelectorAll(".suite-tab");
-  for (const tab of tabs) {
-    const isActive = tab.getAttribute("data-panel") === id;
-    tab.classList.toggle("is-active", isActive);
-    tab.setAttribute("aria-selected", String(isActive));
+  document.getElementById("currentToolName").textContent = details.title;
+  document.getElementById("currentToolIcon").src = details.icon;
+  const options = document.querySelectorAll(".tool-menu-item");
+  for (const option of options) {
+    const active = option.getAttribute("data-panel") === id;
+    option.classList.toggle("is-active", active);
+    const check = option.querySelector(".tool-check");
+    if (check) check.textContent = active ? "✓" : "";
   }
-  const home = document.getElementById("suite-home");
-  if (home) home.style.display = "none";
-  activeId = id;
-  if (!instances[id]) {
-    // Lazy loading prevents the other three tools from running during startup.
-    try {
-      const tool = id === "nineSlicePanel" ? require("./tools/nine-slice/index.js")
-        : id === "spriteFontComposerPanel" ? require("./tools/sprite-font/index.js")
-        : id === "removeBgPanel" ? require("./tools/remove-bg/index.js")
-        : require("./tools/text-cutter/index.js");
-      const root = document.getElementById("view-" + id);
-      if (!root || !tool || typeof tool.mount !== "function") {
-        throw new Error("Missing tool container or mount function: " + id);
-      }
-      tool.mount(root);
-      instances[id] = true;
-    } catch (err) {
-      console.error("[Photoshop Tools] Mount failed: " + id, err);
-      const root = document.getElementById("view-" + id);
-      if (root) {
-        const warning = document.createElement("div");
+  selectedTool = id;
+  setMenu(false);
+  if (loaded[id]) return;
+  // Literal CommonJS imports keep UXP's module resolver deterministic.
+  try {
+    let module;
+    if (id === "nineSlicePanel") module = require("./tools/nine-slice/index.js");
+    else if (id === "spriteFontComposerPanel") module = require("./tools/sprite-font/index.js");
+    else if (id === "removeBgPanel") module = require("./tools/remove-bg/index.js");
+    else module = require("./tools/text-cutter/index.js");
+    const root = document.getElementById("view-" + id);
+    if (!root || !module || typeof module.mount !== "function") {
+      throw new Error("无法加载工具模块：" + id);
+    }
+    module.mount(root);
+    loaded[id] = true;
+  } catch (error) {
+    console.error("[Photoshop Tools] " + id, error);
+    const root = document.getElementById("view-" + id);
+    if (root) {
+      let warning = root.querySelector(".suite-error");
+      if (!warning) {
+        warning = document.createElement("div");
         warning.className = "suite-error";
-        warning.textContent = "工具启动失败：" + (err.message || String(err));
-        root.appendChild(warning);
+        root.insertBefore(warning, root.firstChild);
       }
+      warning.textContent = "工具启动失败：" + (error.message || String(error));
     }
   }
 }
 
-function initialize() {
-  if (navigationReady) return;
-  navigationReady = true;
-  const tabs = document.querySelectorAll(".suite-tab");
-  for (const tab of tabs) {
-    tab.addEventListener("click", () => showTool(tab.getAttribute("data-panel")));
+function initPanel() {
+  if (initialized) return;
+  const picker = document.getElementById("toolPicker");
+  const menu = document.getElementById("toolMenu");
+  if (!picker || !menu) return;
+  initialized = true;
+  picker.addEventListener("click", () => setMenu(!menuOpen));
+  const options = menu.querySelectorAll(".tool-menu-item");
+  for (const option of options) {
+    option.addEventListener("click", () => selectTool(option.getAttribute("data-panel")));
   }
-  // The host opens only the lightweight navigator; no tool JS runs until click.
+  // Show the first view without executing any Photoshop processing code at launch.
+  // It is mounted when the user explicitly chooses it from the dropdown.
+  selectedTool = "";
+  setMenu(false);
+  const views = document.querySelectorAll(".suite-view");
+  for (const view of views) view.style.display = "none";
+  document.getElementById("currentToolName").textContent = "选择工具";
+  document.getElementById("currentToolIcon").src = "icons/plugin.png";
+  const home = document.getElementById("toolWelcome");
+  if (home) home.style.display = "flex";
 }
 
 entrypoints.setup({
   panels: {
-    photoshopToolsPanel: {
-      show() { initialize(); }
-    }
+    photoshopToolsPanel: { show() { initPanel(); } }
   }
 });
