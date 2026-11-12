@@ -657,8 +657,16 @@ function readSettings() {
 }
 
 async function splitObjects() {
-  const button = $("runBtn");
-  button.disabled = true;
+  if(splitting||analyzing)return;
+  const key=selectedKey();
+  if(!latestAnalysis||latestAnalysis.key!==key){
+    setMessage("请先确认当前图层的识别预览，再点击拆分。","error");
+    scheduleAnalysis(true);
+    return;
+  }
+  const button=$("runBtn");
+  splitting=true;
+  updateRunButton();
 
   let doc = null;
   let sourceLayer = null;
@@ -673,7 +681,9 @@ async function splitObjects() {
     const sourceLayerId = sourceLayer.id;
     const sourceName = sourceLayer.name;
     const sourceVisibleBefore = sourceLayer.visible;
-    const settings = readSettings();
+    const settings=readSettings();
+    const outputType=getOutputType();
+    if(latestAnalysis.minAreaPercent!==settings.minAreaPercent)throw new Error("识别参数已改变，请重新识别后拆分");
     saveSettings();
 
     let finalGroup = null;
@@ -761,18 +771,17 @@ async function splitObjects() {
 
         createdLayerIds.add(pixelLayer.id);
 
-        await selectLayerById(pixelLayer.id);
-        await convertActiveLayerToSmartObject();
-
-        const active = doc.activeLayers || [];
-        if (active.length !== 1) {
-          throw new Error(`${layerName} 转智能对象后无法取得结果层。`);
+        let outputLayer=pixelLayer;
+        if(outputType==="smart"){
+          await selectLayerById(pixelLayer.id);
+          await convertActiveLayerToSmartObject();
+          const active=doc.activeLayers||[];
+          if(active.length!==1)throw new Error(`${layerName} 转智能对象后无法取得结果层。`);
+          outputLayer=active[0];
+          createdLayerIds.add(outputLayer.id);
         }
-
-        const smartLayer = active[0];
-        createdLayerIds.add(smartLayer.id);
-        smartLayer.name = layerName;
-        smartLayer.move(finalGroup, constants.ElementPlacement.PLACEINSIDE);
+        outputLayer.name=layerName;
+        outputLayer.move(finalGroup,constants.ElementPlacement.PLACEINSIDE);
       }
 
       try { await doc.selection.deselect(); } catch (_) {}
@@ -803,7 +812,7 @@ async function splitObjects() {
       : "";
 
     setMessage(
-      `✓ 完成：拆出 ${elementCount} 个智能对象。原始图层保持不变。${extra}`,
+      `✓ 完成：拆出 ${elementCount} 个${outputType==="smart"?"智能对象":"像素图层"}。原始图层保持不变。${extra}`,
       "success"
     );
   } catch (err) {
@@ -821,13 +830,36 @@ async function splitObjects() {
     setMessage(`失败[${stage}]：${formatError(err)}`, "error");
     console.error(err);
   } finally {
-    button.disabled = false;
+    splitting=false;
+    latestAnalysis=null;
+    refreshLayerStatus();
+    scheduleAnalysis(true);
+    updateRunButton();
   }
 }
 
 function wireEvents() {
-  $("refreshLayerBtn").addEventListener("click", refreshLayerStatus);
-  $("runBtn").addEventListener("click", splitObjects);
+  $("refreshLayerBtn").addEventListener("click",()=>{refreshLayerStatus();scheduleAnalysis(true);});
+  $("runBtn").addEventListener("click",splitObjects);
+  $("advancedToggle").addEventListener("click",()=>{
+    const panel=$("advancedPanel");
+    const open=panel.style.display==="none";
+    panel.style.display=open?"block":"none";
+    $("advancedToggle").setAttribute("aria-expanded",open?"true":"false");
+    $("advancedArrow").textContent=open?"−":"+";
+  });
+  root.querySelectorAll(".ts-output-option").forEach(el=>{
+    function activate(){
+      setOutputType(el.dataset.output);
+    }
+    el.addEventListener("click",activate);
+    el.addEventListener("keydown",e=>{
+      if(e.key===" "||e.key==="Enter"){e.preventDefault();activate();}
+    });
+  });
+  ["minAreaPercent","padding"].forEach(id=>{
+    $(id).addEventListener("change",()=>{saveSettings();scheduleAnalysis(true);});
+  });
 
   ["groupName", "layerPrefix", "minAreaPercent", "padding"].forEach((id) => {
     $(id).addEventListener("change", saveSettings);
@@ -838,6 +870,23 @@ function init() {
   restoreSettings();
   wireEvents();
   refreshLayerStatus();
+  setOutputType("smart");
+  clearPreview("选择透明图层后自动识别");
+  root.__transparentSplitActivate=function(){
+    refreshLayerStatus();
+    scheduleAnalysis(false);
+  };
+  try{
+    action.addNotificationListener(["select","open","close"],(eventName,descriptor)=>{
+      if(!isVisible()||splitting)return;
+      if(eventName==="select"){
+        const targets=descriptor&&descriptor._target;
+        if(Array.isArray(targets)&&!targets.some(x=>x&&(x._ref==="layer"||x._ref==="document")))return;
+      }
+      scheduleAnalysis(false);
+    });
+  }catch(e){console.warn("[Transparent Split] selection listener unavailable",e);}
+  scheduleAnalysis(true);
 }
 
 init();
