@@ -598,7 +598,9 @@ async function analyzePreview(request){
     const result=buildConnectedComponents(pixels.data,pixels.width,pixels.height,pixels.components,minArea);
     sortReadingOrder(result.items);
     if(result.items.length>MAX_COMPONENTS)throw new Error("识别到过多碎片，请在高级设置中提高最小面积");
-    const maxWidth=460,maxHeight=245;
+    const previewEl=$("splitPreview");
+    const maxWidth=Math.max(100,Math.min(460,(previewEl.clientWidth||340)-24));
+    const maxHeight=195;
     const k=Math.min(maxWidth/pixels.width,maxHeight/pixels.height,1);
     const w=Math.max(1,Math.round(pixels.width*k)),h=Math.max(1,Math.round(pixels.height*k));
     const rgb=makePreviewBytes(pixels.data,pixels.width,pixels.height,pixels.components,w,h);
