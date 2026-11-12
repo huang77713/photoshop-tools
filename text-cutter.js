@@ -750,11 +750,17 @@ async function previewTemplate(request){
         name:source.layer.name,contents:getLayerText(source.layer)
       });
       await updateTextLayer(layer,{text,tracking:Number($("tracking").value)||0});
-      // Display only the edited target layer; prevent other PSD elements appearing.
+      // Move a nested text layer to the root of the disposable preview copy
+      // before hiding groups. This avoids hiding the text with its parent group.
+      if(!isTopLevelLayer(doc,layer)){
+        const anchor=Array.from(doc.layers||[])[0];
+        if(anchor&&anchor.id!==layer.id)await layer.move(anchor,constants.ElementPlacement.PLACEBEFORE);
+      }
       for(const l of flattenLayers(doc.layers||[])){
         if(l.id!==layer.id)try{l.visible=false;}catch(_){}
       }
       try{layer.visible=true;}catch(_){}
+      await ensureLayerFitsDocument(doc,layer,0);
       const b=getBounds(layer),width=Math.max(1,Math.ceil(boundsWidth(b))),height=Math.max(1,Math.ceil(boundsHeight(b)));
       if(width>0&&height>0){
         const max=480,k=Math.min(1,max/Math.max(width,height));
