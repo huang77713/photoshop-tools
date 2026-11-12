@@ -1,7 +1,7 @@
 /* Integrated from ps-text-cutter-uxp. Photoshop processing logic unchanged.
    DOM queries are isolated to this tool's own view. */
 module.exports = function mount(root) {
-const { app, core, constants } = require("photoshop");
+const { app, core, constants, imaging, action } = require("photoshop");
 const { storage } = require("uxp");
 
 const fs = storage.localFileSystem;
@@ -16,6 +16,47 @@ const STORAGE = {
 };
 
 let outputFolder = null;
+let exportRunning = false;
+let previewRunning = false;
+let previewTimer = null;
+let activePreviewRequest = 0;
+function currentMode(){
+  const el=root.querySelector('input[name="tcMode"]:checked');
+  return el&&el.value==="batch"?"batch":"single";
+}
+function exportCharacters(){
+  return Array.from(new Set(Array.from($("characters").value.replace(/[\r\n]/g,"")).filter(ch=>ch.trim()!=="")));
+}
+function refreshModeView(){
+  const mode=currentMode();
+  root.querySelectorAll(".tc-mode").forEach(el=>el.classList.toggle("selected",el.dataset.mode===mode));
+  $("tcNameLabel").textContent=mode==="batch"?"文件名前缀":"PNG 文件名";
+  $("tcModeHint").textContent=mode==="batch"?"每个不同字符单独导出透明 PNG":"整串内容导出为一张 PNG";
+  const n=mode==="batch"?exportCharacters().length:($("characters").value.trim()?1:0);
+  $("tcFileCount").textContent=n+" 张";
+  $("runBtn").textContent=mode==="batch"?"生成并导出 "+n+" 张 PNG":"生成并导出 PNG";
+}
+function currentLayerKey(){
+  try{
+    const doc=app.activeDocument,selected=doc&&doc.activeLayers;
+    return selected&&selected.length===1?doc.id+":"+selected[0].id:"";
+  }catch(_){return "";}
+}
+function activeView(){return root.style.display!=="none";}
+function scheduleRead(){
+  if(!activeView()||exportRunning)return;
+  refreshLayerStatus();
+  schedulePreview();
+}
+function schedulePreview(){
+  if(!activeView()||exportRunning)return;
+  if(previewTimer!==null)clearTimeout(previewTimer);
+  const request=++activePreviewRequest;
+  previewTimer=setTimeout(()=>{
+    previewTimer=null;
+    if(!previewRunning)previewTemplate(request);
+  },450);
+}
 
 function $(id) {
   return root.querySelector("#" + id);
@@ -494,9 +535,9 @@ async function cleanupFailedDocs(tempDoc, cleanDoc, sourceDoc) {
   } catch (_) {}
 }
 
-async function generateAndExport() {
-  const button = $("runBtn");
-  button.disabled = true;
+async function generateAndExport(settingsOverride=null) {
+  const button=$("runBtn");
+  button.disabled=true;
 
   let sourceDoc = null;
   let sourceLayer = null;
@@ -507,7 +548,7 @@ async function generateAndExport() {
   let stage = "读取设置";
 
   try {
-    const settings = readSettings();
+    const settings=settingsOverride||readSettings();
     saveSettings();
 
     stage = "读取模板图层";
@@ -633,7 +674,8 @@ async function generateAndExport() {
     const suffix = settings.keepWorkDoc
       ? "；已保留只含 1 个目标文字层的干净工作文档"
       : "；工作文档已关闭";
-    setMessage(`✓ 已导出：${nativePath}\\${outputFileName}${suffix}`, "success");
+    if(!settingsOverride)setMessage(`✓ 已导出：${nativePath}\\${outputFileName}${suffix}`, "success");
+    return true;
   } catch (err) {
     await cleanupFailedDocs(tempDoc, cleanDoc, sourceDoc);
     tempDoc = null;
@@ -641,8 +683,9 @@ async function generateAndExport() {
 
     setMessage(`失败[${stage}]：${formatError(err)}`, "error");
     console.error(err);
+    return false;
   } finally {
-    button.disabled = false;
+    if(!exportRunning)button.disabled=false;
     try {
       if (!cleanDoc && sourceDoc) {
         app.activeDocument = sourceDoc;
@@ -652,6 +695,97 @@ async function generateAndExport() {
   }
 }
 
+
+async function exportRequested(){
+  if(exportRunning)return;
+  let settings;
+  try{settings=readSettings();getCurrentTextLayer();}
+  catch(err){setMessage(formatError(err),"error");return;}
+  const chars=currentMode()==="batch"?exportCharacters():[settings.text];
+  if(chars.length===0){setMessage("请输入需要导出的字符","error");return;}
+  exportRunning=true;
+  $("runBtn").disabled=true;
+  let success=0;
+  try{
+    for(let i=0;i<chars.length;i++){
+      const ch=chars[i];
+      const suffix=currentMode()==="batch"?"_"+String(i+1).padStart(2,"0")+"_"+safeFileName(ch):"";
+      const currentSettings=Object.assign({},settings,{
+        text:ch,outputName:settings.outputName+suffix,keepWorkDoc:currentMode()==="batch"?false:settings.keepWorkDoc
+      });
+      setMessage("正在导出 "+(i+1)+"/"+chars.length+"："+ch,"muted");
+      const ok=await generateAndExport(currentSettings);
+      if(!ok){
+        setMessage("批量导出中断：已完成 "+success+" / "+chars.length+" 张；失败于 "+ch,"error");
+        return;
+      }
+      success++;
+    }
+    setMessage("已完成，导出 "+success+" 张透明 PNG。原始 PSD 未修改。","success");
+  }finally{
+    exportRunning=false;
+    refreshModeView();
+    $("runBtn").disabled=false;
+  }
+}
+async function previewTemplate(request){
+  if(previewRunning||exportRunning||!activeView())return;
+  previewRunning=true;
+  let doc=null;
+  try{
+    const source=getCurrentTextLayer();
+    const key=source.doc.id+":"+source.layer.id;
+    const contents=$("characters").value.replace(/[\r\n]/g,"");
+    if(!contents){$("tcPreviewPlaceholder").textContent="请先输入文字";return;}
+    const text=currentMode()==="batch"?exportCharacters().join(""):contents;
+    if(!text){$("tcPreviewPlaceholder").textContent="没有可预览的字符";return;}
+    $("tcPreviewPlaceholder").textContent="正在生成 Photoshop 文字预览…";
+    $("tcPreviewPlaceholder").style.display="block";
+    await core.executeAsModal(async()=>{
+      app.activeDocument=source.doc;
+      doc=await source.doc.duplicate("__TEXT_CUTTER_PREVIEW__",false);
+      const layer=findTemplateInDuplicatedDocument(doc,{
+        name:source.layer.name,contents:getLayerText(source.layer)
+      });
+      await updateTextLayer(layer,{text,tracking:Number($("tracking").value)||0});
+      // Display only the edited target layer; prevent other PSD elements appearing.
+      for(const l of flattenLayers(doc.layers||[])){
+        if(l.id!==layer.id)try{l.visible=false;}catch(_){}
+      }
+      try{layer.visible=true;}catch(_){}
+      const b=getBounds(layer),width=Math.max(1,Math.ceil(boundsWidth(b))),height=Math.max(1,Math.ceil(boundsHeight(b)));
+      if(width>0&&height>0){
+        const max=480,k=Math.min(1,max/Math.max(width,height));
+        const pixels=await imaging.getPixels({
+          documentID:doc.id,
+          sourceBounds:{left:Math.floor(b.left),top:Math.floor(b.top),right:Math.ceil(b.right),bottom:Math.ceil(b.bottom)},
+          colorSpace:"RGB",componentSize:8,applyAlpha:false
+        });
+        try{
+          const image=pixels.imageData;
+          const encoded=await imaging.encodeImageData({imageData:image,base64:true});
+          if(request===activePreviewRequest&&key===currentLayerKey()){
+            $("tcPreviewImage").src="data:image/jpeg;base64,"+encoded;
+            $("tcPreviewImage").style.display="block";
+            $("tcPreviewPlaceholder").style.display="none";
+            $("tcPreviewNote").textContent="按 Photoshop 模板样式生成预览；透明 PNG 导出保留原样式";
+          }
+        }finally{pixels.imageData.dispose();}
+      }
+    },{commandName:"预览文字模板"});
+  }catch(err){
+    if(request===activePreviewRequest){
+      $("tcPreviewImage").style.display="none";
+      $("tcPreviewPlaceholder").style.display="block";
+      $("tcPreviewPlaceholder").textContent="预览暂不可用，可继续导出";
+      $("tcPreviewNote").textContent=formatError(err);
+    }
+  }finally{
+    if(doc)try{await core.executeAsModal(async()=>{await closeWithoutSaving(doc);},{commandName:"关闭文字预览副本"});}catch(_){}
+    previewRunning=false;
+    if(request!==activePreviewRequest&&activeView())schedulePreview();
+  }
+}
 function wireEvents() {
   $("refreshLayerBtn").addEventListener("click", refreshLayerStatus);
   $("chooseFolderBtn").addEventListener("click", chooseFolder);
