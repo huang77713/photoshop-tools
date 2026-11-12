@@ -10,6 +10,9 @@ const SELECTED_KEY = "spriteFontComposer.selectedLibrary.v1";
 
 let libraries = loadLibraries();
 let selectedLibraryId = localStorage.getItem(SELECTED_KEY) || (libraries[0] ? libraries[0].id : "");
+const previewCache = new Map();
+let previewSerial = 0;
+let busyPreview = false;
 
 function $(id) {
   return root.querySelector("#" + id);
@@ -85,8 +88,46 @@ function renderLibraries() {
 
   localStorage.setItem(SELECTED_KEY, selectedLibraryId || "");
   renderLibraryEditor();
+  queueLibraryPreview();
 }
-
+function refreshMappedGlyphLabels() {
+  const lib=currentLibrary(),chars=getMappingChars(lib);
+  const chips=$("glyphPreview").querySelectorAll(".glyph-char");
+  for(let i=0;i<chips.length;i++)chips[i].textContent=chars[i]||"?";
+}
+function setManagerOpen(open) {
+  $("sfManager").style.display=open?"block":"none";
+  $("btnManage").textContent=open?"收起设置":"字库设置";
+  if(open)queueLibraryPreview();
+}
+function updateAlignButtons() {
+  const selected=root.querySelector('input[name="sfAlign"]:checked');
+  const value=selected?selected.value:"center";
+  root.querySelectorAll(".sf-align-option").forEach(item=>{
+    const control=item.querySelector("input");
+    item.classList.toggle("selected",!!control&&control.value===value);
+  });
+}
+function queueLibraryPreview(){
+  const lib=currentLibrary();
+  const serial=++previewSerial;
+  renderComposedPreview();
+  if(!lib)return;
+  const cache=previewCache.get(lib.id);
+  if(cache){renderGlyphImageChips();return;}
+  if(busyPreview){return;}
+  busyPreview=true;
+  setTimeout(async()=>{
+    try{await loadGlyphPreviews(lib,serial);}
+    catch(e){console.warn("[Sprite Font] Preview failed:",e);
+      if(serial===previewSerial)$("previewMessage").textContent="预览图片读取失败，仍可尝试生成："+(e.message||String(e));}
+    finally{
+      busyPreview=false;
+      if(currentLibrary() && !previewCache.has(currentLibrary().id))return;
+      if(currentLibrary() && currentLibrary().id!==lib.id)queueLibraryPreview();
+    }
+  },70);
+}
 function renderLibraryEditor() {
   const lib = currentLibrary();
   const preview = $("glyphPreview");
@@ -99,6 +140,9 @@ function renderLibraryEditor() {
     preview.textContent = "导入一张透明 PNG 字库后，这里会显示自动拆分结果。";
     $("btnDelete").disabled = true;
     $("btnSaveLibrary").disabled = true;
+    $("composedPreview").textContent="请先导入字库";
+    $("previewDimensions").textContent="";
+    $("previewMessage").textContent="";
     return;
   }
 
@@ -116,6 +160,11 @@ function renderLibraryEditor() {
     const chip = document.createElement("div");
     chip.className = "glyph-chip";
 
+    const image=document.createElement("img");
+    image.className="sf-glyph-image";
+    image.setAttribute("alt","字形 "+(index+1));
+    image.style.display="none";
+    chip.appendChild(image);
     const charEl = document.createElement("div");
     charEl.className = "glyph-char";
     charEl.textContent = chars[index] || "?";
@@ -133,6 +182,8 @@ function renderLibraryEditor() {
     chip.appendChild(sizeEl);
     preview.appendChild(chip);
   });
+  renderGlyphImageChips();
+  renderComposedPreview();
 }
 
 function saveCurrentLibraryEdits() {
@@ -141,6 +192,7 @@ function saveCurrentLibraryEdits() {
 
   lib.name = $("libraryName").value.trim() || stripExtension(lib.fileName);
   lib.mapping = $("mappingInput").value;
+  savePreviewSettings(lib);
   saveLibraries();
   renderLibraries();
 
@@ -351,7 +403,7 @@ async function importLibrary() {
     selectedLibraryId = lib.id;
     saveLibraries();
     renderLibraries();
-
+    setManagerOpen(true);
     if (mapping) {
       setStatus(`已识别 ${analysis.boxes.length} 个字符，并自动填写了一个映射草稿。请确认后保存。`, "success");
     } else {
@@ -369,6 +421,7 @@ async function deleteLibrary() {
   libraries = libraries.filter((item) => item.id !== lib.id);
   selectedLibraryId = libraries[0] ? libraries[0].id : "";
   saveLibraries();
+  previewCache.delete(lib.id);
   renderLibraries();
   setStatus("字库已从插件列表中删除（不会删除你的原图片）。", "success");
 }
@@ -425,6 +478,147 @@ async function readGlyphFromAtlas(documentID, box) {
   return glyph;
 }
 
+
+function readPreviewPreferences(lib) {
+  if(!lib)return;
+  $("spacingInput").value=Number.isFinite(Number(lib.spacing))?String(lib.spacing):"0";
+  $("scaleInput").value=Number.isFinite(Number(lib.previewScale))?String(lib.previewScale):"100";
+  const align=lib.align==="left"||lib.align==="right"?lib.align:"center";
+  const radio=root.querySelector('input[name="sfAlign"][value="'+align+'"]');
+  if(radio)radio.checked=true;
+  updateAlignButtons();
+}
+function savePreviewSettings(lib) {
+  if(!lib)return;
+  const spacing=Number($("spacingInput").value);
+  const scale=Number($("scaleInput").value);
+  lib.spacing=Number.isFinite(spacing)?spacing:0;
+  lib.previewScale=Number.isFinite(scale)?scale:100;
+  const radio=root.querySelector('input[name="sfAlign"]:checked');
+  lib.align=radio?radio.value:"center";
+  saveLibraries();
+}
+function renderGlyphImageChips(){
+  const lib=currentLibrary();if(!lib)return;
+  const cache=previewCache.get(lib.id);
+  const images=$("glyphPreview").querySelectorAll(".sf-glyph-image");
+  if(!cache)return;
+  for(let i=0;i<images.length;i++){
+    const entry=cache[i];
+    if(entry){images[i].src=entry.url;images[i].style.display="block";}
+  }
+}
+function getPreviewLayout(lib,text) {
+  const chars=Array.from(text),mapping=getMappingChars(lib);
+  const boxes=new Map();
+  mapping.forEach((ch,i)=>{if(!boxes.has(ch))boxes.set(ch,lib.boxes[i]);});
+  const unsupported=Array.from(new Set(chars.filter(ch=>ch!==" "&&!boxes.has(ch))));
+  const defined=chars.filter(ch=>ch!==" ").map(ch=>boxes.get(ch)).filter(Boolean);
+  const average=defined.length?defined.reduce((a,b)=>a+(b.right-b.left),0)/defined.length:20;
+  const spaceWidth=Math.max(1,Math.round(average*0.5));
+  const spacing=Number($("spacingInput").value);
+  const scale=Number($("scaleInput").value);
+  const gap=Number.isFinite(spacing)?spacing:0;
+  const zoom=Number.isFinite(scale)?Math.max(10,Math.min(500,scale))/100:1;
+  let total=0;
+  const pieces=chars.map((ch,i)=>{
+    const box=ch===" "?null:boxes.get(ch);
+    const width=box?box.right-box.left:spaceWidth;
+    const record={ch,box,width,offset:total};
+    total+=width;
+    if(i<chars.length-1)total+=gap;
+    return record;
+  });
+  const rowHeight=Math.max(1,...defined.map(box=>box.rowBottom-box.rowTop));
+  return {pieces,total,rowHeight,zoom,unsupported};
+}
+function renderComposedPreview(){
+  const holder=$("composedPreview"),details=$("previewDimensions"),msg=$("previewMessage");
+  holder.innerHTML="";
+  details.textContent="";
+  const lib=currentLibrary(),text=$("textInput").value;
+  if(!lib){holder.textContent="请先导入字库";msg.textContent="";return;}
+  if(!text){holder.textContent="输入内容后预览";msg.textContent="";return;}
+  const mapping=getMappingChars(lib);
+  if(mapping.length!==lib.boxes.length){
+    holder.textContent="请先核对字库字符映射";
+    msg.textContent="识别了 "+lib.boxes.length+" 个字符，映射有 "+mapping.length+" 个";
+    return;
+  }
+  const layout=getPreviewLayout(lib,text);
+  if(layout.unsupported.length){
+    holder.textContent="当前字库缺少字符";
+    msg.textContent="缺少："+layout.unsupported.join(" ");
+    return;
+  }
+  const cache=previewCache.get(lib.id);
+  if(!cache){holder.textContent="正在加载真实字符预览…";msg.textContent="";return;}
+  const predictedW=Math.max(1,Math.round(layout.total*layout.zoom));
+  const predictedH=Math.max(1,Math.round(layout.rowHeight*layout.zoom));
+  details.textContent=predictedW+" × "+predictedH+" px";
+  const areaWidth=Math.max(90,holder.clientWidth-20),areaHeight=Math.max(70,holder.clientHeight-20);
+  const fit=Math.min(1,areaWidth/Math.max(1,predictedW),areaHeight/Math.max(1,predictedH));
+  const rasterScale=layout.zoom*fit;
+  const row=document.createElement("div");
+  row.className="sf-composed-row";
+  row.style.width=Math.max(1,Math.round(layout.total*rasterScale))+"px";
+  row.style.height=Math.max(1,Math.round(layout.rowHeight*rasterScale))+"px";
+  row.style.position="relative";
+  const charIndex=new Map();
+  mapping.forEach((ch,i)=>charIndex.set(ch,i));
+  for(const piece of layout.pieces){
+    if(piece.ch===" ")continue;
+    const imgData=cache[charIndex.get(piece.ch)];
+    if(!imgData)continue;
+    const img=document.createElement("img");
+    img.src=imgData.url;
+    img.className="sf-composed-glyph";
+    img.style.position="absolute";
+    img.style.left=Math.round(piece.offset*rasterScale)+"px";
+    img.style.top=Math.round((piece.box.top-piece.box.rowTop)*rasterScale)+"px";
+    img.style.width=Math.max(1,Math.round(piece.width*rasterScale))+"px";
+    img.style.height=Math.max(1,Math.round((piece.box.bottom-piece.box.top)*rasterScale))+"px";
+    row.appendChild(img);
+  }
+  holder.appendChild(row);
+  msg.textContent=fit<1?"预览已缩小适配面板；生成尺寸不受影响":"";
+}
+async function loadGlyphPreviews(lib,serial){
+  let entry;
+  try{entry=await fs.getEntryForPersistentToken(lib.token);}
+  catch(e){throw new Error("原字库已移动或权限失效，请重新导入");}
+  const images=[];
+  await core.executeAsModal(async()=>{
+    const atlas=await app.open(entry);
+    try{
+      const max=Math.min(60,lib.boxes.length);
+      for(let i=0;i<max;i++){
+        const box=lib.boxes[i];
+        const glyph=await readGlyphFromAtlas(atlas.id,box);
+        const n=glyph.width*glyph.height;
+        const rgb=new Uint8Array(n*3);
+        for(let j=0;j<n;j++){
+          const p=j*glyph.components,o=j*3;
+          const a=glyph.components===4?glyph.data[p+3]/255:1;
+          rgb[o]=Math.round((glyph.data[p]||0)*a+35*(1-a));
+          rgb[o+1]=Math.round((glyph.data[p+1]||0)*a+33*(1-a));
+          rgb[o+2]=Math.round((glyph.data[p+2]||0)*a+42*(1-a));
+        }
+        let data=null;
+        try{
+          data=await imaging.createImageDataFromBuffer(rgb,{width:glyph.width,height:glyph.height,components:3,chunky:true,colorSpace:"RGB",colorProfile:"sRGB IEC61966-2.1"});
+          const jpeg=await imaging.encodeImageData({imageData:data,base64:true});
+          images.push({url:"data:image/jpeg;base64,"+jpeg,width:glyph.width,height:glyph.height});
+        }finally{if(data)data.dispose();}
+      }
+    }finally{atlas.closeWithoutSaving();}
+  },{commandName:"读取图片字预览"});
+  previewCache.set(lib.id,images);
+  if(currentLibrary()&&currentLibrary().id===lib.id){
+    renderGlyphImageChips();
+    renderComposedPreview();
+  }
+}
 async function placeGlyph(targetDoc, glyph, layerName, left, top) {
   const layer = await targetDoc.createPixelLayer({ name: layerName });
   const options = {
