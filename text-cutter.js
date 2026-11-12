@@ -698,6 +698,7 @@ async function generateAndExport(settingsOverride=null) {
 
 async function exportRequested(){
   if(exportRunning)return;
+  if(previewRunning){setMessage("正在更新预览，请完成后再生成","muted");return;}
   let settings;
   try{settings=readSettings();getCurrentTextLayer();}
   catch(err){setMessage(formatError(err),"error");return;}
