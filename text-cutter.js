@@ -858,12 +858,12 @@ function wireEvents() {
 
   $("presetDefault").addEventListener("click", () => {
     $("characters").value = "0123456789₹,.+-";
-    saveSettings();refreshModeView();schedulePreview();
+    saveSettings();refreshModeView();markPreviewStale();
   });
 
   $("clearChars").addEventListener("click", () => {
     $("characters").value = "";
-    saveSettings();refreshModeView();schedulePreview();
+    saveSettings();refreshModeView();markPreviewStale();
   });
 
   ["characters", "tracking", "padding", "outputName", "keepWorkDoc"].forEach((id) => {
