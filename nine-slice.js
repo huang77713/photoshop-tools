@@ -4,11 +4,12 @@
 module.exports = function mountNineSlice(root) {
 /* Nine Slice Resize - UXP Photoshop. No external dependencies. */
 const ps = require('photoshop');
-const { app, imaging, core } = ps;
+const { app, imaging, core, action } = ps;
 const $ = id => root.querySelector('#' + id);
 const sourceCanvas = $('sourceCanvas'), resultCanvas = $('outputCanvas');
 const sw = $('sourceWrap'), guides = $('guides');
 let source = null, drag = null, busy = false, aspectLocked = false;
+let autoTimer=null, autoPending=false, readingLayer=false, readGeneration=0;
 const int = id => Math.round(Number($(id).value));
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const status = (s, mode='') => { $('status').textContent=s; $('status').className='hint '+mode; $('status').title=s; };
@@ -143,9 +144,31 @@ async function render(){
     if(!busy && !lastFailure)status('已就绪');
   }catch(e){if(serial===renderSerial){$('destLabel').textContent='';status(e.message,'error');updateGuides();}}
 }
+function currentLayerKey(){
+  try{
+    const doc=app.activeDocument;
+    const layer=doc && (doc.activeLayers||[])[0];
+    return doc && layer ? String(doc.id)+':'+String(layer.id) : '';
+  }catch(_){return '';}
+}
+function activePanel(){return root.style.display!=='none';}
+function scheduleAutoRead(force){
+  if(!activePanel())return;
+  if(autoTimer!==null)clearTimeout(autoTimer);
+  autoTimer=setTimeout(()=>{
+    autoTimer=null;
+    if(!activePanel())return;
+    const key=currentLayerKey();
+    if(!force && source && key===String(source.docID)+':'+String(source.layerID))return;
+    if(busy){autoPending=true;return;}
+    loadLayer();
+  },180);
+}
 async function loadLayer(){
-  if(busy)return;
-  busy=true;source=null;lastFailure='';
+  if(busy){autoPending=true;return;}
+  busy=true;readingLayer=true;source=null;lastFailure='';
+  const generation=++readGeneration;
+  const requestedKey=currentLayerKey();
   let stage='检查文档',px=null;
   try{
     status('正在读取图层…');
@@ -185,6 +208,10 @@ async function loadLayer(){
     stage='生成插件预览';
     source={docID:doc.id,layerID:layer.id,layerName:layer.name,width:w,height:h,rgba,bounds:{left,top,right,bottom}};
     await showPreview(sourceCanvas,rgba,w,h);
+    if(generation!==readGeneration || requestedKey!==currentLayerKey()){
+      autoPending=true;
+      return;
+    }
     $('sourceInfo').textContent=layer.name+' · '+w+' × '+h+' px · '+kind;
     const x=Math.max(1,Math.floor(w*.22)),y=Math.max(1,Math.floor(h*.22));
     set('left',x);set('right',x);set('top',y);set('bottom',y);
@@ -202,7 +229,11 @@ async function loadLayer(){
     status(lastFailure,'error');
   }finally{
     if(px&&px.imageData){try{px.imageData.dispose();}catch(_) {}}
-    busy=false;
+    busy=false;readingLayer=false;
+    if(autoPending){
+      autoPending=false;
+      scheduleAutoRead(true);
+    }
   }
 }
 async function generate(newDocument){
@@ -234,9 +265,13 @@ async function generate(newDocument){
       status('生成成功：'+p.w+' × '+p.h+' px','ok');
     }finally{blob.dispose();}
   }catch(e){status('生成失败：'+(e.message||String(e)),'error');console.error(e);}
-  finally{busy=false;buffer=null;}
+  finally{
+    busy=false;buffer=null;
+    if(autoPending){autoPending=false;scheduleAutoRead(true);}
+  }
 }
-$('load').addEventListener('click',loadLayer);
+$('load').textContent='重新读取';
+$('load').addEventListener('click',()=>{if(autoTimer!==null){clearTimeout(autoTimer);autoTimer=null;}loadLayer();});
 $('reset').addEventListener('click',()=>{if(!source)return;let a=Math.max(1,Math.floor(source.width*.22)),b=Math.max(1,Math.floor(source.height*.22));set('left',a);set('right',a);set('top',b);set('bottom',b);render();});
 ['left','right','top','bottom'].forEach(id=>$(id).addEventListener('input',queueRender));
 ['width','height'].forEach(id=>$(id).addEventListener('input',()=>sizeEdited(id)));
@@ -269,6 +304,19 @@ if(typeof ResizeObserver!=='undefined'){
   resizeObserver.observe($('resultWrap'));
 }
 setAspectLock(false);updateOriginalSize();
-status('请先选中图层，然后点击“读取选中图层”');
+status('选择 Photoshop 图层后将自动读取');
+root.__nineSliceActivate=function(){scheduleAutoRead(false);};
+const onSelectionChange=(eventName,descriptor)=>{
+  if(!activePanel())return;
+  if(eventName==='select'){
+    const targets=descriptor&&descriptor._target;
+    if(Array.isArray(targets)&&!targets.some(item=>item&&
+      (item._ref==='layer'||item._ref==='document')))return;
+  }
+  scheduleAutoRead(false);
+};
+action.addNotificationListener(['select','open','close'],onSelectionChange)
+  .catch(e=>{console.warn('[Nine Slice] 自动读取监听注册失败',e);status('自动监听不可用，可点击“重新读取”','error');});
+scheduleAutoRead(true);
 
 };
