@@ -440,7 +440,7 @@ async function readTransparentPixels(doc, layer) {
 
 // Create a real pixel layer from the detected RGBA pixels.
 // This avoids Photoshop's Copy to Layer command, which may report an empty selection.
-async function createObjectPixelLayer(doc, sourcePixels, item, allItems, index, paddingPx, layerName) {
+async function createObjectPixelLayer(doc, sourcePixels, item, allItems, index, paddingPx, layerName, createdLayerIds) {
   const pad=safePadding(item,allItems,index,paddingPx);
   const bounds=sourcePixels.sourceBounds||{left:0,top:0};
   const bx=Number(bounds.left)||0, by=Number(bounds.top)||0;
@@ -458,6 +458,7 @@ async function createObjectPixelLayer(doc, sourcePixels, item, allItems, index, 
     cropped.set(rgb.subarray(from,from+w*4),y*w*4);
   }
   const newLayer=await doc.createPixelLayer({name:layerName});
+  createdLayerIds.add(newLayer.id);
   const pixelData=await imaging.createImageDataFromBuffer(cropped,{
     width:w,height:h,components:4,chunky:true,colorSpace:"RGB",
     colorProfile:"sRGB IEC61966-2.1"
@@ -745,7 +746,7 @@ async function splitObjects() {
         executionContext.reportProgress({ value: progress, commandName: stage });
 
         const pixelLayer = await createObjectPixelLayer(
-          doc,sourcePixels,objects[i],objects,i,settings.padding,layerName
+          doc,sourcePixels,objects[i],objects,i,settings.padding,layerName,createdLayerIds
         );
 
         createdLayerIds.add(pixelLayer.id);
