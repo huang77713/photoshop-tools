@@ -20,7 +20,7 @@ function setAspectLock(locked){
   $('aspectLock').setAttribute('aria-pressed',aspectLocked?'true':'false');
   $('aspectLock').title=aspectLocked?'已锁定原图比例，点击解除':'自由调整宽高，点击锁定原图比例';
   const icon=$('aspectLockIcon');
-  if(icon)icon.src=aspectLocked?icon.dataset.closed:icon.dataset.open;
+  if(icon)icon.src=aspectLocked?'icons/aspect-locked.svg':'icons/aspect-unlocked.svg';
 }
 function updateOriginalSize(){
   $('originalSize').textContent=source?'原图 '+source.width+' × '+source.height+' px':'原图：读取后显示';
