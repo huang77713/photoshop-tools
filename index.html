@@ -189,6 +189,16 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #nineSliceView .ns-lock-body{display:block;position:absolute;left:1px;bottom:1px;width:14px;height:10px;border:2px solid #d7d1e2;border-radius:2px;background:#393641}
 #nineSliceView .ns-aspect-lock[aria-pressed="false"] .ns-lock-shackle{left:7px;top:1px}
 #nineSliceView .ns-aspect-lock[aria-pressed="true"] .ns-lock-body{background:#4c3d65}
+
+/* UXP reliable full-area mode switch: label controls radio state, including the circle */
+#nineSliceView .mode{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;gap:6px!important;padding-top:8px!important}
+#nineSliceView .mode .ns-mode-item{display:flex!important;align-items:center!important;gap:7px!important;padding:7px 10px!important;min-height:34px!important;border-radius:5px!important;cursor:pointer!important;user-select:none!important;background:transparent!important}
+#nineSliceView .mode .ns-mode-item.ns-selected{background:#3b3746!important}
+#nineSliceView .mode .ns-mode-item input{display:none!important}
+#nineSliceView .ns-mode-dot{width:17px!important;height:17px!important;min-width:17px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:2px solid #9791a4!important;border-radius:50%!important;pointer-events:none!important}
+#nineSliceView .ns-selected .ns-mode-dot{border-color:#c8bbeb!important}
+#nineSliceView .ns-mode-inner{width:7px!important;height:7px!important;border-radius:50%!important;background:transparent!important;pointer-events:none!important}
+#nineSliceView .ns-selected .ns-mode-inner{background:#c8bbeb!important}
 </style>
 <link rel="stylesheet" href="extra-features.css">
 </head>
@@ -239,7 +249,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <button type="button" id="aspectLock" class="ns-aspect-lock" aria-label="锁定原图宽高比例" aria-pressed="false" title="点击锁定原图宽高比例"><span class="ns-lock-shape" aria-hidden="true"><span class="ns-lock-shackle"></span><span class="ns-lock-body"></span></span></button>
       <div class="field ns-size-field"><label>高度 (px)</label><input id="height" type="text" inputmode="numeric" value="650"><span id="originalHeight" class="hint ns-original-field">原图：—</span></div>
     </div>
-    <div class="mode"><label><input type="radio" name="mode" value="stretch" checked> 拉伸</label><label><input type="radio" name="mode" value="tile"> 平铺</label></div>
+    <div class="mode"><label class="ns-mode-item" data-mode="stretch" tabindex="0"><input type="radio" name="mode" value="stretch" checked><span class="ns-mode-dot"><span class="ns-mode-inner"></span></span><span>拉伸</span></label><label class="ns-mode-item" data-mode="tile" tabindex="0"><input type="radio" name="mode" value="tile"><span class="ns-mode-dot"><span class="ns-mode-inner"></span></span><span>平铺</span></label></div>
   </section>
   </div><div class="footer"><button id="sameDoc" class="primary">生成到新图层</button><button id="newDoc" class="secondary">新文档</button><div id="status" class="hint">请先选中图层，然后点击读取</div></div>
 </div></div>
