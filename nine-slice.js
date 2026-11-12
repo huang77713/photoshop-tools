@@ -315,8 +315,14 @@ const onSelectionChange=(eventName,descriptor)=>{
   }
   scheduleAutoRead(false);
 };
-action.addNotificationListener(['select','open','close'],onSelectionChange)
-  .catch(e=>{console.warn('[Nine Slice] 自动读取监听注册失败',e);status('自动监听不可用，可点击“重新读取”','error');});
+try{
+  // Photoshop UXP addNotificationListener is synchronous in supported versions.
+  // It does not return a Promise, so do not chain .catch() onto its return value.
+  action.addNotificationListener(['select','open','close'],onSelectionChange);
+}catch(e){
+  console.warn('[Nine Slice] 自动读取监听注册失败',e);
+  status('自动监听不可用，可点击“重新读取”','error');
+}
 scheduleAutoRead(true);
 
 };
