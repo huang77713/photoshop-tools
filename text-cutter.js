@@ -787,28 +787,53 @@ async function previewTemplate(request){
   }
 }
 function wireEvents() {
-  $("refreshLayerBtn").addEventListener("click", refreshLayerStatus);
+  $("refreshLayerBtn").addEventListener("click",scheduleRead);
+  $("previewBtn").addEventListener("click",()=>schedulePreview());
+  $("tcAdvancedToggle").addEventListener("click",()=>{
+    const panel=$("tcAdvancedPanel");
+    const open=panel.style.display==="none";
+    panel.style.display=open?"block":"none";
+    $("tcAdvancedToggle").setAttribute("aria-expanded",open?"true":"false");
+    $("tcAdvancedArrow").textContent=open?"−":"+";
+  });
+  root.querySelectorAll(".tc-mode").forEach(el=>{
+    const activate=()=>{
+      const input=el.querySelector('input[name="tcMode"]');
+      if(input)input.checked=true;
+      refreshModeView();
+      schedulePreview();
+    };
+    el.addEventListener("click",activate);
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate();}});
+  });
   $("chooseFolderBtn").addEventListener("click", chooseFolder);
-  $("runBtn").addEventListener("click", generateAndExport);
+  $("runBtn").addEventListener("click",exportRequested);
 
   $("presetDigits").addEventListener("click", () => {
     $("characters").value = "0123456789";
-    saveSettings();
+    saveSettings();refreshModeView();schedulePreview();
   });
 
   $("presetDefault").addEventListener("click", () => {
     $("characters").value = "0123456789₹,.+-";
-    saveSettings();
+    saveSettings();refreshModeView();schedulePreview();
   });
 
   $("clearChars").addEventListener("click", () => {
     $("characters").value = "";
-    saveSettings();
+    saveSettings();refreshModeView();schedulePreview();
   });
 
   ["characters", "tracking", "padding", "outputName", "keepWorkDoc"].forEach((id) => {
-    $(id).addEventListener("change", saveSettings);
+    $(id).addEventListener("change",()=>{
+      saveSettings();
+      if(id==="characters"||id==="tracking"){refreshModeView();schedulePreview();}
+    });
   });
+  ["characters","tracking"].forEach(id=>$(id).addEventListener("input",()=>{
+    refreshModeView();
+    schedulePreview();
+  }));
 }
 
 async function init() {
@@ -816,6 +841,19 @@ async function init() {
   wireEvents();
   await restoreFolder();
   refreshLayerStatus();
+  refreshModeView();
+  root.__textCutterActivate=scheduleRead;
+  try{
+    action.addNotificationListener(["select","open","close"],(name,descriptor)=>{
+      if(!activeView()||exportRunning||previewRunning)return;
+      if(name==="select"){
+        const arr=descriptor&&descriptor._target;
+        if(Array.isArray(arr)&&!arr.some(t=>t&&(t._ref==="layer"||t._ref==="document")))return;
+      }
+      scheduleRead();
+    });
+  }catch(err){console.warn("[Text Cutter] Cannot listen to selection changes",err);}
+  scheduleRead();
 }
 
 init();
