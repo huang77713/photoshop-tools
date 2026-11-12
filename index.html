@@ -380,69 +380,44 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   </section>
 </main></div>
     <div id="removeBgView" class="extra-tool" style="display:none"><main class="panel">
-    <header class="header">
-      <div>
-        <div class="title">透明对象拆分工具</div>
-        <div class="subtitle">选中已去背景透明图层 → 自动拆分独立元素 → 每层转智能对象</div>
+  <header class="header">
+    <div><div class="title">透明对象拆分</div><div class="subtitle">识别独立元素，保留原始图层</div></div>
+  </header>
+  <div class="ts-layer-bar">
+    <div class="ts-layer-details"><div class="ts-caption">当前选中图层</div><div id="layerStatus" class="status muted">等待选择透明图层</div></div>
+    <button id="refreshLayerBtn" class="button secondary small">重新识别</button>
+  </div>
+  <section class="ts-preview-section">
+    <div class="ts-section-heading"><span>识别预览</span><span id="detectedCount" class="ts-count">未识别</span></div>
+    <div id="splitPreview" class="ts-preview">
+      <div id="splitPreviewStage" class="ts-preview-stage"><img id="splitPreviewImage" alt="当前图层预览"><div id="splitPreviewMarkers" class="ts-preview-markers"></div></div>
+      <div id="splitPreviewPlaceholder" class="ts-preview-placeholder">选择已去背景的透明图层，自动显示识别结果</div>
+    </div>
+    <div id="splitPreviewInfo" class="ts-preview-info">仅预览识别区域，尚未修改图层</div>
+  </section>
+  <section class="ts-output-section">
+    <div class="ts-section-heading"><span>输出方式</span></div>
+    <div class="ts-output-options" role="group" aria-label="输出方式">
+      <label class="ts-output-option ts-selected" data-output="smart" tabindex="0"><input type="radio" name="splitOutput" value="smart" checked><span>智能对象</span></label>
+      <label class="ts-output-option" data-output="pixel" tabindex="0"><input type="radio" name="splitOutput" value="pixel"><span>像素图层</span></label>
+    </div>
+  </section>
+  <div class="ts-advanced-section">
+    <button id="advancedToggle" class="ts-advanced-toggle" aria-expanded="false">高级设置 <span id="advancedArrow">▾</span></button>
+    <div id="advancedPanel" class="ts-advanced-panel" style="display:none">
+      <div class="field"><label class="label" for="groupName">结果组名称</label><input id="groupName" type="text" value="Split_Objects" spellcheck="false"></div>
+      <div class="field"><label class="label" for="layerPrefix">图层名称前缀</label><input id="layerPrefix" type="text" value="Object" spellcheck="false"></div>
+      <div class="ts-two-fields">
+        <div class="field"><label class="label" for="minAreaPercent">最小面积 (%)</label><input id="minAreaPercent" type="number" value="0.002" min="0" max="10" step="0.001"></div>
+        <div class="field"><label class="label" for="padding">识别边距 (px)</label><input id="padding" type="number" value="8" min="0" max="200" step="1"></div>
       </div>
-    </header>
-
-    <section class="card template-card">
-      <div class="row between">
-        <div class="grow">
-          <div class="section-title">当前透明图层</div>
-          <div id="layerStatus" class="status muted">未读取当前图层</div>
-        </div>
-        <button id="refreshLayerBtn" class="button secondary small">读取当前图层</button>
-      </div>
-      <div class="hint">请先自己把背景去干净，再选中这个透明图层。工具不会执行 AI 去背景，也不会修改、隐藏或删除原始图层。</div>
-    </section>
-
-    <section class="card">
-      <div class="field">
-        <label class="label" for="groupName">结果组名称</label>
-        <input id="groupName" type="text" value="Split_Objects" spellcheck="false" />
-      </div>
-
-      <div class="field">
-        <label class="label" for="layerPrefix">拆分图层名称前缀</label>
-        <input id="layerPrefix" type="text" value="Object" spellcheck="false" />
-        <div class="hint">例如：Object_01、Object_02、Object_03…</div>
-      </div>
-
-      <div class="field">
-        <label class="label" for="minAreaPercent">最小元素面积 (%)</label>
-        <input id="minAreaPercent" type="number" value="0.002" min="0" max="10" step="0.001" />
-        <div class="hint">过滤透明图里很小的脏点或碎片。正常保持默认；小元素被漏掉时调小。</div>
-      </div>
-
-      <div class="field">
-        <label class="label" for="padding">识别边距 Padding (px)</label>
-        <input id="padding" type="number" value="8" min="0" max="200" step="1" />
-        <div class="hint">识别框向外多留一点范围，用来保住柔边、阴影和低透明像素；相邻元素很近时会自动限制，避免把旁边元素带进去。</div>
-      </div>
-    </section>
-
-    <section class="card options">
-      <div class="section-title">固定处理流程</div>
-      <div class="flow-list">
-        <div>1. 复制当前透明图层到临时工作层</div>
-        <div>2. 读取透明 Alpha，识别彼此分开的独立元素</div>
-        <div>3. 从临时工作层直接 Layer Via Copy 拆成单独图层</div>
-        <div>4. 每个拆分层自动转成智能对象</div>
-        <div>5. 全部放进结果组</div>
-        <div>6. 删除临时工作层，原始图层保持原样</div>
-      </div>
-    </section>
-
-    <button id="runBtn" class="button primary full run-button">拆分并转智能对象</button>
-    <div id="message" class="message muted">等待操作</div>
-
-    <section class="card note-card">
-      <div class="section-title">识别规则</div>
-      <div class="hint">不限定元素数量、位置或尺寸。透明区域之间真正断开的内容会被拆成不同图层；如果两个元素在透明图里实际连在一起，会被视为同一个元素。</div>
-    </section>
-  </main></div>
+      <div class="hint">最小面积用于忽略小碎片；边距用于保留柔边和低透明像素。修改后自动重新分析。</div>
+    </div>
+  </div>
+  <button id="runBtn" class="button primary full run-button" disabled>请先选择透明图层</button>
+  <div id="message" class="message muted">只在点击拆分时创建新图层</div>
+  <div class="ts-safe-note">原始图层保持不变 · 拆分结果自动成组</div>
+</main></div>
     <div id="textCutterView" class="extra-tool" style="display:none"><main class="panel">
     <header class="header">
       <div>
