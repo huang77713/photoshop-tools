@@ -67,6 +67,9 @@
           message.textContent = String(error && error.message || error);
         }
       }
+      if (showNine && loadedNineSlice && typeof nineView.__nineSliceActivate === 'function') {
+        nineView.__nineSliceActivate();
+      }
       if (showSprite && !loadedSpriteFont) {
         try {
           require("./sprite-font.js")(spriteView);
