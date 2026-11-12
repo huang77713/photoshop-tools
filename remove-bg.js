@@ -438,67 +438,41 @@ async function readTransparentPixels(doc, layer) {
   return { data, width, height, components, sourceBounds };
 }
 
-async function duplicateRectangleFromWorkingLayer(
-  doc,
-  workingLayer,
-  sourcePixels,
-  item,
-  allItems,
-  itemIndex,
-  paddingPx,
-  layerName
-) {
-  const padding = safePadding(item, allItems, itemIndex, paddingPx);
-
-  const sourceBounds = sourcePixels.sourceBounds;
-  const docWidth = Number(doc.width) || Number(sourceBounds.right);
-  const docHeight = Number(doc.height) || Number(sourceBounds.bottom);
-
-  const left = Math.max(
-    0,
-    Math.floor(sourceBounds.left + item.minX - padding.left)
-  );
-  const top = Math.max(
-    0,
-    Math.floor(sourceBounds.top + item.minY - padding.top)
-  );
-  const right = Math.min(
-    docWidth,
-    Math.ceil(sourceBounds.left + item.maxX + 1 + padding.right)
-  );
-  const bottom = Math.min(
-    docHeight,
-    Math.ceil(sourceBounds.top + item.maxY + 1 + padding.bottom)
-  );
-
-  if (!(right > left && bottom > top)) {
-    throw new Error(`${layerName} 的拆分范围无效。`);
+// Create a real pixel layer from the detected RGBA pixels.
+// This avoids Photoshop's Copy to Layer command, which may report an empty selection.
+async function createObjectPixelLayer(doc, sourcePixels, item, allItems, index, paddingPx, layerName) {
+  const pad=safePadding(item,allItems,index,paddingPx);
+  const bounds=sourcePixels.sourceBounds||{left:0,top:0};
+  const bx=Number(bounds.left)||0, by=Number(bounds.top)||0;
+  const sourceW=sourcePixels.width, sourceH=sourcePixels.height;
+  const localLeft=Math.max(0,item.minX-pad.left);
+  const localTop=Math.max(0,item.minY-pad.top);
+  const localRight=Math.min(sourceW,item.maxX+1+pad.right);
+  const localBottom=Math.min(sourceH,item.maxY+1+pad.bottom);
+  const w=localRight-localLeft,h=localBottom-localTop;
+  if(w<1||h<1)throw new Error(layerName+" 的像素区域为空");
+  const rgb=sourcePixels.data;
+  const cropped=new Uint8Array(w*h*4);
+  for(let y=0;y<h;y++){
+    const from=((localTop+y)*sourceW+localLeft)*4;
+    cropped.set(rgb.subarray(from,from+w*4),y*w*4);
   }
-
-  await selectLayerById(workingLayer.id);
-
-  await doc.selection.selectRectangle(
-    { top, left, bottom, right },
-    constants.SelectionType.REPLACE,
-    0,
-    false
-  );
-
-  await layerViaCopy();
-
-  const active = doc.activeLayers || [];
-  if (active.length !== 1 || active[0].id === workingLayer.id) {
-    throw new Error(`${layerName} 没有成功生成独立图层。`);
+  const newLayer=await doc.createPixelLayer({name:layerName});
+  const pixelData=await imaging.createImageDataFromBuffer(cropped,{
+    width:w,height:h,components:4,chunky:true,colorSpace:"RGB",
+    colorProfile:"sRGB IEC61966-2.1"
+  });
+  try{
+    await imaging.putPixels({
+      documentID:doc.id,layerID:newLayer.id,imageData:pixelData,
+      targetBounds:{left:Math.round(bx+localLeft),top:Math.round(by+localTop)},
+      replace:true,commandName:"写入拆分对象像素"
+    });
+  }finally{
+    pixelData.dispose();
   }
-
-  const newLayer = active[0];
-  newLayer.name = layerName;
-
-  try { await doc.selection.deselect(); } catch (_) {}
-
   return newLayer;
 }
-
 
 let latestAnalysis=null;
 let previewRequest=0;
@@ -715,13 +689,9 @@ async function splitObjects() {
       executionContext.reportProgress({ value: 0.08, commandName: stage });
       const sourcePixels = await readTransparentPixels(doc,sourceLayer);
 
-      stage = "复制透明图层到临时工作层";
-      executionContext.reportProgress({ value: 0.22, commandName: stage });
-      const workingLayer = await makeTransparentWorkingCopy(
-        doc,
-        sourceLayer,
-        createdLayerIds
-      );
+      // Detection pixels are already available from the source layer.
+      // No temporary copy, Photoshop selection, or copyToLayer is necessary.
+      executionContext.reportProgress({ value: 0.22, commandName: "检查拆分像素" });
 
       const minArea = Math.max(
         1,
@@ -774,15 +744,8 @@ async function splitObjects() {
         const progress = 0.48 + (done / objects.length) * 0.40;
         executionContext.reportProgress({ value: progress, commandName: stage });
 
-        const pixelLayer = await duplicateRectangleFromWorkingLayer(
-          doc,
-          workingLayer,
-          sourcePixels,
-          objects[i],
-          objects,
-          i,
-          settings.padding,
-          layerName
+        const pixelLayer = await createObjectPixelLayer(
+          doc,sourcePixels,objects[i],objects,i,settings.padding,layerName
         );
 
         createdLayerIds.add(pixelLayer.id);
@@ -802,13 +765,8 @@ async function splitObjects() {
 
       try { await doc.selection.deselect(); } catch (_) {}
 
-      stage = "删除临时工作层";
+      stage = "检查输出结果";
       executionContext.reportProgress({ value: 0.92, commandName: stage });
-      try {
-        await workingLayer.delete();
-      } catch (err) {
-        throw new Error(`拆分已完成，但临时工作层清理失败：${formatError(err)}`);
-      }
 
       // 原始图层严格保持原来的名称和可见状态。
       if (sourceLayer.name !== sourceName) {
