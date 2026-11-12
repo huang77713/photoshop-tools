@@ -493,6 +493,141 @@ async function duplicateRectangleFromWorkingLayer(
   return newLayer;
 }
 
+
+let latestAnalysis=null;
+let previewRequest=0;
+let previewTimer=null;
+let analyzing=false;
+let splitting=false;
+function selectedKey(){
+  try{
+    const doc=app.activeDocument, layers=doc&&doc.activeLayers;
+    return doc&&layers&&layers.length===1?doc.id+":"+layers[0].id:"";
+  }catch(_){return "";}
+}
+function isVisible(){return root.style.display!=="none";}
+function setOutputType(mode){
+  root.querySelectorAll(".ts-output-option").forEach(item=>{
+    const active=item.dataset.output===mode;
+    item.classList.toggle("ts-selected",active);
+    const input=item.querySelector('input[name="splitOutput"]');
+    if(input)input.checked=active;
+  });
+  updateRunButton();
+}
+function getOutputType(){
+  const el=root.querySelector('input[name="splitOutput"]:checked');
+  return el&&el.value==="pixel"?"pixel":"smart";
+}
+function updateRunButton(){
+  const button=$("runBtn");
+  if(splitting){button.disabled=true;button.textContent="正在拆分…";return;}
+  const ready=latestAnalysis&&latestAnalysis.key===selectedKey()&&latestAnalysis.items.length>0;
+  button.disabled=!ready;
+  button.textContent=ready?"拆分 "+latestAnalysis.items.length+" 个对象":"请先识别透明对象";
+}
+function clearPreview(message){
+  latestAnalysis=null;
+  $("splitPreviewImage").removeAttribute("src");
+  $("splitPreviewStage").style.display="none";
+  $("splitPreviewMarkers").innerHTML="";
+  $("splitPreviewPlaceholder").style.display="block";
+  $("splitPreviewPlaceholder").textContent=message||"请选择透明图层";
+  $("detectedCount").textContent="未识别";
+  $("splitPreviewInfo").textContent="只读检测，不修改原始图层";
+  updateRunButton();
+}
+function scheduleAnalysis(force){
+  if(!isVisible()||splitting)return;
+  if(previewTimer!==null)clearTimeout(previewTimer);
+  const request=++previewRequest;
+  previewTimer=setTimeout(()=>{
+    previewTimer=null;
+    if(!isVisible()||splitting)return;
+    const key=selectedKey();
+    const setting=readSettings().minAreaPercent;
+    if(!force&&latestAnalysis&&latestAnalysis.key===key&&latestAnalysis.minAreaPercent===setting)return;
+    if(analyzing)return;
+    analyzePreview(request);
+  },260);
+}
+function makePreviewBytes(data,width,height,components,w,h){
+  const raw=new Uint8Array(w*h*3);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const sx=Math.min(width-1,Math.floor((x+.5)*width/w));
+    const sy=Math.min(height-1,Math.floor((y+.5)*height/h));
+    const p=(sy*width+sx)*components, d=(y*w+x)*3;
+    const a=data[p+3]/255;
+    const bg=((Math.floor(x/10)+Math.floor(y/10))%2)?48:56;
+    for(let k=0;k<3;k++)raw[d+k]=Math.round(data[p+k]*a+bg*(1-a));
+  }
+  return raw;
+}
+function renderDetectedBoxes(items,width,height,previewWidth,previewHeight){
+  const layer=$("splitPreviewMarkers");
+  layer.innerHTML="";
+  const scaleX=previewWidth/width,scaleY=previewHeight/height;
+  items.forEach((item,i)=>{
+    const el=document.createElement("div");
+    el.className="ts-detection-box";
+    el.style.left=(item.minX*scaleX)+"px";
+    el.style.top=(item.minY*scaleY)+"px";
+    el.style.width=Math.max(2,(item.maxX-item.minX+1)*scaleX)+"px";
+    el.style.height=Math.max(2,(item.maxY-item.minY+1)*scaleY)+"px";
+    const num=document.createElement("span");
+    num.className="ts-detection-number";
+    num.textContent=String(i+1).padStart(2,"0");
+    el.appendChild(num);
+    layer.appendChild(el);
+  });
+}
+async function analyzePreview(request){
+  if(analyzing||splitting)return;
+  analyzing=true;
+  let pixel=null, image=null;
+  try{
+    const {doc,layer}=getCurrentLayer();
+    const key=doc.id+":"+layer.id;
+    refreshLayerStatus();
+    $("detectedCount").textContent="识别中…";
+    $("splitPreviewInfo").textContent="正在读取透明像素";
+    const pixels=await readTransparentPixels(doc,layer);
+    if(request!==previewRequest||key!==selectedKey())return;
+    const percent=readSettings().minAreaPercent;
+    const minArea=Math.max(1,Math.floor(pixels.width*pixels.height*percent/100));
+    const result=buildConnectedComponents(pixels.data,pixels.width,pixels.height,pixels.components,minArea);
+    sortReadingOrder(result.items);
+    if(result.items.length>MAX_COMPONENTS)throw new Error("识别到过多碎片，请在高级设置中提高最小面积");
+    const maxWidth=460,maxHeight=245;
+    const k=Math.min(maxWidth/pixels.width,maxHeight/pixels.height,1);
+    const w=Math.max(1,Math.round(pixels.width*k)),h=Math.max(1,Math.round(pixels.height*k));
+    const rgb=makePreviewBytes(pixels.data,pixels.width,pixels.height,pixels.components,w,h);
+    image=await imaging.createImageDataFromBuffer(rgb,{width:w,height:h,components:3,chunky:true,colorSpace:"RGB",colorProfile:"sRGB IEC61966-2.1"});
+    const jpg=await imaging.encodeImageData({imageData:image,base64:true});
+    if(request!==previewRequest||key!==selectedKey())return;
+    const img=$("splitPreviewImage");
+    img.style.width=w+"px";img.style.height=h+"px";
+    img.src="data:image/jpeg;base64,"+jpg;
+    $("splitPreviewStage").style.width=w+"px";
+    $("splitPreviewStage").style.height=h+"px";
+    $("splitPreviewStage").style.display="block";
+    $("splitPreviewPlaceholder").style.display="none";
+    renderDetectedBoxes(result.items,pixels.width,pixels.height,w,h);
+    latestAnalysis={key,items:result.items,minAreaPercent:percent};
+    $("detectedCount").textContent=result.items.length+" 个对象";
+    $("splitPreviewInfo").textContent=result.items.length===0?"没有识别到独立元素，请调整最小面积":result.items.length===1?"仅识别到一个整体，请检查透明间隔":"已标出 "+result.items.length+" 个识别区域 · 原图未修改";
+    updateRunButton();
+  }catch(e){
+    clearPreview("暂时无法预览该图层");
+    $("splitPreviewInfo").textContent=formatError(e)+" · 请确认图层有真实透明像素";
+    refreshLayerStatus();
+  }finally{
+    if(image)try{image.dispose();}catch(_){}
+    analyzing=false;
+    if(request!==previewRequest&&isVisible()&&!splitting)scheduleAnalysis(false);
+  }
+}
+
 function restoreSettings() {
   const groupName = localStorage.getItem(STORAGE.groupName);
   const layerPrefix = localStorage.getItem(STORAGE.layerPrefix);
