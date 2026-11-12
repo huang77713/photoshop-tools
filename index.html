@@ -419,76 +419,37 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   <div class="ts-safe-note">原始图层保持不变 · 拆分结果自动成组</div>
 </main></div>
     <div id="textCutterView" class="extra-tool" style="display:none"><main class="panel">
-    <header class="header">
-      <div>
-        <div class="title">文字批量切图</div>
-        <div class="subtitle">复制临时 PSD → 改文字 → 只抽取目标层 → 干净单层文档 → 导出 PNG</div>
-      </div>
-      <div class="version">v1.0</div>
-    </header>
-
-    <section class="card template-card">
-      <div class="row between">
-        <div class="grow">
-          <div class="section-title">文字样式模板</div>
-          <div id="layerStatus" class="status muted">未读取当前图层</div>
-        </div>
-        <button id="refreshLayerBtn" class="button secondary small">读取当前图层</button>
-      </div>
-      <div class="hint">只读取当前选中的文字图层。原 PSD 不修改。</div>
-    </section>
-
-    <section class="card">
-      <label class="label" for="characters">字符内容</label>
-      <textarea id="characters" rows="3" spellcheck="false">0123456789₹,.+-</textarea>
-      <div class="preset-row">
-        <button id="presetDigits" class="chip">0-9</button>
-        <button id="presetDefault" class="chip">数字 + 符号</button>
-        <button id="clearChars" class="chip">清空</button>
-      </div>
-      <div class="hint">整串内容写入同一个文字图层，不拆成多个字符层。</div>
-    </section>
-
-    <section class="card parameter-card">
-      <div class="section-title">参数</div>
-      <div class="param-stack">
-        <div class="field param-field">
-          <label class="label" for="tracking">字间距 / Tracking</label>
-          <input id="tracking" type="number" value="400" min="-1000" max="1000" step="10" />
-          <div class="hint">默认 400，可直接修改。</div>
-        </div>
-        <div class="field param-field">
-          <label class="label" for="padding">PNG 外边距 Padding（px）</label>
-          <input id="padding" type="number" value="80" min="0" max="2000" step="1" />
-          <div class="hint">默认 80 px，按最终文字边界四周增加透明留白。</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="card">
-      <div class="field">
-        <label class="label" for="outputName">图层 / PNG 名称</label>
-        <input id="outputName" type="text" value="mid_num" spellcheck="false" />
-        <div class="hint">例如 mid_num：最终文字层叫 mid_num，并导出 mid_num.png。</div>
-      </div>
-      <div class="field folder-field">
-        <label class="label">保存路径</label>
-        <div id="folderPath" class="folder-path muted">尚未选择文件夹</div>
-        <button id="chooseFolderBtn" class="button secondary full">选择保存文件夹</button>
-      </div>
-    </section>
-
-    <section class="card options">
-      <label class="check-row">
-        <input id="keepWorkDoc" type="checkbox" checked />
-        <span>导出后保留干净工作文档</span>
-      </label>
-      <div class="hint">勾选：最后保留只含 1 个目标文字层的工作文档；取消：PNG 导出后自动关闭。</div>
-    </section>
-
-    <button id="runBtn" class="button primary full run-button">生成并导出 PNG</button>
-    <div id="message" class="message muted">等待操作</div>
-  </main></div>
+  <header class="header">
+    <div><div class="title">文字批量切图</div><div class="subtitle">使用 Photoshop 文字样式生成透明 PNG</div></div>
+  </header>
+  <div class="tc-layer-row"><div class="tc-layer-desc"><div class="tc-kicker">当前文字模板</div><div id="layerStatus" class="status muted">请选择一个文字图层</div></div><button id="refreshLayerBtn" class="button secondary small">重新读取</button></div>
+  <section class="tc-composer">
+    <label class="label" for="characters">字符内容</label>
+    <textarea id="characters" rows="2" spellcheck="false">0123456789₹,.+-</textarea>
+    <div class="preset-row"><button id="presetDigits" class="chip">0–9</button><button id="presetDefault" class="chip">数字 + 符号</button><button id="clearChars" class="chip tc-plain">清空</button></div>
+    <div class="tc-preview-head"><span>模板效果预览</span><button id="previewBtn" class="button secondary small">更新预览</button></div>
+    <div id="tcPreview" class="tc-preview"><img id="tcPreviewImage" alt="Photoshop 文字模板预览" style="display:none"><div id="tcPreviewPlaceholder">选择文字模板，输入内容后预览</div></div>
+    <div id="tcPreviewNote" class="tc-preview-note">预览来自 Photoshop 文字图层，不会修改原 PSD</div>
+    <div class="tc-parameters"><div class="field"><label class="label" for="tracking">字间距 Tracking</label><input id="tracking" type="number" value="400" min="-1000" max="1000" step="10"></div><div class="field"><label class="label" for="padding">透明边距 (px)</label><input id="padding" type="number" value="80" min="0" max="2000" step="1"></div></div>
+  </section>
+  <section class="tc-export">
+    <div class="tc-section-heading">导出方式</div>
+    <div class="tc-mode-row" role="group" aria-label="导出方式">
+      <label class="tc-mode selected" data-mode="single" tabindex="0"><input type="radio" name="tcMode" value="single" checked><span>整串 PNG</span></label>
+      <label class="tc-mode" data-mode="batch" tabindex="0"><input type="radio" name="tcMode" value="batch"><span>逐字符 PNG</span></label>
+    </div>
+    <div class="tc-mode-info"><span id="tcModeHint">将整串内容输出为一张 PNG</span><span id="tcFileCount">1 张</span></div>
+    <div class="field"><label id="tcNameLabel" class="label" for="outputName">PNG 文件名</label><input id="outputName" type="text" value="mid_num" spellcheck="false"></div>
+    <div class="tc-folder-head"><span>保存文件夹</span><button id="chooseFolderBtn" class="button secondary small">更改</button></div>
+    <div id="folderPath" class="folder-path muted">尚未选择文件夹</div>
+  </section>
+  <div class="tc-advanced">
+    <button id="tcAdvancedToggle" class="tc-advanced-toggle" aria-expanded="false">高级设置 <span id="tcAdvancedArrow">+</span></button>
+    <div id="tcAdvancedPanel" style="display:none"><label class="check-row"><input id="keepWorkDoc" type="checkbox" checked><span>导出后保留工作文档（批量模式不保留）</span></label></div>
+  </div>
+  <button id="runBtn" class="button primary full run-button">生成并导出 PNG</button>
+  <div id="message" class="message muted">原始 PSD 保持不变</div>
+</main></div>
     <div id="heading">菜单交互测试</div>
     <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
     <div class="spacer">滚动测试：可向下滑动直到末尾。</div>
