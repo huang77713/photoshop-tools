@@ -194,6 +194,35 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #nineSliceView .ns-selected .ns-mode-dot{border-color:#c8bbeb!important}
 #nineSliceView .ns-mode-inner{width:7px!important;height:7px!important;border-radius:50%!important;background:transparent!important;pointer-events:none!important}
 #nineSliceView .ns-selected .ns-mode-inner{background:#c8bbeb!important}
+
+/* Sprite font composer v2 — compact layout for Photoshop UXP */
+#spriteFontView .panel{padding:12px!important}
+#spriteFontView .panel>.card{margin-bottom:10px!important}
+#spriteFontView .panel .card{padding:12px!important}
+#spriteFontView .header{margin-bottom:10px!important}
+#spriteFontView .sf-library-row{align-items:flex-end!important;flex-wrap:nowrap!important}
+#spriteFontView .sf-library-row .label{min-width:0!important}
+#spriteFontView .sf-library-row .button{margin-left:8px!important;flex:none}
+#spriteFontView .sf-manager{margin-top:12px!important;padding-top:10px!important;border-top:1px solid #45404d}
+#spriteFontView .sf-manager .row{align-items:flex-end!important}
+#spriteFontView .sf-manager #btnDelete{margin-left:8px!important}
+#spriteFontView .glyph-preview{max-height:155px!important;margin-top:8px!important;overflow-y:auto!important}
+#spriteFontView .glyph-chip{min-width:56px!important;width:56px!important;align-items:center!important;padding:5px!important}
+#spriteFontView .sf-glyph-image{display:block!important;max-width:44px!important;max-height:45px!important;object-fit:contain!important;margin:0 auto 3px!important}
+#spriteFontView .sf-glyph-missing{height:38px!important;line-height:38px!important;color:#a8a3b4}
+#spriteFontView .sf-preview-head{display:flex!important;justify-content:space-between!important;align-items:center!important;margin-bottom:5px!important;font-weight:600}
+#spriteFontView .sf-preview-head .muted{font-size:10px!important;font-weight:normal!important}
+#spriteFontView .sf-composed-preview{height:130px!important;min-height:130px!important;max-height:130px!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;background:#23212a!important;border:1px solid #44414d!important;border-radius:6px!important;padding:8px!important}
+#spriteFontView .sf-composed-row{display:flex!important;align-items:flex-start!important;flex-wrap:nowrap!important;max-width:100%!important}
+#spriteFontView .sf-composed-glyph{display:block!important;flex:none!important;object-fit:fill!important}
+#spriteFontView .sf-composed-space{display:block!important;flex:none!important}
+#spriteFontView .sf-preview-message{font-size:10px!important;min-height:14px!important;margin-top:3px!important}
+#spriteFontView .sf-align-title{font-size:11px!important;color:#c5bfd0!important;margin-bottom:6px!important}
+#spriteFontView .sf-align-options{display:flex!important;flex-direction:row!important;gap:5px!important}
+#spriteFontView .sf-align-option{display:flex!important;justify-content:center!important;align-items:center!important;flex:1 1 0!important;min-height:31px!important;padding:6px!important;border:1px solid #484552!important;border-radius:5px!important;background:#292730!important;cursor:pointer!important}
+#spriteFontView .sf-align-option.selected{border-color:#8a77bc!important;background:#40394e!important}
+#spriteFontView .sf-align-option input{display:none!important}
+#spriteFontView .checkbox-row{margin-top:3px!important}
 </style>
 <link rel="stylesheet" href="extra-features.css">
 </head>
@@ -249,73 +278,58 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   </div><div class="footer"><button id="sameDoc" class="primary">生成到新图层</button><button id="newDoc" class="secondary">新文档</button><div id="status" class="hint">请先选中图层，然后点击读取</div></div>
 </div></div>
      <div id="spriteFontView" style="display:none"><main class="panel">
-    <header class="header">
-      <div>
-        <div class="title">图片数字排版器</div>
-        <div class="subtitle">Sprite Font Composer</div>
-      </div>
-      <button id="btnImport" class="button primary">导入字库</button>
-    </header>
-
-    <section class="card">
+  <header class="header">
+    <div><div class="title">图片数字排版</div><div class="subtitle">导入图片字库 · 实时查看排版</div></div>
+    <button id="btnImport" class="button primary">导入字库</button>
+  </header>
+  <section class="card sf-main">
+    <div class="row between sf-library-row">
+      <label class="label grow">当前字库
+        <select id="librarySelect" class="field"></select>
+      </label>
+      <button id="btnManage" class="button small">字库设置</button>
+    </div>
+    <div id="sfManager" class="sf-manager" style="display:none">
       <div class="row between gap8">
-        <label class="label grow">
-          字库
-          <select id="librarySelect" class="field"></select>
-        </label>
+        <label class="label grow">字库名称<input id="libraryName" class="field" type="text" placeholder="例如：金色金币数字"></label>
         <button id="btnDelete" class="button danger small">删除</button>
       </div>
-
-      <label class="label">
-        字库名称
-        <input id="libraryName" class="field" type="text" placeholder="例如：大厅金币数字" />
+      <label class="label">字符映射（按图片排列顺序）
+        <input id="mappingInput" class="field mono" type="text" placeholder="例如：₹,.0123456789">
       </label>
-
-      <label class="label">
-        字符映射（按图片从左到右、从上到下）
-        <input id="mappingInput" class="field mono" type="text" placeholder="例如：₹,.0123456789" />
-      </label>
-
       <div class="row between meta-row">
         <span id="glyphCount" class="muted">尚未导入字库</span>
-        <button id="btnSaveLibrary" class="button small">保存字库</button>
+        <button id="btnSaveLibrary" class="button small">保存设置</button>
       </div>
-
-      <div id="glyphPreview" class="glyph-preview empty">导入一张透明 PNG 字库后，这里会显示自动拆分结果。</div>
-    </section>
-
-    <section class="card">
-      <label class="label">
-        输入内容
-        <input id="textInput" class="field text-input mono" type="text" value="300" placeholder="例如：300 / ₹12,500 / 2.5x" />
+      <div id="glyphPreview" class="glyph-preview empty">导入图片字库后显示每个字符的真实切图。</div>
+    </div>
+  </section>
+  <section class="card sf-compose">
+    <label class="label">输入内容
+      <input id="textInput" class="field text-input mono" type="text" value="300" placeholder="例如：300 / ₹12,500">
+    </label>
+    <div class="sf-preview-head"><span>实时预览</span><span id="previewDimensions" class="muted"></span></div>
+    <div id="composedPreview" class="sf-composed-preview"><span class="muted">选择字库后显示真实图片字</span></div>
+    <div id="previewMessage" class="sf-preview-message muted"></div>
+    <div class="two-col">
+      <label class="label">字间距 (px)
+        <input id="spacingInput" class="field" type="number" value="0" step="1">
       </label>
-
-      <div class="two-col">
-        <label class="label">
-          字间距 px
-          <input id="spacingInput" class="field" type="number" value="0" step="1" />
-        </label>
-        <label class="label">
-          缩放 %
-          <input id="scaleInput" class="field" type="number" value="100" min="10" max="500" step="5" />
-        </label>
-      </div>
-
-      <label class="checkbox-row">
-        <input id="groupCheck" type="checkbox" checked />
-        <span>生成后自动成组（每个字符仍是独立图层）</span>
+      <label class="label">缩放 (%)
+        <input id="scaleInput" class="field" type="number" value="100" min="10" max="500" step="5">
       </label>
-
-      <button id="btnGenerate" class="button primary wide">生成到当前 Photoshop 文档</button>
-      <div id="status" class="status muted">生成内容会自动居中放到当前画布。</div>
-    </section>
-
-    <section class="tips">
-      <div class="tips-title">使用逻辑</div>
-      <div>导入图片 → 自动拆字符 → 填映射 → 保存 → 输入数字 → 生成图层。</div>
-      <div class="muted">推荐透明 PNG；纯色背景图片也可尝试自动识别。</div>
-    </section>
-  </main></div>
+    </div>
+    <div class="sf-align-title">画布水平对齐</div>
+    <div class="sf-align-options" role="group" aria-label="画布水平对齐">
+      <label class="sf-align-option"><input type="radio" name="sfAlign" value="left"><span>左</span></label>
+      <label class="sf-align-option"><input type="radio" name="sfAlign" value="center" checked><span>居中</span></label>
+      <label class="sf-align-option"><input type="radio" name="sfAlign" value="right"><span>右</span></label>
+    </div>
+    <label class="checkbox-row"><input id="groupCheck" type="checkbox" checked><span>生成后自动成组</span></label>
+    <button id="btnGenerate" class="button primary wide">生成到 Photoshop 当前文档</button>
+    <div id="status" class="status muted">选择字库，输入内容后即可生成。</div>
+  </section>
+</main></div>
     <div id="removeBgView" class="extra-tool" style="display:none"><main class="panel">
     <header class="header">
       <div>
