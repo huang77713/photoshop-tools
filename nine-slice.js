@@ -8,12 +8,36 @@ const { app, imaging, core } = ps;
 const $ = id => root.querySelector('#' + id);
 const sourceCanvas = $('sourceCanvas'), resultCanvas = $('outputCanvas');
 const sw = $('sourceWrap'), guides = $('guides');
-let source = null, drag = null, busy = false;
+let source = null, drag = null, busy = false, aspectLocked = false;
 const int = id => Math.round(Number($(id).value));
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const status = (s, mode='') => { $('status').textContent=s; $('status').className='hint '+mode; $('status').title=s; };
 let lastFailure='';
 const set = (id, n) => { $(id).value = Math.round(n); };
+function setAspectLock(locked){
+  aspectLocked=!!locked;
+  $('aspectLock').setAttribute('aria-pressed',aspectLocked?'true':'false');
+  $('aspectLock').title=aspectLocked?'已锁定原图比例，点击解除':'自由调整宽高，点击锁定原图比例';
+  $('aspectLockIcon').textContent=aspectLocked?'🔒':'🔓';
+  $('aspectLockText').textContent=aspectLocked?'等比例':'自由';
+}
+function updateOriginalSize(){
+  $('originalSize').textContent=source?'原图 '+source.width+' × '+source.height+' px':'原图：读取后显示';
+  $('originalWidth').textContent=source?'原图：'+source.width:'原图：—';
+  $('originalHeight').textContent=source?'原图：'+source.height:'原图：—';
+}
+function sizeEdited(changed){
+  if(aspectLocked && source){
+    const value=Number($(changed).value);
+    if(Number.isFinite(value) && value>0 && Number.isInteger(value)){
+      const other=changed==='width'?'height':'width';
+      const ratio=changed==='width'?source.height/source.width:source.width/source.height;
+      const calculated=Math.round(value*ratio);
+      if(calculated>=1 && calculated<=12000)set(other,calculated);
+    }
+  }
+  queueRender();
+}
 function params(){
   if (!source) throw new Error(lastFailure || '请先读取选中的图层');
   const l=int('left'),r=int('right'),t=int('top'),b=int('bottom');
@@ -166,10 +190,13 @@ async function loadLayer(){
     $('sourceInfo').textContent=layer.name+' · '+w+' × '+h+' px · '+kind;
     const x=Math.max(1,Math.floor(w*.22)),y=Math.max(1,Math.floor(h*.22));
     set('left',x);set('right',x);set('top',y);set('bottom',y);
+    set('width',w);set('height',h);
+    setAspectLock(false);
+    updateOriginalSize();
     lastFailure='';status('读取成功：'+layer.name+'（'+w+'×'+h+'）','ok');
     render();
   }catch(e){
-    source=null;sourceCanvas.removeAttribute('src');resultCanvas.removeAttribute('src');guides.style.width='0px';guides.style.height='0px';
+    source=null;updateOriginalSize();sourceCanvas.removeAttribute('src');resultCanvas.removeAttribute('src');guides.style.width='0px';guides.style.height='0px';
     lastFailure='读取失败【'+stage+'】：'+(e&&e.message?e.message:String(e));
     console.error('[Nine Slice Resize] '+lastFailure,e);
     $('sourceInfo').textContent=lastFailure;
@@ -213,7 +240,13 @@ async function generate(newDocument){
 }
 $('load').addEventListener('click',loadLayer);
 $('reset').addEventListener('click',()=>{if(!source)return;let a=Math.max(1,Math.floor(source.width*.22)),b=Math.max(1,Math.floor(source.height*.22));set('left',a);set('right',a);set('top',b);set('bottom',b);render();});
-['left','right','top','bottom','width','height'].forEach(id=>$(id).addEventListener('input',queueRender));
+['left','right','top','bottom'].forEach(id=>$(id).addEventListener('input',queueRender));
+['width','height'].forEach(id=>$(id).addEventListener('input',()=>sizeEdited(id)));
+$('aspectLock').addEventListener('click',()=>{
+  setAspectLock(!aspectLocked);
+  if(aspectLocked && source)sizeEdited('width');
+  else queueRender();
+});
 root.querySelectorAll('input[name=mode]').forEach(el=>el.addEventListener('change',queueRender));
 $('newDoc').addEventListener('click',()=>generate(true));$('sameDoc').addEventListener('click',()=>generate(false));
 root.querySelectorAll('.guide').forEach(el=>el.addEventListener('pointerdown',e=>{
@@ -237,6 +270,7 @@ if(typeof ResizeObserver!=='undefined'){
   resizeObserver.observe(sw);
   resizeObserver.observe($('resultWrap'));
 }
+setAspectLock(false);updateOriginalSize();
 status('请先选中图层，然后点击“读取选中图层”');
 
 };
