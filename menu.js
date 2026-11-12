@@ -112,6 +112,9 @@
           message.textContent = String(error && error.message || error);
         }
       }
+      if(showTextCutter && loadedTextCutter && typeof textView.__textCutterActivate==="function"){
+        textView.__textCutterActivate();
+      }
     });
   }
 }());
