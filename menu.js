@@ -96,6 +96,9 @@
           message.textContent = String(error && error.message || error);
         }
       }
+      if(showRemoveBg && loadedRemoveBg && typeof removeView.__transparentSplitActivate==='function'){
+        removeView.__transparentSplitActivate();
+      }
       if (showTextCutter && !loadedTextCutter) {
         try {
           require("./text-cutter.js")(textView);
