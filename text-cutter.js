@@ -44,9 +44,18 @@ function currentLayerKey(){
 }
 function activeView(){return root.style.display!=="none";}
 function scheduleRead(){
-  if(!activeView()||exportRunning)return;
+  if(!activeView()||exportRunning||previewRunning)return;
   refreshLayerStatus();
-  schedulePreview();
+  markPreviewStale("点击「更新预览」查看 Photoshop 文字效果");
+}
+function markPreviewStale(message){
+  // Do not open a temporary PSD merely to update a UI control.
+  if(previewTimer!==null){clearTimeout(previewTimer);previewTimer=null;}
+  activePreviewRequest++;
+  $("tcPreviewImage").style.display="none";
+  $("tcPreviewPlaceholder").style.display="block";
+  $("tcPreviewPlaceholder").textContent=message||"参数已修改，点击「更新预览」";
+  $("tcPreviewNote").textContent="预览使用临时副本；原始 PSD 不会修改";
 }
 function schedulePreview(){
   if(!activeView()||exportRunning)return;
@@ -772,7 +781,26 @@ async function previewTemplate(request){
         });
         try{
           const image=pixels.imageData;
-          const encoded=await imaging.encodeImageData({imageData:image,base64:true});
+          let jpegData=image;
+          // JPEG cannot encode RGBA. Composite transparency onto the dark preview panel
+          // and encode a temporary three-channel RGB buffer instead.
+          if(image.components===4){
+            const raw=await image.getData({chunky:true});
+            const rgb=new Uint8Array(image.width*image.height*3);
+            for(let i=0;i<image.width*image.height;i++){
+              const p=i*4,o=i*3,a=raw[p+3]/255;
+              rgb[o]=Math.round(raw[p]*a+31*(1-a));
+              rgb[o+1]=Math.round(raw[p+1]*a+30*(1-a));
+              rgb[o+2]=Math.round(raw[p+2]*a+36*(1-a));
+            }
+            jpegData=await imaging.createImageDataFromBuffer(rgb,{
+              width:image.width,height:image.height,components:3,chunky:true,
+              colorSpace:"RGB",colorProfile:"sRGB IEC61966-2.1"
+            });
+          }
+          let encoded;
+          try{encoded=await imaging.encodeImageData({imageData:jpegData,base64:true});}
+          finally{if(jpegData!==image)jpegData.dispose();}
           if(request===activePreviewRequest){
             $("tcPreviewImage").src="data:image/jpeg;base64,"+encoded;
             $("tcPreviewImage").style.display="block";
@@ -797,7 +825,7 @@ async function previewTemplate(request){
       },{commandName:"关闭文字预览副本"});
     }catch(err){console.warn("[Text Cutter] preview cleanup",err);}
     previewRunning=false;
-    if(request!==activePreviewRequest&&activeView())schedulePreview();
+    // Only explicit preview clicks create temporary Photoshop documents.
   }
 }
 function wireEvents() {
@@ -815,7 +843,7 @@ function wireEvents() {
       const input=el.querySelector('input[name="tcMode"]');
       if(input)input.checked=true;
       refreshModeView();
-      schedulePreview();
+      markPreviewStale();
     };
     el.addEventListener("click",activate);
     el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate();}});
@@ -825,7 +853,7 @@ function wireEvents() {
 
   $("presetDigits").addEventListener("click", () => {
     $("characters").value = "0123456789";
-    saveSettings();refreshModeView();schedulePreview();
+    saveSettings();refreshModeView();markPreviewStale();
   });
 
   $("presetDefault").addEventListener("click", () => {
@@ -841,12 +869,12 @@ function wireEvents() {
   ["characters", "tracking", "padding", "outputName", "keepWorkDoc"].forEach((id) => {
     $(id).addEventListener("change",()=>{
       saveSettings();
-      if(id==="characters"||id==="tracking"){refreshModeView();schedulePreview();}
+      if(id==="characters"||id==="tracking"){refreshModeView();markPreviewStale();}
     });
   });
   ["characters","tracking"].forEach(id=>$(id).addEventListener("input",()=>{
     refreshModeView();
-    schedulePreview();
+    markPreviewStale();
   }));
 }
 
