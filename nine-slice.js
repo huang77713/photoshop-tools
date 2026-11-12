@@ -88,7 +88,12 @@ async function showPreview(img,rgba,w,h){
     img.style.width=w+'px';img.style.height=h+'px';
   }finally {if(im)im.dispose();}
 }
-let renderSerial=0;
+let renderSerial=0, previewTimer=null;
+function queueRender(){
+  updateGuides();
+  if(previewTimer!==null)clearTimeout(previewTimer);
+  previewTimer=setTimeout(()=>{previewTimer=null;render();},80);
+}
 function updateGuides(){
   if(!source)return;
   const rect=sourceCanvas.getBoundingClientRect(), wrap=sw.getBoundingClientRect();
@@ -102,8 +107,10 @@ async function render(){
   const serial=++renderSerial;
   try{
     const p=params();
-    const maxW=Math.max(160,Math.min(420,sw.clientWidth-20));
-    const k=Math.min(maxW/p.w,210/p.h,1);
+    const resultWrap=$('resultWrap');
+    const maxW=Math.max(1,resultWrap.clientWidth-12);
+    const maxH=Math.max(1,resultWrap.clientHeight-12);
+    const k=Math.min(maxW/p.w,maxH/p.h,1);
     const w=Math.max(1,Math.round(p.w*k)),h=Math.max(1,Math.round(p.h*k));
     const buf=ninePixels(w,h,p);
     if(serial!==renderSerial)return;
@@ -206,8 +213,8 @@ async function generate(newDocument){
 }
 $('load').addEventListener('click',loadLayer);
 $('reset').addEventListener('click',()=>{if(!source)return;let a=Math.max(1,Math.floor(source.width*.22)),b=Math.max(1,Math.floor(source.height*.22));set('left',a);set('right',a);set('top',b);set('bottom',b);render();});
-['left','right','top','bottom','width','height'].forEach(id=>$(id).addEventListener('input',render));
-root.querySelectorAll('input[name=mode]').forEach(el=>el.addEventListener('change',render));
+['left','right','top','bottom','width','height'].forEach(id=>$(id).addEventListener('input',queueRender));
+root.querySelectorAll('input[name=mode]').forEach(el=>el.addEventListener('change',queueRender));
 $('newDoc').addEventListener('click',()=>generate(true));$('sameDoc').addEventListener('click',()=>generate(false));
 root.querySelectorAll('.guide').forEach(el=>el.addEventListener('pointerdown',e=>{
   if(!source)return;drag=el.dataset.guide;el.setPointerCapture(e.pointerId);e.preventDefault();
@@ -221,11 +228,15 @@ root.querySelectorAll('.guide').forEach(el=>el.addEventListener('pointermove',e=
   if(drag==='right'||drag==='bottom')offset=dim-offset;
   const opposite=({left:'right',right:'left',top:'bottom',bottom:'top'})[drag];
   offset=clamp(offset,0,dim-int(opposite)-1);
-  set(drag,offset);render();
+  set(drag,offset);queueRender();
 }));
 root.querySelectorAll('.guide').forEach(el=>{el.addEventListener('pointerup',()=>drag=null);el.addEventListener('pointercancel',()=>drag=null);});
 sourceCanvas.addEventListener('load',updateGuides);
-if(typeof ResizeObserver!=='undefined')new ResizeObserver(updateGuides).observe(sw);
+if(typeof ResizeObserver!=='undefined'){
+  const resizeObserver=new ResizeObserver(()=>{updateGuides();if(source)queueRender();});
+  resizeObserver.observe(sw);
+  resizeObserver.observe($('resultWrap'));
+}
 status('请先选中图层，然后点击“读取选中图层”');
 
 };
