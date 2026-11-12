@@ -175,18 +175,16 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #nineSliceView .field label{margin-bottom:5px!important}
 #nineSliceView .field input{height:34px!important}
 
-/* Original dimensions and compact aspect ratio control */
+/* Output dimensions: source references and unobtrusive ratio toggle */
 #nineSliceView .ns-original-size{font-size:11px;font-weight:normal}
-#nineSliceView .ns-size-row{display:flex;flex-direction:row;align-items:center;width:100%;gap:8px}
-#nineSliceView .ns-size-field{flex:1 1 0;min-width:0;width:40%;margin:0!important}
-#nineSliceView .ns-size-field label{display:block;margin-bottom:5px!important}
-#nineSliceView .ns-size-field input{display:block;width:100%!important;min-width:0!important;max-width:100%!important}
-#nineSliceView .ns-original-field{display:block;margin-top:5px;font-size:10px;color:#aaa5b8}
-#nineSliceView .ns-size-row{gap:12px!important;align-items:center!important}
-#nineSliceView .ns-size-field{flex:1 1 0!important;min-width:0!important;width:auto!important}
-#nineSliceView .ns-aspect-lock{flex:0 0 26px!important;width:26px!important;min-width:26px!important;max-width:26px!important;height:30px!important;min-height:30px!important;max-height:30px!important;padding:0!important;margin:0!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important;background:transparent!important;display:flex!important;flex-direction:row!important;justify-content:center!important;align-items:center!important;cursor:pointer!important;-webkit-appearance:none!important;appearance:none!important}
-#nineSliceView .ns-aspect-lock[aria-pressed="true"],#nineSliceView .ns-aspect-lock:hover,#nineSliceView .ns-aspect-lock:focus{background:transparent!important;border:0!important;box-shadow:none!important}
-#nineSliceView #aspectLockIcon{display:block!important;width:24px!important;height:24px!important;min-width:24px!important;max-width:24px!important;object-fit:contain!important;pointer-events:none!important;background:transparent!important}
+#nineSliceView .ns-size-row{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;width:100%!important;gap:12px!important}
+#nineSliceView .ns-size-field{display:block!important;flex:1 1 0!important;min-width:0!important;width:0!important;max-width:none!important;margin:0!important}
+#nineSliceView .ns-size-field label{display:block!important;margin:0 0 7px!important}
+#nineSliceView .ns-size-field input{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important}
+#nineSliceView .ns-original-field{display:block;margin-top:7px;font-size:10px;color:#aaa5b8}
+#nineSliceView .ns-aspect-lock{display:block!important;box-sizing:border-box!important;flex:0 0 28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:36px!important;min-height:36px!important;max-height:36px!important;margin:0!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important;background-color:transparent!important;background-image:url("icons/aspect-unlocked.png")!important;background-repeat:no-repeat!important;background-size:24px 24px!important;background-position:center center!important;cursor:pointer!important;opacity:.9!important;align-self:center!important}
+#nineSliceView .ns-aspect-lock[aria-pressed="true"]{background-image:url("icons/aspect-locked.png")!important;opacity:1!important}
+#nineSliceView .ns-aspect-lock:hover{opacity:1!important}
 /* UXP reliable full-area mode switch: label controls radio state, including the circle */
 #nineSliceView .mode{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;gap:6px!important;padding-top:8px!important}
 #nineSliceView .mode .ns-mode-item{display:flex!important;align-items:center!important;gap:7px!important;padding:7px 10px!important;min-height:34px!important;border-radius:5px!important;cursor:pointer!important;user-select:none!important;background:transparent!important}
@@ -243,7 +241,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   <section class="ns-size-section"><div class="section-title"><span>输出尺寸</span><span id="originalSize" class="hint ns-original-size">原图：读取后显示</span></div>
     <div class="ns-size-row">
       <div class="field ns-size-field"><label>宽度 (px)</label><input id="width" type="text" inputmode="numeric" value="1000"><span id="originalWidth" class="hint ns-original-field">原图：—</span></div>
-      <button type="button" id="aspectLock" class="ns-aspect-lock" aria-label="锁定原图宽高比例" aria-pressed="false" title="点击锁定原图宽高比例"><img id="aspectLockIcon" alt="" width="24" height="24" src="icons/aspect-unlocked.png"></button>
+      <span id="aspectLock" class="ns-aspect-lock" role="button" tabindex="0" aria-label="锁定原图宽高比例" aria-pressed="false" title="点击锁定原图宽高比例"></span>
       <div class="field ns-size-field"><label>高度 (px)</label><input id="height" type="text" inputmode="numeric" value="650"><span id="originalHeight" class="hint ns-original-field">原图：—</span></div>
     </div>
     <div class="mode"><label class="ns-mode-item" data-mode="stretch" tabindex="0"><input type="radio" name="mode" value="stretch" checked><span class="ns-mode-dot"><span class="ns-mode-inner"></span></span><span>拉伸</span></label><label class="ns-mode-item" data-mode="tile" tabindex="0"><input type="radio" name="mode" value="tile"><span class="ns-mode-dot"><span class="ns-mode-inner"></span></span><span>平铺</span></label></div>
