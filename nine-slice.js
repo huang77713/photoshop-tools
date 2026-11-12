@@ -280,7 +280,30 @@ $('aspectLock').addEventListener('click',()=>{
   if(aspectLocked && source)sizeEdited('width');
   else queueRender();
 });
-root.querySelectorAll('input[name=mode]').forEach(el=>el.addEventListener('change',queueRender));
+function selectMode(value){
+  root.querySelectorAll('.ns-mode-item').forEach(item=>{
+    const selected=item.dataset.mode===value;
+    item.classList.toggle('ns-selected',selected);
+    const input=item.querySelector('input[name=mode]');
+    if(input)input.checked=selected;
+    item.setAttribute('aria-checked',selected?'true':'false');
+  });
+  queueRender();
+}
+root.querySelectorAll('.ns-mode-item').forEach(item=>{
+  item.setAttribute('role','radio');
+  item.addEventListener('click',e=>{
+    e.preventDefault();
+    selectMode(item.dataset.mode);
+  });
+  item.addEventListener('keydown',e=>{
+    if(e.key===' '||e.key==='Enter'){
+      e.preventDefault();
+      selectMode(item.dataset.mode);
+    }
+  });
+});
+selectMode('stretch');
 $('newDoc').addEventListener('click',()=>generate(true));$('sameDoc').addEventListener('click',()=>generate(false));
 root.querySelectorAll('.guide').forEach(el=>el.addEventListener('pointerdown',e=>{
   if(!source)return;drag=el.dataset.guide;el.setPointerCapture(e.pointerId);e.preventDefault();
