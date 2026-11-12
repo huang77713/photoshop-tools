@@ -340,3 +340,52 @@
 #removeBgView #runBtn{width:100%!important;min-height:43px!important;margin:0 0 7px!important;font-size:14px!important;border-radius:6px!important}
 #removeBgView .message{text-align:center!important;margin-top:7px!important;min-height:18px!important;color:#afabb9!important}
 #removeBgView .ts-safe-note{text-align:center!important;color:#92909d!important;font-size:10px!important;margin-top:8px!important}
+
+/* Text Cutter v2 — restrained native Photoshop styling */
+#textCutterView{--bg:#29282d;--panel:transparent;--line:#45434d;--accent:#7659b1;--accent-hover:#8869c8;--muted:#a5a2ad;background:#29282d!important;color:#e9e7ed!important}
+#textCutterView>.panel{padding:15px 15px 32px!important;display:block!important}
+#textCutterView .header{padding:0 0 13px!important;margin:0 0 15px!important;border-bottom:1px solid #3c3a44!important;align-items:center!important}
+#textCutterView .title{font-size:16px!important;font-weight:600!important}
+#textCutterView .subtitle{font-size:10px!important;color:#9996a2!important;line-height:1.4!important;margin-top:3px!important}
+#textCutterView .tc-layer-row{display:flex!important;gap:10px!important;align-items:center!important;margin:0 0 17px!important}
+#textCutterView .tc-layer-desc{flex:1 1 0!important;min-width:0!important}
+#textCutterView .tc-kicker{font-size:11px!important;color:#a6a3b0!important;margin-bottom:4px!important}
+#textCutterView #layerStatus{margin:0!important;font-size:12px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;word-break:normal!important}
+#textCutterView .button{border:1px solid #55515e!important;border-radius:5px!important;background:#39363f!important;color:#e4e0eb!important;padding:7px 11px!important;min-height:34px!important;box-shadow:none!important;font-size:12px!important;font-weight:500!important;flex:none!important}
+#textCutterView .button.small{padding:6px 9px!important;min-height:30px!important;font-size:11px!important}
+#textCutterView .button.primary{background:#755ab1!important;border-color:#755ab1!important;color:white!important;font-weight:600!important}
+#textCutterView .button.primary:hover{background:#8669c4!important}
+#textCutterView .button:disabled{opacity:.45!important}
+#textCutterView .label{font-weight:500!important;font-size:12px!important;color:#d6d3dd!important;margin-bottom:7px!important}
+#textCutterView textarea,#textCutterView input[type="text"],#textCutterView input[type="number"]{display:block!important;background:#1f1e24!important;border:1px solid #56515f!important;border-radius:6px!important;color:#f2eff6!important;font-size:13px!important;min-height:38px!important;padding:8px 11px!important;box-shadow:none!important}
+#textCutterView textarea{min-height:61px!important;max-height:125px!important;resize:vertical!important;font-size:15px!important;line-height:1.5!important}
+#textCutterView .preset-row{margin:8px 0 19px!important;gap:6px!important}
+#textCutterView .chip{min-height:28px!important;padding:5px 9px!important;background:#34313a!important;border:1px solid #514c5b!important;border-radius:5px!important;font-size:11px!important;color:#d4cddd!important}
+#textCutterView .chip.tc-plain{background:transparent!important;border-color:transparent!important;color:#a6a3af!important}
+#textCutterView .tc-preview-head{display:flex!important;align-items:center!important;justify-content:space-between!important;margin:0 0 8px!important;font-size:12px!important;font-weight:600!important}
+#textCutterView .tc-preview{height:164px!important;min-height:164px!important;max-height:164px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:10px!important;background:#1f1e24!important;border:1px solid #403e48!important;border-radius:7px!important;overflow:hidden!important}
+#textCutterView #tcPreviewImage{display:block;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
+#textCutterView #tcPreviewPlaceholder{text-align:center!important;color:#9895a3!important;font-size:11px!important;line-height:1.6!important}
+#textCutterView .tc-preview-note{min-height:14px!important;margin:6px 0 17px!important;color:#aaa6b4!important;font-size:10px!important}
+#textCutterView .tc-parameters{display:flex!important;flex-direction:row!important;gap:10px!important;width:100%!important;margin-bottom:17px!important}
+#textCutterView .tc-parameters>.field{display:block!important;flex:1 1 0!important;min-width:0!important;width:0!important;margin:0!important}
+#textCutterView .tc-parameters>.field+.field{margin:0!important}
+#textCutterView .tc-parameters input{min-height:36px!important;height:36px!important}
+#textCutterView .tc-export{border-top:1px solid #3c3a44!important;padding-top:16px!important}
+#textCutterView .tc-section-heading{font-size:12px!important;font-weight:600!important;margin-bottom:9px!important}
+#textCutterView .tc-mode-row{display:flex!important;flex-direction:row!important;width:100%!important}
+#textCutterView .tc-mode{flex:1 1 0!important;min-width:0!important;min-height:35px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:8px 4px!important;background:#302e36!important;border:1px solid #4b4854!important;font-size:12px!important;color:#ccc9d1!important;cursor:pointer!important}
+#textCutterView .tc-mode:first-child{border-radius:5px 0 0 5px!important}
+#textCutterView .tc-mode:last-child{border-radius:0 5px 5px 0!important}
+#textCutterView .tc-mode.selected{background:#4d405f!important;border-color:#8870b7!important;color:#f5efff!important}
+#textCutterView .tc-mode input{display:none!important}
+#textCutterView .tc-mode-info{display:flex!important;justify-content:space-between!important;gap:9px!important;color:#a9a5b1!important;font-size:10px!important;margin:7px 0 18px!important}
+#textCutterView .tc-export>.field{margin-bottom:18px!important}
+#textCutterView .tc-folder-head{display:flex!important;align-items:center!important;justify-content:space-between!important;font-size:12px!important;margin-bottom:7px!important}
+#textCutterView .folder-path{border:1px solid #45434d!important;background:#222127!important;border-radius:6px!important;min-height:35px!important;padding:9px 11px!important;color:#a6a3ae!important;font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#textCutterView .tc-advanced{border-top:1px solid #3c3a44!important;margin:17px 0 16px!important;padding-top:10px!important}
+#textCutterView .tc-advanced-toggle{display:flex!important;align-items:center!important;justify-content:space-between!important;width:100%!important;min-height:32px!important;background:transparent!important;border:0!important;padding:5px 0!important;color:#d0cbd6!important;font-size:12px!important;text-align:left!important}
+#textCutterView #tcAdvancedPanel{padding:8px 0!important}
+#textCutterView .check-row{font-size:11px!important;color:#bdb8c6!important}
+#textCutterView #runBtn{display:block!important;width:100%!important;height:43px!important;min-height:43px!important;margin:0 0 9px!important;font-size:14px!important;border-radius:6px!important}
+#textCutterView .message{text-align:center!important;color:#a9a6b1!important;font-size:11px!important;min-height:19px!important;line-height:1.5!important}
