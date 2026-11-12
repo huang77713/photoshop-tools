@@ -124,8 +124,8 @@ function queueLibraryPreview(){
       if(serial===previewSerial)$("previewMessage").textContent="预览图片读取失败，仍可尝试生成："+(e.message||String(e));}
     finally{
       busyPreview=false;
-      if(currentLibrary() && !previewCache.has(currentLibrary().id))return;
-      if(currentLibrary() && currentLibrary().id!==lib.id)queueLibraryPreview();
+      const current=currentLibrary();
+      if(current && current.id!==lib.id)queueLibraryPreview();
     }
   },70);
 }
