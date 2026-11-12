@@ -732,8 +732,10 @@ async function previewTemplate(request){
   if(previewRunning||exportRunning||!activeView())return;
   previewRunning=true;
   let doc=null;
+  let originalDoc=null;
   try{
     const source=getCurrentTextLayer();
+    originalDoc=source.doc;
     const key=source.doc.id+":"+source.layer.id;
     const contents=$("characters").value.replace(/[\r\n]/g,"");
     if(!contents){$("tcPreviewPlaceholder").textContent="请先输入文字";return;}
@@ -764,7 +766,7 @@ async function previewTemplate(request){
         try{
           const image=pixels.imageData;
           const encoded=await imaging.encodeImageData({imageData:image,base64:true});
-          if(request===activePreviewRequest&&key===currentLayerKey()){
+          if(request===activePreviewRequest){
             $("tcPreviewImage").src="data:image/jpeg;base64,"+encoded;
             $("tcPreviewImage").style.display="block";
             $("tcPreviewPlaceholder").style.display="none";
@@ -781,7 +783,12 @@ async function previewTemplate(request){
       $("tcPreviewNote").textContent=formatError(err);
     }
   }finally{
-    if(doc)try{await core.executeAsModal(async()=>{await closeWithoutSaving(doc);},{commandName:"关闭文字预览副本"});}catch(_){}
+    if(doc)try{
+      await core.executeAsModal(async()=>{
+        await closeWithoutSaving(doc);
+        if(originalDoc)app.activeDocument=originalDoc;
+      },{commandName:"关闭文字预览副本"});
+    }catch(err){console.warn("[Text Cutter] preview cleanup",err);}
     previewRunning=false;
     if(request!==activePreviewRequest&&activeView())schedulePreview();
   }
