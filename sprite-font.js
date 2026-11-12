@@ -88,6 +88,7 @@ function renderLibraries() {
 
   localStorage.setItem(SELECTED_KEY, selectedLibraryId || "");
   renderLibraryEditor();
+  readPreviewPreferences(currentLibrary());
   queueLibraryPreview();
 }
 function refreshMappedGlyphLabels() {
@@ -684,6 +685,8 @@ async function generateText() {
   const spacing = Number($("spacingInput").value || 0);
   const scale = Math.max(10, Math.min(500, Number($("scaleInput").value || 100)));
   const autoGroup = $("groupCheck").checked;
+  const alignInput=root.querySelector('input[name="sfAlign"]:checked');
+  const horizontalAlign=alignInput?alignInput.value:"center";
 
   let entry;
   try {
@@ -734,7 +737,9 @@ async function generateText() {
       });
       layoutHeight = Math.max(layoutHeight, 1);
 
-      let cursorX = Math.round((doc.width - totalWidth) / 2);
+      const scaledWidth=totalWidth*(scale/100);
+      const leftEdge=horizontalAlign==="left"?0:horizontalAlign==="right"?doc.width-scaledWidth:(doc.width-scaledWidth)/2;
+      let cursorX=Math.round(leftEdge+(scaledWidth-totalWidth)/2);
       const startY = Math.round((doc.height - layoutHeight) / 2);
       const createdLayers = [];
 
@@ -775,6 +780,7 @@ async function generateText() {
       }
     }, { commandName: `生成图片字 ${text}` });
 
+    savePreviewSettings(lib);
     setStatus(`“${text}” 已生成：每个字符都是独立图层。`, "success");
   } catch (e) {
     console.error(e);
@@ -787,11 +793,28 @@ function wireEvents() {
   $("btnDelete").addEventListener("click", deleteLibrary);
   $("btnSaveLibrary").addEventListener("click", saveCurrentLibraryEdits);
   $("btnGenerate").addEventListener("click", generateText);
+  $("btnManage").addEventListener("click",()=>setManagerOpen($("sfManager").style.display==="none"));
+  ["textInput","spacingInput","scaleInput"].forEach(id=>{
+    $(id).addEventListener("input",()=>{
+      renderComposedPreview();
+      if(id!=="textInput")savePreviewSettings(currentLibrary());
+    });
+  });
+  root.querySelectorAll(".sf-align-option").forEach(item=>{
+    item.addEventListener("click",()=>{
+      const radio=item.querySelector('input[name="sfAlign"]');
+      if(radio)radio.checked=true;
+      updateAlignButtons();
+      savePreviewSettings(currentLibrary());
+    });
+  });
 
   $("librarySelect").addEventListener("change", (event) => {
     selectedLibraryId = event.target.value;
     localStorage.setItem(SELECTED_KEY, selectedLibraryId || "");
     renderLibraryEditor();
+    readPreviewPreferences(currentLibrary());
+    queueLibraryPreview();
   });
 
   $("mappingInput").addEventListener("input", () => {
@@ -803,9 +826,12 @@ function wireEvents() {
     for (let i = 0; i < chips.length; i++) {
       chips[i].textContent = chars[i] || "?";
     }
+    renderComposedPreview();
   });
 }
 
 wireEvents();
 renderLibraries();
+updateAlignButtons();
+setManagerOpen(false);
 };
