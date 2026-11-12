@@ -591,7 +591,11 @@ async function analyzePreview(request){
     refreshLayerStatus();
     $("detectedCount").textContent="识别中…";
     $("splitPreviewInfo").textContent="正在读取透明像素";
-    const pixels=await readTransparentPixels(doc,layer);
+    // Photoshop imaging.getPixels may require an active modal scope.
+    // Use a read-only modal transaction; do not create temporary layers or alter the source.
+    const pixels=await core.executeAsModal(async()=>{
+      return await readTransparentPixels(doc,layer);
+    },{commandName:"分析透明对象预览"});
     if(request!==previewRequest||key!==selectedKey())return;
     const percent=readSettings().minAreaPercent;
     const minArea=Math.max(1,Math.floor(pixels.width*pixels.height*percent/100));
@@ -621,7 +625,9 @@ async function analyzePreview(request){
     updateRunButton();
   }catch(e){
     clearPreview("暂时无法预览该图层");
-    $("splitPreviewInfo").textContent=formatError(e)+" · 请确认图层有真实透明像素";
+    const message=formatError(e);
+    $("splitPreviewInfo").textContent=message;
+    setMessage("预览识别失败："+message,"error");
     refreshLayerStatus();
   }finally{
     if(image)try{image.dispose();}catch(_){}
