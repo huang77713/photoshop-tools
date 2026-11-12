@@ -176,6 +176,12 @@ async function makeTransparentWorkingCopy(doc, sourceLayer, createdLayerIds) {
   working.visible = true;
   working.name = "_SPLIT_WORKING";
 
+  // Ordinary transparent pixel layers can be copied directly.
+  // An empty-helper merge is unnecessary and can leave an empty image region in some PS builds.
+  if(sourceLayer.kind===constants.LayerKind.NORMAL){
+    return working;
+  }
+
   const empty = await doc.createLayer({ name: "_SPLIT_EMPTY_HELPER" });
   createdLayerIds.add(empty.id);
   empty.visible = true;
@@ -703,17 +709,19 @@ async function splitObjects() {
     await core.executeAsModal(async (executionContext) => {
       app.activeDocument = doc;
 
-      stage = "复制透明图层到临时工作层";
+      // Read source pixels BEFORE creating/moving any helper layers.
+      // The preview already succeeded on this same source layer; no need to read merged helpers.
+      stage = "读取原图透明像素";
       executionContext.reportProgress({ value: 0.08, commandName: stage });
+      const sourcePixels = await readTransparentPixels(doc,sourceLayer);
+
+      stage = "复制透明图层到临时工作层";
+      executionContext.reportProgress({ value: 0.22, commandName: stage });
       const workingLayer = await makeTransparentWorkingCopy(
         doc,
         sourceLayer,
         createdLayerIds
       );
-
-      stage = "读取透明区域";
-      executionContext.reportProgress({ value: 0.22, commandName: stage });
-      const sourcePixels = await readTransparentPixels(doc, workingLayer);
 
       const minArea = Math.max(
         1,
