@@ -311,6 +311,14 @@ module.exports = function(root) {
             if(Math.abs(dx)>0.01||Math.abs(dy)>0.01){
               try{
                 await translateById(target,state.docId,dx,dy);
+                // Never report success if Photoshop moved another selection or
+                // silently ignored a group translation.
+                const after=bounds(target);
+                const errorX=Math.abs((after.l-b.l)-dx);
+                const errorY=Math.abs((after.t-b.t)-dy);
+                if(errorX>1.5||errorY>1.5){
+                  throw Error("实际移动偏差："+Math.round(errorX)+"px / "+Math.round(errorY)+"px");
+                }
               }catch(error){
                 throw Error("无法移动第 "+(i+1)+" 个对象「"+p.item.name+"」（图层ID "+target.id+"）："+(error.message||error));
               }
