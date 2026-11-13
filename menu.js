@@ -10,6 +10,8 @@
   var loadedSpriteFont = false;
   var loadedRemoveBg = false;
   var loadedTextCutter = false;
+  var loadedSmartArrange = false;
+  var loadedVisibleResize = false;
   var bodyArea = document.getElementById("bodyArea");
   function setMenuOpen(open) {
     // Some UXP input controls render above CSS z-index layers. Hiding only
@@ -28,6 +30,8 @@
       var showSprite = name === "图片数字排版";
       var showRemoveBg = name === "透明对象拆分";
       var showTextCutter = name === "文字批量切图";
+      var showSmartArrange = name === "智能排列";
+      var showVisibleResize = name === "批量尺寸统一";
       label.textContent = name;
       heading.textContent = name;
       message.textContent = "此工具将在后续测试阶段接入。";
@@ -39,11 +43,15 @@
       var spriteView = document.getElementById("spriteFontView");
       var removeView = document.getElementById("removeBgView");
       var textView = document.getElementById("textCutterView");
+      var smartView = document.getElementById("smartArrangeView");
+      var resizeView = document.getElementById("visibleResizeView");
       nineView.style.display = showNine ? "block" : "none";
       spriteView.style.display = showSprite ? "block" : "none";
       removeView.style.display = showRemoveBg ? "block" : "none";
       textView.style.display = showTextCutter ? "block" : "none";
-      var showFallback = !showNine && !showSprite && !showRemoveBg && !showTextCutter;
+      smartView.style.display = showSmartArrange ? "block" : "none";
+      resizeView.style.display = showVisibleResize ? "block" : "none";
+      var showFallback = !showNine && !showSprite && !showRemoveBg && !showTextCutter && !showSmartArrange && !showVisibleResize;
       heading.style.display = showFallback ? "block" : "none";
       message.style.display = showFallback ? "block" : "none";
       document.querySelector(".spacer").style.display = showFallback ? "block" : "none";
@@ -114,6 +122,36 @@
       }
       if(showTextCutter && loadedTextCutter && typeof textView.__textCutterActivate==="function"){
         textView.__textCutterActivate();
+      }
+      if (showSmartArrange && !loadedSmartArrange) {
+        try {
+          require("./smart-arrange.js")(smartView);
+          loadedSmartArrange = true;
+        } catch (error) {
+          console.error("[Photoshop Tools] Smart Arrange failed:", error);
+          smartView.style.display = "none";
+          heading.style.display = "block";
+          message.style.display = "block";
+          heading.textContent = "智能排列工具启动失败";
+          message.textContent = String(error && error.message || error);
+        }
+      } else if (showSmartArrange && loadedSmartArrange && typeof smartView.__smartArrangeActivate === "function") {
+        smartView.__smartArrangeActivate();
+      }
+      if (showVisibleResize && !loadedVisibleResize) {
+        try {
+          require("./visible-resize.js")(resizeView);
+          loadedVisibleResize = true;
+        } catch (error) {
+          console.error("[Photoshop Tools] Batch Visible Resize failed:", error);
+          resizeView.style.display = "none";
+          heading.style.display = "block";
+          message.style.display = "block";
+          heading.textContent = "批量尺寸统一启动失败";
+          message.textContent = String(error && error.message || error);
+        }
+      } else if (showVisibleResize && loadedVisibleResize && typeof resizeView.__visibleResizeActivate === "function") {
+        resizeView.__visibleResizeActivate();
       }
     });
   }

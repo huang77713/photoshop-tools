@@ -274,6 +274,8 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #spriteFontView .sf-manager .muted,#spriteFontView #glyphCount{font-size:11px!important}
 </style>
 <link rel="stylesheet" href="extra-features.css">
+<link rel="stylesheet" href="smart-arrange.css">
+<link rel="stylesheet" href="visible-resize.css">
 </head>
 <body>
 <div id="app">
@@ -288,6 +290,8 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div class="item" data-name="图片数字排版"><span>图片数字排版</span><span class="check"></span></div>
       <div class="item" data-name="透明对象拆分"><span>透明对象拆分</span><span class="check"></span></div>
       <div class="item" data-name="文字批量切图"><span>文字批量切图</span><span class="check"></span></div>
+      <div class="item" data-name="智能排列"><span>智能排列</span><span class="check"></span></div>
+      <div class="item" data-name="批量尺寸统一"><span>批量尺寸统一</span><span class="check"></span></div>
     </div>
   </div>
   <div id="bodyArea">
@@ -450,6 +454,67 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   <button id="runBtn" class="button primary full run-button">生成并导出 PNG</button>
   <div id="message" class="message muted">原始 PSD 保持不变</div>
 </main></div>
+    <div id="visibleResizeView" style="display:none">
+ <div class="vr-header"><div><div class="vr-title">批量尺寸统一 <span class="vr-tag">TEST</span></div><div class="vr-subtitle">以可见像素为基准 · 独立处理</div></div></div>
+ <div class="vr-source"><div class="vr-source-info"><div id="vrSource">选中图层后点击读取</div></div><button id="vrRead" class="vr-button">读取</button></div>
+ <div class="vr-section vr-compact-section">
+  <div class="vr-label">目标尺寸 <span class="vr-unit">px</span></div>
+  <div class="vr-fields"><label>宽度<input id="vrWidth" type="number" value="300" min="1" max="30000"></label><label>高度<input id="vrHeight" type="number" value="300" min="1" max="30000"></label></div>
+ </div>
+ <div class="vr-section vr-compact-section"><div class="vr-label">缩放方式</div>
+  <div class="vr-modes" id="vrModes"><button data-mode="contain" class="active">完整适应</button><button data-mode="width">按宽度</button><button data-mode="height">按高度</button><button data-mode="cover">填满尺寸</button><button data-mode="stretch">自由拉伸</button></div>
+  <div class="vr-hint" id="vrModeDesc">等比例缩放，完整保留图片；宽高不一定都达到目标值。</div>
+ </div>
+ <label class="vr-check"><input id="vrCenter" type="checkbox" checked><span>保持可见内容中心位置</span></label>
+ <div class="vr-result-bar"><span>可见像素尺寸</span><span id="vrCount"></span><button id="vrListToggle" class="vr-inline-toggle">展开详情 ▾</button></div>
+ <div class="vr-result-details" id="vrResultDetails" style="display:none"><div id="vrResults" class="vr-list"></div><div id="vrStats" class="vr-stats">读取图层后显示尺寸</div></div>
+ <details class="vr-advanced"><summary>高级设置</summary><label>Alpha 阈值 <input type="number" id="vrAlpha" min="0" max="254" value="8"></label><div class="vr-hint">只用透明像素计算实际内容；复杂图层组采用临时合成测量。</div></details>
+ <button class="vr-button primary vr-apply" id="vrApply">批量调整尺寸</button>
+ <div class="vr-reset-row"><div><strong>智能对象还原 100%</strong><span>仅智能对象图层，跳过普通像素层和图层组</span></div><div class="vr-reset-controls"><select id="vrResetScope"><option value="selected">当前选中</option><option value="all">文档全部</option></select><button id="vrReset100" class="vr-button vr-reset-button">一键还原</button></div></div>
+ <div id="vrStatus" class="vr-status">请选择图层后点击读取。</div>
+ </div>
+ <div id="smartArrangeView" style="display:none">
+  <div class="sa-head"><div class="sa-title">智能排列 <span class="sa-tag">TEST</span></div><div class="sa-sub">复制与整理 · 精准间距</div></div>
+  <div class="sa-source"><div class="sa-source-info"><strong id="saSelected">未选择图层</strong><span id="saDetail">请选中一个或多个图层 / 组</span></div><button class="sa-button sa-read" id="saRead">读取</button></div>
+  <div class="sa-section">
+    <div class="sa-segments sa-mode" id="saOp"><button data-value="copy" class="active">复制排列</button><button data-value="organize">整理现有对象</button></div>
+    <span id="saHint" class="sa-accessibility">一个图层或组：原对象 + 复制对象。</span>
+  </div>
+  <div class="sa-section sa-layout-row">
+    <span class="sa-label">排列方式</span>
+    <div class="sa-segments" id="saLayout"><button data-value="horizontal">横向</button><button data-value="vertical">纵向</button><button data-value="grid" class="active">网格</button></div>
+  </div>
+  <div class="sa-fields sa-count" id="saQuantity"><label>总数量<input id="saCount" type="number" value="6" min="1" max="120"></label></div>
+  <div class="sa-fields sa-dimensions" id="saGridFields">
+    <label>行数<input id="saRows" type="number" value="2" min="1" max="120"></label>
+    <label>列数<input id="saCols" type="number" value="3" min="1" max="120"></label>
+    <label class="sa-check" id="saAutoWrap"><input id="saAuto" type="checkbox"><span>自动行数</span></label>
+  </div>
+  <div class="sa-fields sa-dimensions sa-gap">
+    <label>水平间距 px<input id="saGapX" type="number" value="20" min="0" max="10000"></label>
+    <label>垂直间距 px<input id="saGapY" type="number" value="20" min="0" max="10000"></label>
+  </div>
+  <div class="sa-section sa-compact-option">
+    <span class="sa-label">对象排列</span>
+    <div class="sa-fixed-mode" id="saSpacingMode">1 号尺寸为基准 · 其他居中</div>
+    <div id="saSpacingNote" class="sa-accessibility">只读取 1 号对象尺寸作为单元格。</div>
+  </div>
+  <div class="sa-preview-head"><span>排列预览</span><span id="saCountLabel">待选择</span></div>
+  <div class="sa-preview" id="saPreview"><div class="sa-empty">读取图层后显示</div></div>
+  <div class="sa-preview-footer" id="saPreviewNote">仅示意位置 · 不修改画布</div>
+  <div class="sa-advanced">
+    <button id="saAdvancedToggle" class="sa-advanced-toggle" aria-expanded="false">更多设置 <span id="saAdvanceArrow">▾</span></button>
+    <div id="saAdvancedPanel" style="display:none">
+      <div class="sa-option-title">间距依据</div>
+      <div class="sa-segments" id="saMeasure"><button data-value="visible" class="active">可见像素</button><button data-value="bounds">图层边界</button></div>
+      <div class="sa-option-title" id="saFlowWrap"><span>网格填充顺序</span><div class="sa-segments" id="saFlow"><button data-value="row" class="active">逐行</button><button data-value="column">逐列</button></div></div>
+      <div class="sa-option-title">排列起点</div>
+      <div class="sa-segments" id="saCorner"><button data-value="tl" class="active">左上</button><button data-value="tr">右上</button><button data-value="bl">左下</button><button data-value="br">右下</button></div>
+    </div>
+  </div>
+  <div class="sa-actions"><button id="saReset" class="sa-button sa-reset">重置</button><button id="saRun" class="sa-button sa-primary">生成排列</button></div>
+  <div id="saStatus" class="sa-status">请选择图层并读取</div>
+</div>
     <div id="heading">菜单交互测试</div>
     <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
     <div class="spacer">滚动测试：可向下滑动直到末尾。</div>

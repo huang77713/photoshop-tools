@@ -1,0 +1,58 @@
+/* Visible Resize: compact Photoshop dock layout */
+#visibleResizeView{background:#29292e;color:#eeebf3;padding:10px 12px 18px;font:11px Arial,"Microsoft YaHei",sans-serif;min-width:0}
+#visibleResizeView *{box-sizing:border-box}
+#visibleResizeView button,#visibleResizeView input,#visibleResizeView select{font-family:inherit}
+#visibleResizeView .vr-header{margin-bottom:9px;padding-bottom:8px;border-bottom:1px solid #424049}
+#visibleResizeView .vr-title{font-size:15px;font-weight:600;line-height:1.3}
+#visibleResizeView .vr-tag{font-weight:400;font-size:9px;color:#aaa5b5;margin-left:6px}
+#visibleResizeView .vr-subtitle{font-size:10px;color:#9d98a6;margin-top:3px}
+#visibleResizeView .vr-source{display:flex;align-items:center;gap:9px;padding:4px 0 10px;margin-bottom:9px;border-bottom:1px solid #3e3c45}
+#visibleResizeView .vr-source-info{flex:1;min-width:0}
+#visibleResizeView #vrSource{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#dedbe5;font-size:11px}
+#visibleResizeView .vr-button{border:1px solid #585361;border-radius:5px;background:#3b3942;color:#eeebf2;padding:5px 11px;min-height:29px;font-size:11px;cursor:pointer}
+#visibleResizeView .vr-button:disabled{opacity:.4}
+#visibleResizeView .vr-button.primary{background:#7960ab;border-color:#7960ab;color:#fff;font-weight:600}
+#visibleResizeView .vr-label{display:block;font-size:11px;font-weight:600;color:#d5d0dd;margin-bottom:6px}
+#visibleResizeView .vr-unit{font-size:10px;font-weight:400;color:#9e99aa}
+#visibleResizeView .vr-section{margin:0 0 10px}
+#visibleResizeView .vr-fields{display:flex;gap:9px;align-items:end}
+#visibleResizeView .vr-fields label{flex:1;min-width:0;color:#aba6b5;font-size:10px}
+#visibleResizeView input[type=number]{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;height:31px!important;min-height:31px!important;margin:4px 0 0!important;padding:5px 8px!important;border:1px solid #55515d!important;border-radius:5px!important;background:#1f1e24!important;color:#fff!important;font-size:13px!important;visibility:visible!important;opacity:1!important;box-shadow:none!important}
+#visibleResizeView .vr-modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;width:100%}
+#visibleResizeView .vr-modes button{min-width:0;min-height:30px;padding:5px 3px;border:1px solid #514c58;border-radius:5px;background:#38363f;color:#c9c4d0;font-size:10px;white-space:nowrap;text-align:center;cursor:pointer}
+#visibleResizeView .vr-modes button.active{background:#625078;border-color:#8972a9;color:#fff}
+#visibleResizeView .vr-hint{color:#a29cad;font-size:10px;line-height:1.4;margin-top:6px}
+#visibleResizeView #vrModeDesc{padding:0;margin-top:6px;background:none;min-height:0}
+#visibleResizeView .vr-check{display:flex;align-items:center;gap:7px;margin:8px 0 10px;color:#c7c2ce;font-size:10px}
+#visibleResizeView .vr-check input{margin:0}
+#visibleResizeView .vr-result-bar{display:flex;align-items:center;gap:7px;border-top:1px solid #413e47;padding:9px 0 5px;color:#c7c2cf;font-size:11px}
+#visibleResizeView .vr-result-bar>span:first-child{flex:none}
+#visibleResizeView #vrCount{color:#9e98aa;font-size:10px}
+#visibleResizeView .vr-inline-toggle{border:none;background:transparent;color:#b5a5d3;font-size:10px;margin-left:auto;padding:2px 0;cursor:pointer}
+#visibleResizeView .vr-result-details{margin-bottom:7px}
+#visibleResizeView .vr-list{background:#24232a;border:1px solid #45424c;border-radius:6px;max-height:116px;min-height:30px;overflow-y:auto;padding:3px 8px}
+#visibleResizeView .vr-result{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:25px;border-bottom:1px solid #35323c}
+#visibleResizeView .vr-result:last-child{border-bottom:none}
+#visibleResizeView .vr-name{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#visibleResizeView .vr-size{flex:none;color:#b5a5cc;font-size:10px}
+#visibleResizeView .vr-extra,#visibleResizeView .vr-stats{color:#9995a4;font-size:10px;padding:5px 0}
+#visibleResizeView .vr-advanced{border-top:1px solid #413e47;margin:5px 0 8px}
+#visibleResizeView .vr-advanced summary{padding:7px 0;color:#a9a3b4;font-size:10px;cursor:pointer}
+#visibleResizeView .vr-advanced label{font-size:10px;color:#b7b0be}
+#visibleResizeView .vr-advanced input{max-width:110px}
+#visibleResizeView .vr-apply{display:block;width:100%;min-height:35px!important;margin:3px 0 11px;font-size:12px!important}
+#visibleResizeView .vr-reset-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 0;border-top:1px solid #45414b}
+#visibleResizeView .vr-reset-row>div:first-child{flex:1;min-width:0}
+#visibleResizeView .vr-reset-row strong{display:block;font-size:11px;font-weight:600;color:#d6d1dc;line-height:1.4}
+#visibleResizeView .vr-reset-row span{display:block;font-size:9px;color:#9994a2;line-height:1.4;margin-top:3px}
+#visibleResizeView .vr-reset-controls{display:flex;gap:5px;align-items:center;flex:none}
+#visibleResizeView .vr-reset-controls select{font-size:10px;background:#26252d;color:#ddd9e5;border:1px solid #57515e;border-radius:5px;height:29px;padding:3px}
+#visibleResizeView .vr-reset-button{white-space:nowrap;font-size:10px;padding:5px 7px}
+#visibleResizeView .vr-status{margin-top:7px;font-size:10px;line-height:1.45;color:#aac5b1;overflow-wrap:anywhere}
+#visibleResizeView .vr-status.error{color:#f0a0a0}
+
+/* UXP compatibility fix: Photoshop panel's CSS engine does not reliably
+   render grid children. Use explicit flex sizing for all five buttons. */
+#visibleResizeView #vrModes{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:stretch!important;justify-content:flex-start!important;width:100%!important;gap:0!important}
+#visibleResizeView #vrModes button{display:block!important;flex:0 0 32%!important;width:32%!important;max-width:32%!important;min-width:0!important;min-height:31px!important;height:31px!important;margin:0 2% 6px 0!important;padding:5px 2px!important;visibility:visible!important;opacity:1!important;white-space:nowrap!important;overflow:visible!important;font-size:11px!important;line-height:20px!important;box-sizing:border-box!important}
+#visibleResizeView #vrModes button:nth-child(3n){margin-right:0!important}
