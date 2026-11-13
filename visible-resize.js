@@ -38,13 +38,16 @@ function isolate(doc,path,vis){
   children=Array.from(target.layers||[]);
  }
 }
-async function compositeAlpha(doc){
+async function compositeAlpha(doc,layerId,region){
  // Full-composite read: Photoshop does not support layerID targeting a group.
  const width=n(doc.width),height=n(doc.height);
- const max=1800,ratio=Math.min(1,max/Math.max(width,height));
+ const crop=region||{left:0,top:0,right:width,bottom:height};
+ const cropW=crop.right-crop.left,cropH=crop.bottom-crop.top;
+ const max=768,ratio=Math.min(1,max/Math.max(cropW,cropH));
  const opts={documentID:doc.id,componentSize:8,colorSpace:"RGB",applyAlpha:false,
-   sourceBounds:{left:0,top:0,right:width,bottom:height}};
- if(ratio<1)opts.targetSize={width:Math.max(1,Math.round(width*ratio)),height:Math.max(1,Math.round(height*ratio))};
+   sourceBounds:crop};
+ if(layerId!==null&&layerId!==undefined)opts.layerID=layerId;
+ if(ratio<1)opts.targetSize={width:Math.max(1,Math.round(cropW*ratio)),height:Math.max(1,Math.round(cropH*ratio))};
  let image;
  try{
   const data=await imaging.getPixels(opts);image=data.imageData;
@@ -121,23 +124,45 @@ async function read(){
   const picked=choose();selection=picked.entries;documentId=picked.doc.id;syncInfo();
   setStatus("正在分析最终可见像素；测量时只会修改临时文档。");
   alphaThreshold=Math.max(0,Math.min(254,numeric("vrAlpha",8)));
+  // Direct sampling is much faster for regular raster/smart/text layers.
+  // Only layers that Photoshop rejects (including full layer groups) need
+  // the much slower temporary composite workflow.
+  const needsComposite=[];
   await core.executeAsModal(async()=>{
-   let temp=null;
-   try{
-    temp=await picked.doc.duplicate("尺寸测量_临时副本",false);
-    const originalVis=new Map(getAll(temp).map(l=>[l.id,l.visible]));
-    for(let i=0;i<selection.length;i++){
-     const entry=selection[i];setStatus("正在分析 "+(i+1)+"/"+selection.length+"："+entry.name);
-     try{
-      isolate(temp,entry.path,originalVis);
-      entry.visible=await compositeAlpha(temp);
-     }catch(e){
-      throw Error("第 "+(i+1)+" 个对象「"+entry.name+"」测量失败："+(e.message||e));
-     }
+   for(let i=0;i<selection.length;i++){
+    const entry=selection[i];
+    if(entry.layer.layers){needsComposite.push(entry);continue;}
+    try{
+     const doc=picked.doc,b=entry.raw;
+     const crop={left:Math.max(0,Math.floor(b.l)),top:Math.max(0,Math.floor(b.t)),
+       right:Math.min(n(doc.width),Math.ceil(b.r)),bottom:Math.min(n(doc.height),Math.ceil(b.b))};
+     if(crop.right<=crop.left||crop.bottom<=crop.top)throw Error("图层超出画布");
+     entry.visible=await compositeAlpha(doc,entry.id,crop);
+    }catch(error){
+     needsComposite.push(entry);
     }
-   }finally{if(temp)await temp.close(constants.SaveOptions.DONOTSAVECHANGES);}
-  },{commandName:"批量尺寸统一：可见像素测量"});
-  syncInfo();describe();setStatus("已读取 "+selection.length+" 个对象的实际可见范围。");
+   }
+  },{commandName:"读取普通图层可见范围"});
+  if(needsComposite.length){
+   setStatus("正在测量 "+needsComposite.length+" 个复杂图层组…");
+   await core.executeAsModal(async()=>{
+    let temp=null;
+    try{
+     temp=await picked.doc.duplicate("尺寸测量_临时副本",false);
+     const originalVis=new Map(getAll(temp).map(l=>[l.id,l.visible]));
+     for(let i=0;i<needsComposite.length;i++){
+      const entry=needsComposite[i];
+      try{
+       isolate(temp,entry.path,originalVis);
+       entry.visible=await compositeAlpha(temp,null,null);
+      }catch(e){
+       throw Error("第 "+(i+1)+" 个复杂对象「"+entry.name+"」测量失败："+(e.message||e));
+      }
+     }
+    }finally{if(temp)await temp.close(constants.SaveOptions.DONOTSAVECHANGES);}
+   },{commandName:"批量尺寸统一：复杂对象测量"});
+  }
+  syncInfo();describe();setStatus("已读取 "+selection.length+" 个对象的实际可见像素"+(needsComposite.length?"（其中 "+needsComposite.length+" 个复杂对象采用合成测量）":"（快速模式）")+"。");
  }catch(e){selection=[];documentId=null;syncInfo();setStatus(e.message||String(e),true);}
  finally{working=false;$("vrRead").disabled=false;$("vrApply").disabled=false;}
 }
@@ -191,7 +216,9 @@ async function apply(){
  finally{working=false;$("vrRead").disabled=false;$("vrApply").disabled=false;}
 }
 root.querySelectorAll("#vrModes button").forEach(b=>b.addEventListener("click",()=>{
- method=b.dataset.mode;root.querySelectorAll("#vrModes button").forEach(x=>x.classList.toggle("active",x===b));describe();
+ method=b.dataset.mode;root.querySelectorAll("#vrModes button").forEach(x=>x.classList.toggle("active",x===b));
+ const descriptions={contain:"等比例缩放，完整保留图片；宽高不一定都达到目标值。",cover:"等比例缩放，使宽和高都覆盖目标尺寸；可能超过目标范围。",width:"按目标宽度等比例调整，高度自动变化。",height:"按目标高度等比例调整，宽度自动变化。",stretch:"宽高分别缩放到指定尺寸，可能使图片变形。"};
+ $("vrModeDesc").textContent=descriptions[method]||"";describe();
 }));
 ["vrWidth","vrHeight"].forEach(id=>$(id).addEventListener("input",describe));
 $("vrRead").addEventListener("click",read);
