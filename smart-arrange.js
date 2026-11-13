@@ -135,7 +135,7 @@ module.exports = function(root) {
       return true;
     });
     if(!filtered.length)throw Error("当前选择没有独立的可排列对象。");
-    const entries=filtered.map(layer=>({layer,id:layer.id,name:layer.name,raw:bounds(layer),b:bounds(layer)}));
+    const entries=filtered.map(layer=>({layer,id:layer.id,name:layer.name,path:pathToLayer(doc,layer),raw:bounds(layer),b:bounds(layer)}));
     state.layers=entries;state.docId=doc.id;
     state.ignoredChildren=picked.length-filtered.length;
     // Organizing many existing objects must be instantaneous by default.
@@ -146,7 +146,6 @@ module.exports = function(root) {
     state.measure=state.forceVisible?"visible":"bounds";
     active("saMeasure",state.measure);
     if(state.measure==="visible") {
-      for(const item of entries)item.path=pathToLayer(doc,item.layer);
       // Duplicating the whole PSD preserves nested clipping masks and groups.
       // There are NO write operations on the source PSD in the read path.
       await core.executeAsModal(async()=>{
@@ -181,7 +180,15 @@ module.exports = function(root) {
     const rows=state.layout==="horizontal"?1:state.layout==="vertical"?total:(!isCopy&&auto?Math.ceil(total/cols):count("saRows",1,120,2));
     if(rows*cols<total)throw Error("排列位置不足，请增加行列数或启用自动行数。");
     const gx=count("saGapX",0,10000,20),gy=count("saGapY",0,10000,20);
-    const sorted=state.layers.slice().sort((a,b)=>(a.b.t+a.b.h/2)-(b.b.t+b.b.h/2)|| (a.b.l+a.b.w/2)-(b.b.l+b.b.w/2));
+    // Stable Photoshop Layers-panel order. Image size and oversized mask
+    // bounds must NOT determine which object becomes #1 or #N.
+    const sorted=state.layers.slice().sort((a,b)=>{
+      const pa=a.path||[],pb=b.path||[];
+      for(let k=0;k<Math.min(pa.length,pb.length);k++){
+        if(pa[k]!==pb[k])return pa[k]-pb[k];
+      }
+      return pa.length-pb.length;
+    });
     const list=isCopy?Array.from({length:total},()=>sorted[0]):sorted;
     // Anchor-only layout: object #1 is the single fixed-size template.
     // Every other layer is centered on that virtual cell. Differences in
