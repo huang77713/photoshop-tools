@@ -56,35 +56,39 @@ module.exports = function(root) {
       return measured;
     }finally{if(image)image.dispose();}
   }
-  // Photoshop imaging.getPixels(layerID) does not support group layers.
-  // Instead duplicate only the requested group into a transparent scratch document,
-  // measure its document composite and delete it. The source PSD is untouched.
-  async function measureLayer(item,sourceDoc,workDoc) {
-    if(state.measure!=="visible"){item.b=item.raw;item.fallback=false;item.reason="";return;}
-    let clone=null;
+  // A scratch COPY of the ENTIRE document is the only document mutated during
+  // measurement. NEVER duplicate/delete/ungroup individual source layers.
+  // Original group hierarchy remains untouched even on failure.
+  function pathToLayer(sourceDoc,layer) {
+    const path=[];let node=layer;
+    while(node){
+      const parent=node.parent;
+      const list=Array.from(parent?parent.layers:sourceDoc.layers);
+      const at=list.findIndex(x=>x.id===node.id);
+      if(at<0)throw Error("无法定位图层层级："+layer.name);
+      path.unshift(at);node=parent;
+    }
+    return path;
+  }
+  function isolateInCopy(copyDoc,path) {
+    let container=Array.from(copyDoc.layers);
+    for(let depth=0;depth<path.length;depth++){
+      const target=container[path[depth]];
+      if(!target)throw Error("副本文档层级与源文档不一致");
+      for(const layer of container)layer.visible=(layer.id===target.id);
+      container=Array.from(target.layers||[]);
+    }
+  }
+  async function measureFromDocumentCopy(item,copyDoc) {
     try{
-      if(!item.layer.layers){
-        try {
-          item.b=await visibleBounds(item.layer,item.raw,sourceDoc.id,state.alpha,false);
-          item.fallback=false;item.reason="";return;
-        }catch(err){ /* masks, fills and smart objects may require composite mode */ }
-      }
-      if(!workDoc)throw Error("无法创建临时合成文档");
-      const copies=await sourceDoc.duplicateLayers([item.layer],workDoc);
-      clone=copies&&copies[0];
-      if(!clone)throw Error("无法复制图层到临时文档");
-      // Keep internal clipping masks and effects intact. The duplicate document
-      // contains only this group, so composite alpha reflects actually visible pixels.
-      const cloneRaw=bounds(clone);
-      const sampled=await visibleBounds(clone,cloneRaw,workDoc.id,state.alpha,true);
-      const shiftX=item.raw.l-cloneRaw.l,shiftY=item.raw.t-cloneRaw.t;
-      item.b={l:sampled.l+shiftX,t:sampled.t+shiftY,r:sampled.r+shiftX,b:sampled.b+shiftY,w:sampled.w,h:sampled.h};
+      isolateInCopy(copyDoc,item.path);
+      // Request full document composite, not an unsupported group layerID.
+      const canvas={l:0,t:0,r:Number(copyDoc.width),b:Number(copyDoc.height),
+        w:Number(copyDoc.width),h:Number(copyDoc.height)};
+      item.b=await visibleBounds(null,canvas,copyDoc.id,state.alpha,true);
       item.fallback=false;item.reason="";
     }catch(error){
       item.b=item.raw;item.fallback=true;item.reason=String(error&&error.message||error);
-      console.warn("[Smart Arrange] composite measurement failed for",item.name,error);
-    }finally{
-      if(clone)try{await clone.delete();}catch(error){console.error("[Smart Arrange] scratch cleanup failed:",error);}
     }
   }
   function status(str,err){$("saStatus").textContent=str;$("saStatus").className="sa-status"+(err?" error":"");}
@@ -111,23 +115,20 @@ module.exports = function(root) {
     entries.forEach(e=>{let parent=e.layer.parent;while(parent){if(entries.some(x=>x.id===parent.id))throw Error("不能同时排列父组及组内子图层。");parent=parent.parent;}});
     state.layers=entries;state.docId=doc.id;
     if(state.measure==="visible") {
-      await core.executeAsModal(async(ctx)=>{
-        let scratch=null;
+      for(const item of entries)item.path=pathToLayer(doc,item.layer);
+      // Duplicating the whole PSD preserves nested clipping masks and groups.
+      // There are NO write operations on the source PSD in the read path.
+      await core.executeAsModal(async()=>{
+        let copy=null;
         try{
-          // Create once for the whole selection, not once per group.
-          scratch=await app.createDocument({
-            name:"智能排列-临时可见范围",width:Math.round(doc.width),height:Math.round(doc.height),
-            resolution:Number(doc.resolution)||72,mode:"RGBColorMode",fill:"transparent"
-          });
-          if(!scratch)throw Error("临时文档创建失败");
-          await ctx.hostControl.registerAutoCloseDocument(scratch.id);
-          for(const item of entries)await measureLayer(item,doc,scratch);
+          copy=await doc.duplicate("智能排列_临时测量",false);
+          for(const item of entries)await measureFromDocumentCopy(item,copy);
         }finally{
-          if(scratch)await scratch.close(photoshop.constants.SaveOptions.DONOTSAVECHANGES);
+          if(copy)await copy.close(photoshop.constants.SaveOptions.DONOTSAVECHANGES);
         }
-      },{commandName:"读取可见像素（临时合成）"});
+      },{commandName:"智能排列：只读测量"});
     } else {
-      for(const item of entries)await measureLayer(item,doc,null);
+      for(const item of entries){item.b=item.raw;item.fallback=false;item.reason="";}
     }
     $("saSelected").textContent=entries.length===1?entries[0].name:entries.length+" 个对象已选中";
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
