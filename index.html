@@ -275,6 +275,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 </style>
 <link rel="stylesheet" href="extra-features.css">
 <link rel="stylesheet" href="smart-arrange.css">
+<link rel="stylesheet" href="visible-resize.css">
 </head>
 <body>
 <div id="app">
@@ -290,6 +291,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div class="item" data-name="透明对象拆分"><span>透明对象拆分</span><span class="check"></span></div>
       <div class="item" data-name="文字批量切图"><span>文字批量切图</span><span class="check"></span></div>
       <div class="item" data-name="智能排列"><span>智能排列</span><span class="check"></span></div>
+      <div class="item" data-name="批量尺寸统一"><span>批量尺寸统一</span><span class="check"></span></div>
     </div>
   </div>
   <div id="bodyArea">
@@ -452,6 +454,16 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   <button id="runBtn" class="button primary full run-button">生成并导出 PNG</button>
   <div id="message" class="message muted">原始 PSD 保持不变</div>
 </main></div>
+    <div id="visibleResizeView" style="display:none">
+ <div class="vr-header"><div><div class="vr-title">批量尺寸统一</div><div class="vr-subtitle">逐个缩放 · 按最终可见像素测量</div></div><span class="vr-tag">TEST</span></div>
+ <div class="vr-source"><div class="vr-source-info"><div id="vrSource">请先选择一个或多个图层</div><div class="vr-caption">支持普通图层、智能对象与完整图层组</div></div><button id="vrRead" class="vr-button">读取</button></div>
+ <div class="vr-section"><div class="vr-label">目标尺寸（px）</div><div class="vr-fields"><label>宽度<input type="number" id="vrWidth" value="256" min="1" max="30000"></label><label>高度<input type="number" id="vrHeight" value="256" min="1" max="30000"></label></div></div>
+ <div class="vr-section"><div class="vr-label">缩放方式</div><div class="vr-segments" id="vrModes"><button data-mode="contain" class="active">完整适应</button><button data-mode="cover">填满尺寸</button><button data-mode="width">按宽度</button><button data-mode="height">按高度</button><button data-mode="stretch">强制拉伸</button></div><div class="vr-hint">完整适应会保留全部内容且保持比例；强制拉伸会改变原始比例。</div></div>
+ <label class="vr-check"><input id="vrCenter" type="checkbox" checked>保持每个对象原来的可见内容中心位置</label>
+ <div class="vr-section"><div class="vr-listhead"><span class="vr-label">可见像素尺寸</span><span id="vrCount" class="vr-caption"></span></div><div id="vrResults" class="vr-list"></div><div id="vrStats" class="vr-stats">读取图层后显示目标比例</div></div>
+ <details class="vr-advanced"><summary>高级设置</summary><label>Alpha 阈值（0–254）<input type="number" id="vrAlpha" value="8" min="0" max="254"></label><div class="vr-hint">降低阈值可包含更透明的柔边；测量过程仅操作临时文档，原图层不合并。</div></details>
+ <button id="vrApply" class="vr-button primary vr-apply">批量调整尺寸</button><div class="vr-status" id="vrStatus">选中图层后点击读取</div>
+ </div>
     <div id="smartArrangeView" style="display:none">
   <div class="sa-head"><div class="sa-title">智能排列 <span class="sa-tag">TEST</span></div><div class="sa-sub">复制与整理 · 精准间距</div></div>
   <div class="sa-source"><div class="sa-source-info"><strong id="saSelected">未选择图层</strong><span id="saDetail">请选中一个或多个图层 / 组</span></div><button class="sa-button sa-read" id="saRead">读取</button></div>
