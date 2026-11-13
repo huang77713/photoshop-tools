@@ -453,21 +453,47 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   <div id="message" class="message muted">原始 PSD 保持不变</div>
 </main></div>
     <div id="smartArrangeView" style="display:none">
- <div class="sa-head"><div><div class="sa-title">智能排列</div><div class="sa-sub">复制图层 / 图层组 · 整理多个对象</div></div><span class="sa-tag">TEST</span></div>
- <div class="sa-source"><div class="sa-source-top"><span>当前选择</span><button id="saRead" class="sa-button sa-small">重新读取</button></div><div class="sa-source-name" id="saSelected">尚未读取图层</div><div class="sa-muted" id="saDetail">支持单图层、智能对象及图层组</div></div>
- <div class="sa-measure"><span>间距依据</span><div class="sa-segments" id="saMeasure"><button data-value="visible" class="active">实际可见范围</button><button data-value="bounds">图层边界</button></div></div>
- <div class="sa-section"><div class="sa-label">操作模式</div><div class="sa-segments" id="saOp"><button data-value="copy" class="active">复制排列</button><button data-value="organize">整理现有图层</button></div><div class="sa-hint" id="saHint">一个图层或组：原对象 + 复制对象。</div></div>
- <div class="sa-section"><div class="sa-label">排列方式</div><div class="sa-segments" id="saLayout"><button data-value="horizontal">横向</button><button data-value="vertical">纵向</button><button data-value="grid" class="active">网格</button></div>
- <div class="sa-fields" id="saQuantity"><label>总数量 <small>包含原对象</small><input id="saCount" type="number" value="6" min="1" max="120"></label></div>
- <div class="sa-fields" id="saGridFields"><label>行数<input id="saRows" type="number" value="2" min="1" max="120"></label><label>列数<input id="saCols" type="number" value="3" min="1" max="120"></label></div>
- <label class="sa-check" id="saAutoWrap"><input id="saAuto" type="checkbox"><span>自动计算行数<small>适用于整理多个现有对象</small></span></label>
- <div class="sa-fields"><label>水平间距 (px)<input id="saGapX" type="number" value="20" min="0" max="10000"></label><label>垂直间距 (px)<input id="saGapY" type="number" value="20" min="0" max="10000"></label></div>
- <div id="saFlowWrap"><div class="sa-label sa-top">填充方向</div><div class="sa-segments" id="saFlow"><button data-value="row" class="active">逐行排列</button><button data-value="column">逐列排列</button></div></div></div>
- <div class="sa-section sa-spacing-section"><div class="sa-label">对象排布</div><div class="sa-segments" id="saSpacingMode"><button data-value="uniform" class="active">统一单元格 · 居中</button><button data-value="compact">紧凑排列</button></div><div id="saSpacingNote" class="sa-hint">用所有对象的最大宽高建立统一单元格，图层在单元格内居中。</div></div>
- <div class="sa-section"><div class="sa-label">排列起点</div><div class="sa-segments" id="saCorner"><button data-value="tl" class="active">左上</button><button data-value="tr">右上</button><button data-value="bl">左下</button><button data-value="br">右下</button></div><div class="sa-hint">以原对象或当前选择区域为锚点，不会自动缩放对象。</div></div>
- <div class="sa-preview-head"><span>排列预览</span><span id="saCountLabel">待读取</span></div><div class="sa-preview" id="saPreview"><div class="sa-empty">读取图层后显示排列示意</div></div><div id="saPreviewNote" class="sa-hint sa-below">预览不会修改 Photoshop 画布。</div>
- <div class="sa-actions"><button class="sa-button" id="saReset">重置</button><button class="sa-button sa-primary" id="saRun">生成复制排列</button></div><div class="sa-status" id="saStatus">请先选择图层，点击重新读取。</div>
- </div>
+  <div class="sa-head"><div class="sa-title">智能排列 <span class="sa-tag">TEST</span></div><div class="sa-sub">复制与整理 · 精准间距</div></div>
+  <div class="sa-source"><div class="sa-source-info"><strong id="saSelected">未选择图层</strong><span id="saDetail">请选中一个或多个图层 / 组</span></div><button class="sa-button sa-read" id="saRead">读取</button></div>
+  <div class="sa-section">
+    <div class="sa-segments sa-mode" id="saOp"><button data-value="copy" class="active">复制排列</button><button data-value="organize">整理现有对象</button></div>
+    <span id="saHint" class="sa-accessibility">一个图层或组：原对象 + 复制对象。</span>
+  </div>
+  <div class="sa-section sa-layout-row">
+    <span class="sa-label">排列方式</span>
+    <div class="sa-segments" id="saLayout"><button data-value="horizontal">横向</button><button data-value="vertical">纵向</button><button data-value="grid" class="active">网格</button></div>
+  </div>
+  <div class="sa-fields sa-count" id="saQuantity"><label>总数量<input id="saCount" type="number" value="6" min="1" max="120"></label></div>
+  <div class="sa-fields sa-dimensions" id="saGridFields">
+    <label>行数<input id="saRows" type="number" value="2" min="1" max="120"></label>
+    <label>列数<input id="saCols" type="number" value="3" min="1" max="120"></label>
+    <label class="sa-check" id="saAutoWrap"><input id="saAuto" type="checkbox"><span>自动行数</span></label>
+  </div>
+  <div class="sa-fields sa-dimensions sa-gap">
+    <label>水平间距 px<input id="saGapX" type="number" value="20" min="0" max="10000"></label>
+    <label>垂直间距 px<input id="saGapY" type="number" value="20" min="0" max="10000"></label>
+  </div>
+  <div class="sa-section sa-compact-option">
+    <span class="sa-label">对象排列</span>
+    <div class="sa-segments" id="saSpacingMode"><button data-value="uniform" class="active">统一尺寸 · 居中</button><button data-value="compact">紧凑排列</button></div>
+    <div id="saSpacingNote" class="sa-accessibility">用所有对象最大宽高作为单元格，图片居中。</div>
+  </div>
+  <div class="sa-preview-head"><span>排列预览</span><span id="saCountLabel">待选择</span></div>
+  <div class="sa-preview" id="saPreview"><div class="sa-empty">读取图层后显示</div></div>
+  <div class="sa-preview-footer" id="saPreviewNote">仅示意位置 · 不修改画布</div>
+  <div class="sa-advanced">
+    <button id="saAdvancedToggle" class="sa-advanced-toggle" aria-expanded="false">更多设置 <span id="saAdvanceArrow">▾</span></button>
+    <div id="saAdvancedPanel" style="display:none">
+      <div class="sa-option-title">间距依据</div>
+      <div class="sa-segments" id="saMeasure"><button data-value="visible" class="active">可见像素</button><button data-value="bounds">图层边界</button></div>
+      <div class="sa-option-title" id="saFlowWrap"><span>网格填充顺序</span><div class="sa-segments" id="saFlow"><button data-value="row" class="active">逐行</button><button data-value="column">逐列</button></div></div>
+      <div class="sa-option-title">排列起点</div>
+      <div class="sa-segments" id="saCorner"><button data-value="tl" class="active">左上</button><button data-value="tr">右上</button><button data-value="bl">左下</button><button data-value="br">右下</button></div>
+    </div>
+  </div>
+  <div class="sa-actions"><button id="saReset" class="sa-button sa-reset">重置</button><button id="saRun" class="sa-button sa-primary">生成排列</button></div>
+  <div id="saStatus" class="sa-status">请选择图层并读取</div>
+</div>
     <div id="heading">菜单交互测试</div>
     <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
     <div class="spacer">滚动测试：可向下滑动直到末尾。</div>
