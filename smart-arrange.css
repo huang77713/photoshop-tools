@@ -1,58 +1,122 @@
-/* Smart Arrange 1.3 — single-column compact UXP Photoshop panel */
-#smartArrangeView{box-sizing:border-box;width:100%;min-width:0;min-height:100%;padding:10px 12px 18px;background:#29292e;color:#efedf4;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
+/* Smart Arrange: compact Photoshop-native property panel, isolated from all other tools */
+#smartArrangeView{box-sizing:border-box;width:100%;min-width:0;min-height:100%;padding:7px 10px 12px;background:#2f2f2f;color:#e9e9e9;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:11px}
 #smartArrangeView *{box-sizing:border-box}
-#smartArrangeView .sa-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px}
-#smartArrangeView .sa-title{font-size:15px;line-height:1.3;font-weight:650;white-space:nowrap}
-#smartArrangeView .sa-tag{font-size:9px;color:#a4a1af;font-weight:400;margin-left:6px}
-#smartArrangeView .sa-sub{color:#97939f;font-size:10px;text-align:right;white-space:nowrap}
-#smartArrangeView .sa-source{display:flex;align-items:center;gap:10px;min-height:42px;border-bottom:1px solid #414047;padding:0 0 9px;margin-bottom:11px}
-#smartArrangeView .sa-source-info{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden}
-#smartArrangeView .sa-source-info strong{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#smartArrangeView .sa-source-info span{font-size:10px;color:#9995a1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#smartArrangeView button{cursor:pointer;box-shadow:none!important;font-family:inherit}
-#smartArrangeView .sa-button{border-radius:5px;background:#393840;border:1px solid #55525e;color:#e9e6f1;font-size:11px;min-height:31px;padding:5px 11px}
-#smartArrangeView .sa-read{flex:none;min-height:27px;padding:4px 12px}
-#smartArrangeView .sa-section{margin:0 0 12px}
-#smartArrangeView .sa-label{display:block;font-size:11px;color:#cac7d1;line-height:1.5;white-space:nowrap}
-#smartArrangeView .sa-segments{display:flex;flex-direction:row;align-items:stretch;min-width:0;width:100%;gap:0}
-#smartArrangeView .sa-segments button{flex:1 1 0;min-width:0;min-height:30px;line-height:1.25;padding:5px 4px;background:#37363d;border:1px solid #494650;border-radius:0;color:#bcb9c4;font-size:11px;font-weight:400;text-align:center}
-#smartArrangeView .sa-segments button+button{border-left:0}
-#smartArrangeView .sa-segments button:first-child{border-radius:5px 0 0 5px}
-#smartArrangeView .sa-segments button:last-child{border-radius:0 5px 5px 0}
-#smartArrangeView .sa-segments button.active{background:#64517e;border-color:#8872a6;color:#fff}
-#smartArrangeView .sa-mode button{min-height:34px;font-weight:500}
-#smartArrangeView .sa-layout-row{display:flex;align-items:center;gap:11px;margin-bottom:10px}
-#smartArrangeView .sa-layout-row>.sa-label{flex:none}
-#smartArrangeView .sa-layout-row>.sa-segments{flex:1}
-#smartArrangeView .sa-fields{display:flex;align-items:flex-end;flex-wrap:nowrap;gap:9px;min-width:0;margin:0 0 10px}
-#smartArrangeView .sa-fields>label{display:block;flex:1 1 0;min-width:0;color:#aaa7b2;font-size:10px}
-#smartArrangeView input[type="number"]{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;min-height:31px!important;height:31px!important;box-sizing:border-box!important;background:#1e1e24!important;border:1px solid #514d5a!important;color:#f4f2f8!important;border-radius:5px!important;padding:5px 8px!important;margin:4px 0 0!important;font-size:13px!important;opacity:1!important;visibility:visible!important;box-shadow:none!important}
-#smartArrangeView input:disabled{opacity:.4!important}
-#smartArrangeView .sa-check{display:flex;flex:0 0 auto;align-items:center;gap:5px;padding-bottom:7px;font-size:10px;color:#b3b0bb;white-space:nowrap}
+#smartArrangeView button{cursor:pointer;font-family:inherit;box-shadow:none!important}
+#smartArrangeView .sa-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:0 0 5px}
+#smartArrangeView .sa-title{font-size:13px;font-weight:700;white-space:nowrap}
+#smartArrangeView .sa-sub{font-size:10px;color:#a6a6a6;white-space:nowrap}
+#smartArrangeView .sa-source{display:flex;align-items:center;gap:8px;padding:3px 0 6px;margin-bottom:7px}
+#smartArrangeView .sa-source-info{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;overflow:hidden}
+#smartArrangeView .sa-source-info strong{font-size:11px;font-weight:600;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#smartArrangeView .sa-source-info span{font-size:10px;color:#a5a5a5;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#smartArrangeView .sa-button{display:block;background:#353535;border:1px solid #696969;border-radius:5px;color:#ececec;min-height:27px;padding:3px 9px;font-size:11px}
+#smartArrangeView .sa-read{flex:0 0 auto;min-width:49px}
+#smartArrangeView .sa-separator{height:1px;width:100%;background:#414141;margin:7px 0}
+#smartArrangeView .sa-op-line{margin:0 0 7px}
+#smartArrangeView .sa-segments{display:flex;flex-direction:row;align-items:stretch;gap:5px;min-width:0;width:100%}
+#smartArrangeView .sa-segments button{display:block;flex:1 1 0;min-width:0;min-height:27px;background:#333;border:1px solid #666;border-radius:6px;color:#d6d6d6;padding:3px 5px;font-size:11px;text-align:center;white-space:nowrap}
+#smartArrangeView .sa-segments button.active{background:#3c3c3c;border-color:#bcbcbc;color:#fff;font-weight:600}
+#smartArrangeView .sa-property{display:flex;align-items:center;gap:8px;margin:2px 0 7px}
+#smartArrangeView .sa-property-label{flex:0 0 49px;color:#c5c5c5;font-size:10px;white-space:nowrap}
+#smartArrangeView .sa-layout-icons{display:flex!important;flex-direction:row!important;align-items:center!important;gap:5px!important;flex:1;min-width:0}
+#smartArrangeView .sa-layout-icons button{display:flex!important;flex:1 1 0!important;min-width:0!important;align-items:center!important;justify-content:center!important;gap:4px!important;min-height:27px!important;height:27px!important;margin:0!important;padding:3px 4px!important;background:#333;border:1px solid #666;border-radius:5px;color:#d0d0d0;font-size:10px;white-space:nowrap}
+#smartArrangeView .sa-layout-icons button svg{display:block;flex:0 0 18px!important;width:18px!important;height:16px!important;color:inherit}
+#smartArrangeView .sa-layout-icons button span{display:block;font-size:10px;color:inherit}
+#smartArrangeView .sa-layout-icons button.active{background:#3c3c3c;border-color:#c4c4c4;color:#fff}
+#smartArrangeView .sa-fields{display:flex;align-items:flex-end;flex-wrap:nowrap;gap:8px;min-width:0;margin:0 0 7px}
+#smartArrangeView .sa-fields>label{display:block;flex:1 1 0;min-width:0;color:#c1c1c1;font-size:10px}
+#smartArrangeView .sa-unit{color:#888;font-size:9px}
+#smartArrangeView input[type="number"]{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:31px!important;min-height:31px!important;margin:4px 0 0!important;padding:4px 8px!important;box-sizing:border-box!important;background:#252525!important;border:1px solid #626262!important;border-radius:4px!important;color:#efefef!important;-webkit-text-fill-color:#efefef!important;font-size:12px!important;opacity:1!important;visibility:visible!important;box-shadow:none!important;appearance:none!important}
+#smartArrangeView input:disabled{opacity:.42!important}
+#smartArrangeView .sa-check{display:flex!important;align-items:center;flex:0 0 auto!important;gap:4px;padding-bottom:7px;white-space:nowrap;font-size:10px;color:#bbb}
 #smartArrangeView .sa-check input{margin:0;flex:none}
-#smartArrangeView .sa-compact-option{display:flex;align-items:center;gap:10px;margin:2px 0 11px}
-#smartArrangeView .sa-compact-option .sa-label{flex:none}
-#smartArrangeView .sa-compact-option .sa-segments{flex:1}
+#smartArrangeView .sa-compact-option{margin:0 0 7px}
+#smartArrangeView .sa-fixed-mode{display:block;background:none!important;border:0!important;border-radius:0!important;text-align:left;color:#999;font-size:10px;line-height:1.5;padding:0}
 #smartArrangeView .sa-accessibility{display:none}
-#smartArrangeView .sa-preview-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 6px;font-size:11px;font-weight:600}
-#smartArrangeView #saCountLabel{font-size:10px;color:#aaa6b5;font-weight:400}
-#smartArrangeView .sa-preview{height:123px;min-height:123px;max-height:123px;background:#202026;border:1px solid #403e48;border-radius:7px;padding:9px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#smartArrangeView .sa-preview-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 5px;font-size:11px;font-weight:600}
+#smartArrangeView #saCountLabel{font-size:10px;color:#a0a0a0;font-weight:400}
+#smartArrangeView .sa-preview{height:104px;min-height:104px;max-height:104px;background:#272727;border:1px solid #4e4e4e;border-radius:4px;padding:7px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #smartArrangeView .sa-stage{position:relative;display:block;flex:none;max-width:100%;max-height:100%}
-#smartArrangeView .sa-tile{position:absolute;display:flex;align-items:center;justify-content:center;border:1px solid #a99bc1;border-radius:3px;background:#776590;color:#fff;font-size:10px;min-width:1px;min-height:1px;overflow:hidden}
-#smartArrangeView .sa-tile.first{background:#9075b0;border-color:#d5b57e}
-#smartArrangeView .sa-empty{font-size:11px;color:#9f9aa9;text-align:center;line-height:1.5}
-#smartArrangeView .sa-preview-footer{min-height:15px;color:#93909d;font-size:10px;line-height:1.3;margin:5px 0 8px}
-#smartArrangeView .sa-advanced{border-top:1px solid #3d3b44;margin:6px 0 11px;padding-top:2px}
-#smartArrangeView .sa-advanced-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;padding:8px 0;background:transparent;border:0;color:#b8b3c2;font-size:11px;text-align:left}
-#smartArrangeView .sa-advanced-toggle span{color:#9489a7}
-#smartArrangeView .sa-option-title{color:#b2aebb;font-size:10px;margin:9px 0 5px}
-#smartArrangeView .sa-option-title .sa-segments{margin-top:6px}
-#smartArrangeView #saAdvancedPanel{padding-bottom:6px}
-#smartArrangeView .sa-actions{display:flex;gap:8px;width:100%;margin:0}
-#smartArrangeView .sa-reset{flex:0 0 30%}
-#smartArrangeView .sa-primary{flex:1;background:#7960ae;border-color:#7960ae;color:#fff;font-size:12px;font-weight:600}
+#smartArrangeView .sa-tile{position:absolute;display:flex;align-items:center;justify-content:center;min-width:1px;min-height:1px;background:#777080;border:1px solid #b2a9b9;border-radius:2px;color:white;font-size:10px;overflow:hidden}
+#smartArrangeView .sa-tile.first{background:#8d8099;border-color:#dabf88}
+#smartArrangeView .sa-empty{font-size:10px;color:#aaa;text-align:center;line-height:1.4}
+#smartArrangeView .sa-preview-footer{min-height:13px;margin:4px 0 7px;font-size:10px;color:#9d9d9d;line-height:1.4}
+#smartArrangeView .sa-advanced{border-top:1px solid #414141;margin:4px 0 8px}
+#smartArrangeView .sa-advanced-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:transparent;border:0;min-height:28px;padding:4px 0;color:#c8c8c8;text-align:left;font-size:11px}
+#smartArrangeView .sa-advanced-toggle span{color:#a6a6a6}
+#smartArrangeView #saAdvancedPanel{padding:2px 0 4px}
+#smartArrangeView .sa-advanced-line{display:flex;align-items:center;gap:8px;margin:5px 0 8px;min-width:0}
+#smartArrangeView .sa-option-label{flex:0 0 49px;color:#b9b9b9;font-size:10px;white-space:nowrap}
+#smartArrangeView .sa-advanced-line .sa-segments,#smartArrangeView .sa-advanced-line .sa-corners{flex:1;min-width:0}
+#smartArrangeView .sa-corners{display:flex;gap:5px;align-items:center}
+#smartArrangeView .sa-corners button{display:flex;flex:1 1 0;min-width:0;min-height:27px;height:27px;align-items:center;justify-content:center;padding:3px 2px;border:1px solid #666;border-radius:5px;background:#333;color:#c0c0c0}
+#smartArrangeView .sa-corners button svg{display:block;width:17px;height:17px}
+#smartArrangeView .sa-corners button.active{background:#3c3c3c;border-color:#bcbcbc;color:#fff}
+#smartArrangeView .sa-actions{display:flex;align-items:stretch;gap:8px;width:100%;margin:0}
+#smartArrangeView .sa-reset{flex:0 0 27%}
+#smartArrangeView .sa-primary{flex:1;min-width:0;min-height:33px!important;background:#1473e6!important;border-color:#1473e6!important;color:#fff;font-size:12px;font-weight:600}
 #smartArrangeView .sa-button:disabled{opacity:.45}
-#smartArrangeView .sa-status{min-height:18px;margin-top:7px;color:#a8c2aa;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
-#smartArrangeView .sa-status.error{color:#ec9295}
+#smartArrangeView .sa-status{min-height:15px;margin-top:6px;color:#a8c8b5;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
+#smartArrangeView .sa-status.error{color:#f0a2a2}
 
-#smartArrangeView .sa-fixed-mode{flex:1;min-width:0;text-align:center;background:#35333e;border:1px solid #554c67;border-radius:5px;color:#cbbde4;padding:7px 4px;font-size:11px;line-height:1.3}
+/* v2.2 - narrow control rail. Icons use plain CSS rectangles (UXP-safe). */
+#smartArrangeView .sa-property{justify-content:flex-start!important;align-items:center!important;gap:13px!important}
+#smartArrangeView .sa-property-label{flex:0 0 65px!important;width:65px!important}
+#smartArrangeView #saLayout{display:flex!important;flex:0 0 auto!important;width:auto!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important}
+#smartArrangeView #saLayout button{display:flex!important;flex:0 0 38px!important;width:38px!important;height:28px!important;min-height:28px!important;max-width:38px!important;margin:0!important;padding:3px!important;justify-content:center!important;align-items:center!important;border-radius:5px!important}
+#smartArrangeView .sa-shape{display:flex!important;align-items:center!important;justify-content:center!important;gap:2px!important;width:25px!important;height:18px!important;flex:none!important;color:inherit}
+#smartArrangeView .sa-shape .sa-dot{display:block!important;width:6px!important;height:7px!important;flex:0 0 6px!important;border-radius:1px!important;background:currentColor!important}
+#smartArrangeView .sa-shape-vertical{flex-direction:column!important;gap:1px!important}
+#smartArrangeView .sa-shape-vertical .sa-dot{width:12px!important;height:4px!important;flex:0 0 4px!important}
+#smartArrangeView .sa-shape-grid{width:25px!important;height:18px!important;flex-direction:row!important;flex-wrap:wrap!important;align-content:center!important;justify-content:center!important;gap:2px!important}
+#smartArrangeView .sa-shape-grid .sa-dot{width:6px!important;height:6px!important;flex:0 0 6px!important}
+#smartArrangeView .sa-properties{margin-top:7px!important}
+#smartArrangeView .sa-fields{gap:0!important;margin-bottom:10px!important;justify-content:flex-start!important}
+#smartArrangeView .sa-fields>label{flex:1 1 0!important;width:0!important;min-width:0!important;margin-right:14px!important}
+#smartArrangeView .sa-fields>label:last-child{margin-right:0!important}
+#smartArrangeView .sa-fields #saAutoWrap{flex:0 0 auto!important;width:auto!important;margin-right:0!important;padding-left:4px!important}
+#smartArrangeView .sa-gap>label{margin-right:14px!important}
+#smartArrangeView .sa-gap>label:last-child{margin-right:0!important}
+#smartArrangeView .sa-advanced-line{display:flex;align-items:center;min-height:29px;gap:13px;margin:5px 0 8px}
+#smartArrangeView .sa-option-label{flex:0 0 65px!important;width:65px!important}
+#smartArrangeView .sa-advanced-line .sa-segments{flex:0 0 auto!important;width:auto!important;gap:7px!important;justify-content:flex-start!important}
+#smartArrangeView #saMeasure button,#smartArrangeView #saFlow button{display:block!important;flex:0 0 91px!important;width:91px!important;max-width:91px!important;min-height:28px!important;height:28px!important;border-radius:5px!important;margin:0!important;padding:3px 5px!important}
+#smartArrangeView .sa-flow-inner{display:flex!important;align-items:center!important;gap:13px!important;min-height:29px!important;width:100%!important}
+#smartArrangeView #saCorner{display:flex!important;flex:0 0 auto!important;width:auto!important;gap:7px!important;justify-content:flex-start!important}
+#smartArrangeView #saCorner button{display:flex!important;flex:0 0 34px!important;width:34px!important;max-width:34px!important;height:28px!important;min-height:28px!important;padding:3px!important;align-items:center!important;justify-content:center!important}
+#smartArrangeView .sa-corner-shape{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-content:center!important;justify-content:center!important;gap:2px!important;width:16px!important;height:16px!important;flex:0 0 16px!important;color:inherit}
+#smartArrangeView .sa-corner-cell{display:block!important;flex:0 0 6px!important;width:6px!important;height:6px!important;border:1px solid currentColor!important;border-radius:1px!important;background:transparent!important}
+#smartArrangeView .sa-corner-cell.hot{background:currentColor!important}
+
+/* v2.3: raster <img> icons like the verified reference plugin. */
+#smartArrangeView #saLayout button img,#smartArrangeView #saCorner button img{display:block!important;visibility:visible!important;opacity:1!important;width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;max-width:20px!important;max-height:20px!important;object-fit:contain!important;flex:0 0 20px!important;margin:0!important;padding:0!important}
+#smartArrangeView #saFlowWrap{width:100%!important;min-width:0!important;min-height:32px!important;margin:5px 0 8px!important}
+#smartArrangeView #saFlowWrap .sa-flow-inner{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;width:100%!important;min-height:29px!important;gap:13px!important}
+#smartArrangeView #saFlowWrap .sa-option-label{display:block!important;width:65px!important;flex:0 0 65px!important}
+#smartArrangeView #saFlowWrap #saFlow{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:stretch!important;justify-content:flex-start!important;width:auto!important;flex:0 0 auto!important;gap:7px!important}
+#smartArrangeView #saFlowWrap #saFlow button{display:block!important;visibility:visible!important;opacity:1!important;flex:0 0 91px!important;width:91px!important;min-width:91px!important;max-width:91px!important;height:28px!important;min-height:28px!important;margin:0!important;padding:3px 5px!important;color:#dedede!important;-webkit-text-fill-color:#dedede!important;font-size:11px!important;line-height:20px!important;text-align:center!important;white-space:nowrap!important}
+#smartArrangeView #saFlowWrap #saFlow button.active{background:#444!important;border-color:#c4c4c4!important;color:white!important;-webkit-text-fill-color:white!important}
+
+/* v2.4: proven UXP pattern - media/text as sibling overlays, NEVER inside button. */
+#smartArrangeView #saLayout,#smartArrangeView #saCorner{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important}
+#smartArrangeView .sa-native-icon-cell{display:block!important;position:relative!important;flex:0 0 auto!important;width:38px!important;height:28px!important;min-width:38px!important;min-height:28px!important}
+#smartArrangeView #saCorner .sa-native-icon-cell{width:34px!important;min-width:34px!important}
+#smartArrangeView #saLayout .sa-native-icon-cell>button,#smartArrangeView #saCorner .sa-native-icon-cell>button{display:block!important;position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;max-width:none!important;min-height:28px!important;min-width:0!important;margin:0!important;padding:0!important;border:1px solid #656565!important;border-radius:5px!important;background:#333!important;opacity:1!important;visibility:visible!important}
+#smartArrangeView #saLayout .sa-native-icon-cell>button.active,#smartArrangeView #saCorner .sa-native-icon-cell>button.active{background:#474047!important;border-color:#d8c5ee!important}
+#smartArrangeView .sa-native-icon-cell>img{display:block!important;position:absolute!important;top:4px!important;left:50%!important;transform:translateX(-50%)!important;width:20px!important;height:20px!important;max-width:20px!important;max-height:20px!important;margin:0!important;padding:0!important;opacity:1!important;visibility:visible!important;pointer-events:none!important;object-fit:contain!important}
+#smartArrangeView #saFlowWrap #saFlow{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:7px!important;align-items:center!important}
+#smartArrangeView #saFlowWrap .sa-native-label-cell{display:block!important;position:relative!important;flex:0 0 91px!important;width:91px!important;min-width:91px!important;max-width:91px!important;height:28px!important;min-height:28px!important}
+#smartArrangeView #saFlowWrap .sa-native-label-cell>button{display:block!important;position:absolute!important;left:0!important;top:0!important;min-width:0!important;width:100%!important;max-width:none!important;height:28px!important;min-height:28px!important;margin:0!important;padding:0!important;background:#333!important;border:1px solid #666!important;border-radius:5px!important;opacity:1!important;visibility:visible!important}
+#smartArrangeView #saFlowWrap .sa-native-label-cell>button.active{background:#474047!important;border-color:#d8c5ee!important}
+#smartArrangeView #saFlowWrap .sa-visible-text{display:block!important;position:absolute!important;top:0!important;left:0!important;width:100%!important;height:28px!important;line-height:28px!important;text-align:center!important;font-size:11px!important;color:#e9e9e9!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;white-space:nowrap!important}
+
+/* v2.5: explicit spacing, because UXP ignores flex gap in some panel builds.
+   These margins apply to wrapper siblings; do not reposition their icon overlays. */
+#smartArrangeView #saLayout .sa-native-icon-cell,
+#smartArrangeView #saCorner .sa-native-icon-cell{margin:0 8px 0 0!important}
+#smartArrangeView #saLayout .sa-native-icon-cell:last-child,
+#smartArrangeView #saCorner .sa-native-icon-cell:last-child{margin-right:0!important}
+#smartArrangeView #saMeasure>button{margin:0 8px 0 0!important}
+#smartArrangeView #saMeasure>button:last-child{margin-right:0!important}
+#smartArrangeView #saFlow .sa-native-label-cell{margin:0 8px 0 0!important}
+#smartArrangeView #saFlow .sa-native-label-cell:last-child{margin-right:0!important}
