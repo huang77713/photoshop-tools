@@ -219,6 +219,64 @@ async function apply(){
  }catch(e){setStatus("执行失败："+(e.message||e)+"；若已修改部分对象，请 Ctrl+Z 撤销。",true);}
  finally{working=false;$("vrRead").disabled=false;$("vrApply").disabled=false;}
 }
+// Reset Transform is non-destructive only for Smart Objects.
+// Ordinary pixel layers have no reliable original scale to recover.
+function smartObjectsIn(doc,scope){
+ const result=[],ids=new Set();
+ const visit=layers=>{for(const layer of Array.from(layers||[])){
+   if(layer.layers){visit(layer.layers);continue;}
+   const kind=String(layer.kind||"").toLowerCase();
+   if(kind.includes("smart")&&!ids.has(layer.id)){ids.add(layer.id);result.push(layer);}
+ }};
+ if(scope==="all"){visit(doc.layers);}
+ else{
+   for(const top of Array.from(doc.activeLayers||[])){
+     if(top.layers)continue; // reset applies to individual layers only
+     const kind=String(top.kind||"").toLowerCase();
+     if(kind.includes("smart")&&!ids.has(top.id)){ids.add(top.id);result.push(top);}
+   }
+ }
+ return result;
+}
+async function resetSmartObjects(){
+ if(working)return;
+ let doc,layers;
+ try{
+   doc=app.activeDocument;
+   if(!doc)throw Error("请先打开文档");
+   layers=smartObjectsIn(doc,$("vrResetScope").value);
+   if(!layers.length)throw Error("没有找到可还原的智能对象图层。普通像素层无法恢复原始 100%。");
+   const locked=layers.find(x=>x.allLocked||x.positionLocked);
+   if(locked)throw Error("请先解锁智能对象："+locked.name);
+ }catch(e){setStatus(e.message||String(e),true);return;}
+ working=true;$("vrReset100").disabled=true;$("vrRead").disabled=true;$("vrApply").disabled=true;
+ let completed=0;
+ try{
+   await core.executeAsModal(async ctx=>{
+     const hist=await ctx.hostControl.suspendHistory({documentID:doc.id,name:"批量还原智能对象 100%"});
+     try{
+       for(const layer of layers){
+         await selectLayer(layer.id);
+         const result=await ps.action.batchPlay([{
+           _obj:"placedLayerResetTransforms",_options:{dialogOptions:"dontDisplay"}
+         }],{});
+         if(result&&result[0]&&String(result[0]._obj).toLowerCase()==="error")
+           throw Error("图层「"+layer.name+"」："+(result[0].message||"重置变换失败"));
+         completed++;
+       }
+     }finally{await ctx.hostControl.resumeHistory(hist);}
+   },{commandName:"智能对象恢复原始大小"});
+   selection=[];documentId=null;syncInfo();describe();
+   setStatus("已将 "+completed+" 个智能对象恢复到原始变换状态。普通图层和组未修改。");
+ }catch(e){setStatus("还原中断："+(e.message||String(e))+"；已处理 "+completed+" 个，可 Ctrl+Z 撤销。",true);}
+ finally{working=false;$("vrReset100").disabled=false;$("vrRead").disabled=false;$("vrApply").disabled=false;}
+}
+$("vrReset100").addEventListener("click",resetSmartObjects);
+$("vrListToggle").addEventListener("click",()=>{
+ const area=$("vrResultDetails"),open=area.style.display!=="none";
+ area.style.display=open?"none":"block";
+ $("vrListToggle").textContent=open?"展开详情 ▾":"收起详情 ▴";
+});
 root.querySelectorAll("#vrModes button").forEach(b=>b.addEventListener("click",()=>{
  method=b.dataset.mode;root.querySelectorAll("#vrModes button").forEach(x=>x.classList.toggle("active",x===b));
  const descriptions={contain:"等比例缩放，完整保留图片；宽高不一定都达到目标值。",cover:"等比例缩放，使宽和高都覆盖目标尺寸；可能超过目标范围。",width:"按目标宽度等比例调整，高度自动变化。",height:"按目标高度等比例调整，宽度自动变化。",stretch:"宽高分别缩放到指定尺寸，可能使图片变形。"};
