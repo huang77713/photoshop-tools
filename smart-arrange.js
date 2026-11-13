@@ -121,9 +121,23 @@ module.exports = function(root) {
     if(!doc)throw Error("请先打开 Photoshop 文档。");
     const picked=Array.from(doc.activeLayers||[]);
     if(!picked.length)throw Error("请在 PS 图层面板选中图层或组。");
-    const entries=picked.map(layer=>({layer,id:layer.id,name:layer.name,raw:bounds(layer),b:bounds(layer)}));
-    entries.forEach(e=>{let parent=e.layer.parent;while(parent){if(entries.some(x=>x.id===parent.id))throw Error("不能同时排列父组及组内子图层。");parent=parent.parent;}});
+    const ids=new Set(picked.map(x=>x.id));
+    // Photoshop can return both a selected group and its children. When the
+    // parent is selected the children are implicitly included in its movement.
+    // Filter them rather than blocking a legitimate group selection.
+    const filtered=picked.filter(layer=>{
+      let p=layer.parent;
+      while(p){
+        if(ids.has(p.id))return false;
+        if(p.id===doc.id)break;
+        p=p.parent;
+      }
+      return true;
+    });
+    if(!filtered.length)throw Error("当前选择没有独立的可排列对象。");
+    const entries=filtered.map(layer=>({layer,id:layer.id,name:layer.name,raw:bounds(layer),b:bounds(layer)}));
     state.layers=entries;state.docId=doc.id;
+    state.ignoredChildren=picked.length-filtered.length;
     // Organizing many existing objects must be instantaneous by default.
     // Save the expensive pixel-composite scan for a single complex group,
     // or for a user explicitly enabling it in Advanced settings.
@@ -153,7 +167,7 @@ module.exports = function(root) {
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
     if(entries.length>1){state.op="organize";$("saAuto").checked=true;active("saOp","organize");}
     else {state.op="copy";active("saOp","copy");}
-    update();preview();status(entries.some(e=>e.fallback)?"部分对象无法读取可见像素，回退到原始边界："+entries.filter(e=>e.fallback).map(e=>e.name+"（"+e.reason+"）").slice(0,2).join("、"):"已按"+(state.measure==="visible"?"可见像素":"图层边界（快速）")+"读取，可以开始排列。",entries.some(e=>e.fallback));
+    update();preview();status(entries.some(e=>e.fallback)?"部分对象无法读取可见像素，回退到原始边界："+entries.filter(e=>e.fallback).map(e=>e.name+"（"+e.reason+"）").slice(0,2).join("、"):"已读取 "+entries.length+" 个独立对象"+(state.ignoredChildren?"（自动排除 "+state.ignoredChildren+" 个已包含的子图层）":"")+"，边界："+(state.measure==="visible"?"可见像素":"快速图层边界")+"。",entries.some(e=>e.fallback));
   }
   function getPlan(){
     if(!state.layers.length)throw Error("请先读取选中图层。");
@@ -273,7 +287,9 @@ module.exports = function(root) {
       plan=getPlan();doc=app.activeDocument;
       if(state.measure==="visible"&&state.layers.some(x=>x.fallback))throw Error("有对象无法测量可见像素，请先修复读取失败或在更多设置选择图层边界。");
       if(!doc||doc.id!==state.docId)throw Error("文档已切换，请重新读取。");
-      const now=Array.from(doc.activeLayers||[]).map(l=>l.id).sort().join(",");
+      const all=Array.from(doc.activeLayers||[]);
+      const allIds=new Set(all.map(l=>l.id));
+      const now=all.filter(layer=>{let p=layer.parent;while(p){if(allIds.has(p.id))return false;if(p.id===doc.id)break;p=p.parent;}return true;}).map(l=>l.id).sort().join(",");
       const old=state.layers.map(o=>o.id).sort().join(",");
       if(now!==old)throw Error("图层选择发生变化，请重新读取。");
       for(const item of state.layers){const b=bounds(item.layer);if(Math.abs(b.l-item.raw.l)>0.5||Math.abs(b.t-item.raw.t)>0.5||Math.abs(b.w-item.raw.w)>0.5||Math.abs(b.h-item.raw.h)>0.5)throw Error("对象位置或尺寸已变化，请重新读取。");}
