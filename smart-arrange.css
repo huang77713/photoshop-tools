@@ -54,3 +54,5 @@
 #smartArrangeView .sa-button:disabled{opacity:.45}
 #smartArrangeView .sa-status{min-height:18px;margin-top:7px;color:#a8c2aa;font-size:10px;line-height:1.4;overflow-wrap:anywhere}
 #smartArrangeView .sa-status.error{color:#ec9295}
+
+#smartArrangeView .sa-fixed-mode{flex:1;min-width:0;text-align:center;background:#35333e;border:1px solid #554c67;border-radius:5px;color:#cbbde4;padding:7px 4px;font-size:11px;line-height:1.3}
