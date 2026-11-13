@@ -1,0 +1,45 @@
+#smartArrangeView{background:#29292e;color:#ebeaef;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px;width:100%;min-height:100%;padding:15px 15px 32px}
+#smartArrangeView *{box-sizing:border-box}
+#smartArrangeView button,#smartArrangeView input{font-family:inherit}
+#smartArrangeView .sa-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #404048;padding-bottom:14px;margin-bottom:16px}
+#smartArrangeView .sa-title{font-size:17px;font-weight:600}
+#smartArrangeView .sa-sub{font-size:11px;color:#a29fac;margin-top:5px}
+#smartArrangeView .sa-tag{font-size:10px;color:#aaa1be}
+#smartArrangeView .sa-source{background:#323139;border:1px solid #48454f;border-radius:8px;padding:11px 12px;margin-bottom:17px}
+#smartArrangeView .sa-source-top{display:flex;justify-content:space-between;align-items:center;color:#a9a6b1;font-size:11px;margin-bottom:9px}
+#smartArrangeView .sa-source-name{font-size:14px;font-weight:600;line-height:1.4;overflow-wrap:anywhere}
+#smartArrangeView .sa-muted{font-size:11px;color:#a4a1ae;margin-top:5px;line-height:1.4;overflow-wrap:anywhere}
+#smartArrangeView .sa-section{margin-bottom:18px}
+#smartArrangeView .sa-label{font-size:12px;font-weight:600;margin-bottom:9px;color:#dddbe4}
+#smartArrangeView .sa-top{margin-top:13px}
+#smartArrangeView .sa-segments{display:flex;width:100%;gap:0}
+#smartArrangeView .sa-segments button{flex:1;min-width:0;padding:8px 4px;min-height:36px;background:#35343c;color:#bbb9c4;border:1px solid #55515e;font-size:12px;cursor:pointer}
+#smartArrangeView .sa-segments button+button{border-left:0}
+#smartArrangeView .sa-segments button:first-child{border-radius:6px 0 0 6px}
+#smartArrangeView .sa-segments button:last-child{border-radius:0 6px 6px 0}
+#smartArrangeView .sa-segments button.active{background:#62517d;color:#fff;border-color:#8972aa}
+#smartArrangeView .sa-hint{color:#9c99a7;font-size:10px;line-height:1.55;margin-top:8px}
+#smartArrangeView .sa-fields{display:flex;gap:12px;margin-top:13px;align-items:flex-end;width:100%}
+#smartArrangeView .sa-fields label{display:block;flex:1;min-width:0;font-size:11px;color:#c7c4ce}
+#smartArrangeView .sa-fields label small{color:#8d8a96;font-size:10px}
+#smartArrangeView input[type=number]{display:block!important;margin-top:7px;width:100%!important;max-width:100%;height:36px;min-height:36px;color:#f1eff5;background:#202027;border:1px solid #595561;border-radius:6px;font-size:14px;padding:7px 9px;opacity:1!important;visibility:visible!important}
+#smartArrangeView input:disabled{opacity:.4!important}
+#smartArrangeView .sa-check{display:flex;align-items:center;gap:8px;margin-top:12px;color:#c9c6d0;font-size:11px}
+#smartArrangeView .sa-check input{margin:0}
+#smartArrangeView .sa-check small{display:block;color:#8f8a99;font-size:10px;margin-top:2px}
+#smartArrangeView .sa-preview-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;font-weight:600}
+#smartArrangeView #saCountLabel{font-size:11px;color:#bcb1d8;font-weight:400}
+#smartArrangeView .sa-preview{height:205px;min-height:205px;border:1px solid #41414a;border-radius:7px;background:#202027;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:13px}
+#smartArrangeView .sa-stage{position:relative;flex:none}
+#smartArrangeView .sa-tile{position:absolute;display:flex;justify-content:center;align-items:center;border:1px solid #b4a0d8;border-radius:4px;background:#73638e;color:#fff;font-size:11px;min-width:2px;min-height:2px;overflow:hidden}
+#smartArrangeView .sa-tile.first{border-color:#d8c086;background:#9173b5}
+#smartArrangeView .sa-empty{font-size:11px;color:#9b98a5;text-align:center;line-height:1.6;max-width:240px}
+#smartArrangeView .sa-below{margin-bottom:14px}
+#smartArrangeView .sa-actions{display:flex;gap:9px}
+#smartArrangeView .sa-button{min-height:37px;min-width:0;border:1px solid #5b5763;border-radius:6px;background:#3b3a42;color:#f0eef4;padding:8px 12px;font-size:12px;cursor:pointer}
+#smartArrangeView .sa-button.sa-small{min-height:29px;font-size:11px;padding:5px 9px}
+#smartArrangeView .sa-actions .sa-button:first-child{flex:1}
+#smartArrangeView .sa-actions .sa-button.sa-primary{flex:2;background:#7961b0;border-color:#7961b0;color:#fff;font-weight:600}
+#smartArrangeView .sa-button:disabled{opacity:.45}
+#smartArrangeView .sa-status{font-size:11px;line-height:1.55;color:#a9c5ac;margin-top:12px;min-height:19px}
+#smartArrangeView .sa-status.error{color:#eea2a2}
