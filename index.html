@@ -455,6 +455,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
     <div id="smartArrangeView" style="display:none">
  <div class="sa-head"><div><div class="sa-title">智能排列</div><div class="sa-sub">复制图层 / 图层组 · 整理多个对象</div></div><span class="sa-tag">TEST</span></div>
  <div class="sa-source"><div class="sa-source-top"><span>当前选择</span><button id="saRead" class="sa-button sa-small">重新读取</button></div><div class="sa-source-name" id="saSelected">尚未读取图层</div><div class="sa-muted" id="saDetail">支持单图层、智能对象及图层组</div></div>
+ <div class="sa-measure"><span>间距依据</span><div class="sa-segments" id="saMeasure"><button data-value="visible" class="active">实际可见范围</button><button data-value="bounds">图层边界</button></div></div>
  <div class="sa-section"><div class="sa-label">操作模式</div><div class="sa-segments" id="saOp"><button data-value="copy" class="active">复制排列</button><button data-value="organize">整理现有图层</button></div><div class="sa-hint" id="saHint">一个图层或组：原对象 + 复制对象。</div></div>
  <div class="sa-section"><div class="sa-label">排列方式</div><div class="sa-segments" id="saLayout"><button data-value="horizontal">横向</button><button data-value="vertical">纵向</button><button data-value="grid" class="active">网格</button></div>
  <div class="sa-fields" id="saQuantity"><label>总数量 <small>包含原对象</small><input id="saCount" type="number" value="6" min="1" max="120"></label></div>
