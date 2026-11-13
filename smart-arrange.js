@@ -141,11 +141,10 @@ module.exports = function(root) {
     // Organizing many existing objects must be instantaneous by default.
     // Save the expensive pixel-composite scan for a single complex group,
     // or for a user explicitly enabling it in Advanced settings.
-    if(entries.length>1 && !state.forceVisible){
-      state.measure="bounds";active("saMeasure","bounds");
-    }else if(entries.length===1 && !state.forceBounds){
-      state.measure="visible";active("saMeasure","visible");
-    }
+    // Fast by default for both one and many selected objects. Exact alpha
+    // scanning is explicitly opt-in, and never runs from normal panel activation.
+    state.measure=state.forceVisible?"visible":"bounds";
+    active("saMeasure",state.measure);
     if(state.measure==="visible") {
       for(const item of entries)item.path=pathToLayer(doc,item.layer);
       // Duplicating the whole PSD preserves nested clipping masks and groups.
@@ -243,7 +242,7 @@ module.exports = function(root) {
   }
   async function selectExactly(id,docId) {
     const response=await photoshop.action.batchPlay([{
-      _obj:"select",_target:[{_ref:"layer",_id:id},{_ref:"document",_id:docId}],
+      _obj:"select",_target:[{_ref:"layer",_id:id}],
       makeVisible:false,_options:{dialogOptions:"silent"}
     }],{});
     if(response[0]&&String(response[0]._obj).toLowerCase()==="error")
@@ -251,7 +250,7 @@ module.exports = function(root) {
   }
   async function selectOriginal(ids,docId){
     for(let i=0;i<ids.length;i++){
-      const cmd={_obj:"select",_target:[{_ref:"layer",_id:ids[i]},{_ref:"document",_id:docId}],
+      const cmd={_obj:"select",_target:[{_ref:"layer",_id:ids[i]}],
         makeVisible:false,_options:{dialogOptions:"silent"}};
       if(i>0)cmd.selectionModifier={_enum:"selectionModifierType",_value:"addToSelection"};
       const r=await photoshop.action.batchPlay([cmd],{});
@@ -266,16 +265,34 @@ module.exports = function(root) {
     await layer.translate(dx,dy);
   }
   async function duplicateKeepingParent(original,docId,index) {
-    // Duplicating a nested group without a destination may trigger
-    // "Invalid target for move" internally (inside Photoshop's duplicate).
-    // Explicitly pass its parent as the destination and keep it nested.
+    const parent=original.parent;
+    const nested=!!(parent&&parent.id!==docId);
+    const siblings=()=>Array.from(nested?parent.layers:app.activeDocument.layers);
+    const before=new Set(siblings().map(l=>l.id));
     try{
-      await selectExactly(original.id,docId);
-      const parent=original.parent;
-      if(parent&&parent.id!==docId){
-        return await original.duplicate(parent,photoshop.constants.ElementPlacement.PLACEINSIDE);
+      if(nested){
+        // Duplicate by immutable layer ID, without a destination move.
+        // PLACEINSIDE was incorrectly used previously and can trigger
+        // "Invalid target for move" for an already nested group.
+        const result=await photoshop.action.batchPlay([{
+          _obj:"duplicate",
+          _target:[{_ref:"layer",_id:original.id}],
+          version:5,_options:{dialogOptions:"dontDisplay"}
+        }],{});
+        if(result&&result[0]&&String(result[0]._obj).toLowerCase()==="error")
+          throw Error(result[0].message||"Photoshop 拒绝复制嵌套组");
+      }else{
+        const copy=await original.duplicate();
+        if(!copy||copy.id===original.id)throw Error("Photoshop 未返回有效副本");
+        return copy;
       }
-      return await original.duplicate();
+      const after=siblings();
+      const fresh=after.filter(l=>!before.has(l.id));
+      if(fresh.length!==1)throw Error("复制后未能在原父组识别唯一新副本（新增 "+fresh.length+" 个）");
+      const copy=fresh[0];
+      if(copy.parent&&copy.parent.id!==parent.id)
+        throw Error("新副本未保留原父组");
+      return copy;
     }catch(error){
       throw Error("复制第 "+(index+1)+" 个对象「"+original.name+"」失败："+(error.message||error));
     }
