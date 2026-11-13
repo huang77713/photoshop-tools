@@ -39,14 +39,13 @@ module.exports = function(root) {
         }
       }
       if(maxX<0)throw Error("对象合成后没有可见像素");
-      // sourceBounds is cropped to valid source pixel range; image may be downsampled.
+      // Adobe returns sourceBounds in cache-pyramid coordinates. Convert to document
+      // coordinates before mapping alpha pixels; never assume requested bounds survived trim.
       const box=response.sourceBounds||opts.sourceBounds;
-      // UXP returns cache-level bounds when scaling. For full-resolution retain requested
-      // source bounds; for downscaled map sampled pixels back to original requested region.
-      const base=target<1?opts.sourceBounds:box;
-      const left=Number(base.left),top=Number(base.top);
-      const spanW=target<1?(opts.sourceBounds.right-opts.sourceBounds.left):(Number(base.right)-left);
-      const spanH=target<1?(opts.sourceBounds.bottom-opts.sourceBounds.top):(Number(base.bottom)-top);
+      const levelScale=Math.pow(2,Math.max(0,Number(response.level)||0));
+      const left=Number(box.left)*levelScale,top=Number(box.top)*levelScale;
+      const spanW=(Number(box.right)-Number(box.left))*levelScale;
+      const spanH=(Number(box.bottom)-Number(box.top))*levelScale;
       const measured={l:left+minX*spanW/W,t:top+minY*spanH/H,
         r:left+(maxX+1)*spanW/W,b:top+(maxY+1)*spanH/H};
       measured.w=measured.r-measured.l; measured.h=measured.b-measured.t;
@@ -71,7 +70,7 @@ module.exports = function(root) {
     $("saGridFields").style.display=grid?"flex":"none";
     $("saAutoWrap").style.display=grid&&!copy?"flex":"none";
     $("saFlowWrap").style.display=grid?"block":"none";
-    $("saRows").disabled=$("saAuto").checked;
+    $("saRows").disabled=!copy&&$("saAuto").checked;
     $("saGapX").disabled=state.layout==="vertical";
     $("saGapY").disabled=state.layout==="horizontal";
     $("saHint").textContent=copy?"一个图层或组：原对象 + 复制对象。":"至少两个对象：移动原图层，不生成副本。";
@@ -85,7 +84,7 @@ module.exports = function(root) {
     const entries=picked.map(layer=>({layer,id:layer.id,name:layer.name,raw:bounds(layer),b:bounds(layer)}));
     entries.forEach(e=>{let parent=e.layer.parent;while(parent){if(entries.some(x=>x.id===parent.id))throw Error("不能同时排列父组及组内子图层。");parent=parent.parent;}});
     state.layers=entries;state.docId=doc.id;
-    await Promise.all(entries.map(item=>measureLayer(item,doc.id)));
+    for(const item of entries) await measureLayer(item,doc.id);
     $("saSelected").textContent=entries.length===1?entries[0].name:entries.length+" 个对象已选中";
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
     if(entries.length>1){state.op="organize";active("saOp","organize");}
