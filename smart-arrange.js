@@ -3,7 +3,7 @@ module.exports = function(root) {
   "use strict";
   const photoshop=require("photoshop"),app=photoshop.app,core=photoshop.core,imaging=photoshop.imaging;
   const $=id=>root.querySelector("#"+id);
-  const state={op:"copy",layout:"grid",flow:"row",corner:"tl",layers:[],docId:null,busy:false,measure:"visible",alpha:3};
+  const state={op:"copy",layout:"grid",flow:"row",corner:"tl",layers:[],docId:null,busy:false,measure:"visible",alpha:12,spacingMode:"uniform"};
   const count=(id,min,max,d)=>{const n=Number($(id).value);return Number.isFinite(n)?Math.max(min,Math.min(max,Math.floor(n))):d;};
   function unit(v){return typeof v==="number"?v:(v&&typeof v.value==="number"?v.value:(v&&typeof v._value==="number"?v._value:Number(v)));}
   function bounds(layer){
@@ -25,7 +25,7 @@ module.exports = function(root) {
     try {
       const response=await imaging.getPixels(opts);
       image=response.imageData;
-      if(!image || !image.hasAlpha || image.components<4)throw Error("当前文档无法提供透明度通道");
+      if(!image || image.components!==4)throw Error("没有得到 RGBA 合成像素（components="+(image&&image.components)+"）");
       const values=await image.getData({chunky:true});
       const W=image.width,H=image.height,C=image.components;
       let minX=W,minY=H,maxX=-1,maxY=-1;
@@ -56,9 +56,9 @@ module.exports = function(root) {
     if(state.measure!=="visible"){item.b=item.raw;item.fallback=false;return;}
     try {
       item.b=await visibleBounds(item.layer,item.raw,docId,state.alpha);
-      item.fallback=false;
+      item.fallback=false;item.reason="";
     }catch(error){
-      item.b=item.raw;item.fallback=true;
+      item.b=item.raw;item.fallback=true;item.reason=String(error&&error.message||error);
       console.warn("[Smart Arrange] visible bounds fallback for",item.name,error);
     }
   }
@@ -73,6 +73,7 @@ module.exports = function(root) {
     $("saRows").disabled=!copy&&$("saAuto").checked;
     $("saGapX").disabled=state.layout==="vertical";
     $("saGapY").disabled=state.layout==="horizontal";
+    $("saSpacingNote").textContent=state.spacingMode==="uniform"?"用所有对象的最大宽高建立统一单元格，图层在单元格内居中。":"按每行和每列实际尺寸安排，图层左上对齐。";
     $("saHint").textContent=copy?"一个图层或组：原对象 + 复制对象。":"至少两个对象：移动原图层，不生成副本。";
     $("saRun").textContent=copy?"生成复制排列":"整理选中对象";
   }
@@ -89,7 +90,7 @@ module.exports = function(root) {
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
     if(entries.length>1){state.op="organize";active("saOp","organize");}
     else {state.op="copy";active("saOp","copy");}
-    update();preview();status(entries.some(e=>e.fallback)?"部分对象无法读取合成透明度，已回退至图层边界。":"已按"+(state.measure==="visible"?"可见像素":"图层边界")+"读取，可以开始排列。");
+    update();preview();status(entries.some(e=>e.fallback)?"部分对象无法读取可见像素，回退到原始边界："+entries.filter(e=>e.fallback).map(e=>e.name+"（"+e.reason+"）").slice(0,2).join("、"):"已按"+(state.measure==="visible"?"可见像素":"图层边界")+"读取，可以开始排列。",entries.some(e=>e.fallback));
   }
   function getPlan(){
     if(!state.layers.length)throw Error("请先读取选中图层。");
@@ -107,6 +108,7 @@ module.exports = function(root) {
     const sorted=state.layers.slice().sort((a,b)=>a.b.t-b.b.t||a.b.l-b.b.l);
     const list=isCopy?Array.from({length:total},()=>sorted[0]):sorted;
     const colWidth=Array(cols).fill(0),rowHeight=Array(rows).fill(0);
+    const maxW=Math.max(...list.map(x=>x.b.w)),maxH=Math.max(...list.map(x=>x.b.h));
     const cells=list.map((item,i)=>{
       let r,c;
       if(state.layout==="horizontal"){r=0;c=i;}
@@ -116,6 +118,7 @@ module.exports = function(root) {
       colWidth[c]=Math.max(colWidth[c],item.b.w);rowHeight[r]=Math.max(rowHeight[r],item.b.h);
       return {item,i,r,c};
     });
+    if(state.spacingMode==="uniform"){colWidth.fill(maxW);rowHeight.fill(maxH);}
     const X=[0],Y=[0];
     for(let k=1;k<cols;k++)X[k]=X[k-1]+colWidth[k-1]+gx;
     for(let k=1;k<rows;k++)Y[k]=Y[k-1]+rowHeight[k-1]+gy;
@@ -126,7 +129,9 @@ module.exports = function(root) {
     const placements=cells.map(cell=>{
       const c=state.corner.endsWith("r")?cols-1-cell.c:cell.c;
       const r=state.corner.startsWith("b")?rows-1-cell.r:cell.r;
-      return {...cell,x:originX+X[c],y:originY+Y[r]};
+      const innerX=state.spacingMode==="uniform"?(colWidth[c]-cell.item.b.w)/2:0;
+      const innerY=state.spacingMode==="uniform"?(rowHeight[r]-cell.item.b.h)/2:0;
+      return {...cell,x:originX+X[c]+innerX,y:originY+Y[r]+innerY};
     });
     return {placements,width,height,gx,gy};
   }
@@ -134,16 +139,30 @@ module.exports = function(root) {
     const surface=$("saPreview");surface.innerHTML="";
     try{
       const p=getPlan();
-      const scale=Math.min(1,300/Math.max(1,p.width),170/Math.max(1,p.height));
+      // Always fit the complete grid into the small preview stage, with safe margins.
+      const panelW=Math.max(160,Math.min(300,surface.clientWidth-22||280));
+      const panelH=80;
+      const scale=Math.min(panelW/Math.max(1,p.width),panelH/Math.max(1,p.height),1.5);
       const stage=document.createElement("div");stage.className="sa-stage";
-      stage.style.width=Math.max(10,p.width*scale)+"px";stage.style.height=Math.max(10,p.height*scale)+"px";
-      const minX=Math.min(...p.placements.map(o=>o.x)),minY=Math.min(...p.placements.map(o=>o.y));
+      stage.style.width=Math.max(1,p.width*scale)+"px";
+      stage.style.height=Math.max(1,p.height*scale)+"px";
+      const colRight=state.corner.endsWith("r"),rowBottom=state.corner.startsWith("b");
+      const rawLeft=Math.min(...p.placements.map(o=>o.x));
+      const rawTop=Math.min(...p.placements.map(o=>o.y));
+      // Keep bounding cells consistent for uniform mode; minX/minY are from the bounding
+      // rectangle, not arbitrary first tile.
       p.placements.forEach((o,i)=>{
         const el=document.createElement("div");el.className="sa-tile"+(i===0?" first":"");
-        el.style.left=(o.x-minX)*scale+"px";el.style.top=(o.y-minY)*scale+"px";
-        el.style.width=Math.max(3,o.item.b.w*scale)+"px";el.style.height=Math.max(3,o.item.b.h*scale)+"px";
-        el.textContent=String(i+1);stage.appendChild(el);
-      });surface.appendChild(stage);
+        el.style.left=Math.max(0,(o.x-rawLeft)*scale)+"px";
+        el.style.top=Math.max(0,(o.y-rawTop)*scale)+"px";
+        el.style.width=Math.max(1,o.item.b.w*scale)+"px";
+        el.style.height=Math.max(1,o.item.b.h*scale)+"px";
+        const label=document.createElement("span");label.textContent=String(i+1);
+        if(o.item.b.w*scale>=15&&o.item.b.h*scale>=15)el.appendChild(label);
+        el.title=String(i+1)+" · "+o.item.name;
+        stage.appendChild(el);
+      });
+      surface.appendChild(stage);
       $("saCountLabel").textContent=p.placements.length+" 个对象";
       $("saPreviewNote").textContent="整体 "+Math.round(p.width)+" × "+Math.round(p.height)+" px · 间距 "+p.gx+" / "+p.gy+" px";
     }catch(e){
@@ -193,9 +212,10 @@ module.exports = function(root) {
   });
   $("saRead").addEventListener("click",async()=>{try{await read();}catch(e){status(e.message,true);}});
   $("saRun").addEventListener("click",generate);
+  root.querySelectorAll("#saSpacingMode button").forEach(b=>b.addEventListener("click",()=>{state.spacingMode=b.dataset.value;active("saSpacingMode",state.spacingMode);update();preview();}));
   root.querySelectorAll("#saMeasure button").forEach(b=>b.addEventListener("click",async()=>{state.measure=b.dataset.value;active("saMeasure",state.measure);try{await read();}catch(e){status(e.message,true);}}));
   $("saReset").addEventListener("click",()=>{
-    state.layout="grid";state.flow="row";state.corner="tl";
+    state.layout="grid";state.flow="row";state.corner="tl";state.spacingMode="uniform";active("saSpacingMode","uniform");
     [["saCount",6],["saRows",2],["saCols",3],["saGapX",20],["saGapY",20]].forEach(p=>$(p[0]).value=p[1]);
     $("saAuto").checked=false;
     active("saLayout","grid");active("saFlow","row");active("saCorner","tl");update();preview();
