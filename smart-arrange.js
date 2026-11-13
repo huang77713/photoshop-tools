@@ -61,28 +61,38 @@ module.exports = function(root) {
   // Original group hierarchy remains untouched even on failure.
   function pathToLayer(sourceDoc,layer) {
     const path=[];let node=layer;
-    while(node){
+    // Document.parent is not a layer. Stop as soon as root document is reached.
+    while(node && node.id!==sourceDoc.id){
       const parent=node.parent;
-      const list=Array.from(parent?parent.layers:sourceDoc.layers);
+      const list=Array.from(parent&&parent.id!==sourceDoc.id?parent.layers:sourceDoc.layers);
       const at=list.findIndex(x=>x.id===node.id);
       if(at<0)throw Error("无法定位图层层级："+layer.name);
-      path.unshift(at);node=parent;
+      path.unshift(at);
+      if(!parent || parent.id===sourceDoc.id)break;
+      node=parent;
     }
     return path;
   }
-  function isolateInCopy(copyDoc,path) {
+  function allLayersIn(doc){
+    const all=[];
+    const visit=arr=>{for(const layer of Array.from(arr||[])){all.push(layer);if(layer.layers)visit(layer.layers);}};
+    visit(doc.layers);return all;
+  }
+  function isolateInCopy(copyDoc,path,visibility) {
+    // Restore ALL original layer visibilities before measuring the next target.
+    const all=allLayersIn(copyDoc);
+    for(const layer of all)if(visibility.has(layer.id))layer.visible=visibility.get(layer.id);
     let container=Array.from(copyDoc.layers);
     for(let depth=0;depth<path.length;depth++){
       const target=container[path[depth]];
-      if(!target)throw Error("副本文档层级与源文档不一致");
+      if(!target)throw Error("副本文档图层路径无效");
       for(const layer of container)layer.visible=(layer.id===target.id);
       container=Array.from(target.layers||[]);
     }
   }
-  async function measureFromDocumentCopy(item,copyDoc) {
+  async function measureFromDocumentCopy(item,copyDoc,visibility) {
     try{
-      isolateInCopy(copyDoc,item.path);
-      // Request full document composite, not an unsupported group layerID.
+      isolateInCopy(copyDoc,item.path,visibility);
       const canvas={l:0,t:0,r:Number(copyDoc.width),b:Number(copyDoc.height),
         w:Number(copyDoc.width),h:Number(copyDoc.height)};
       item.b=await visibleBounds(null,canvas,copyDoc.id,state.alpha,true);
@@ -122,7 +132,8 @@ module.exports = function(root) {
         let copy=null;
         try{
           copy=await doc.duplicate("智能排列_临时测量",false);
-          for(const item of entries)await measureFromDocumentCopy(item,copy);
+          const originalVisibility=new Map(allLayersIn(copy).map(layer=>[layer.id,layer.visible]));
+          for(const item of entries)await measureFromDocumentCopy(item,copy,originalVisibility);
         }finally{
           if(copy)await copy.close(photoshop.constants.SaveOptions.DONOTSAVECHANGES);
         }
