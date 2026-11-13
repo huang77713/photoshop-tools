@@ -18,8 +18,11 @@ module.exports = function(root) {
   async function visibleBounds(layer,raw,docId,threshold,composite) {
     const maxSide=1200;
     const target=Math.min(1,maxSide/Math.max(raw.w,raw.h));
-    const opts={documentID:docId,componentSize:8,colorSpace:"RGB",applyAlpha:false,
-      sourceBounds:{left:Math.floor(raw.l),top:Math.floor(raw.t),right:Math.ceil(raw.r),bottom:Math.ceil(raw.b)}};
+    const sourceDoc=app.documents.find(d=>d.id===docId);
+    if(!sourceDoc)throw Error("合成文档不存在");
+    const crop={left:Math.max(0,Math.floor(raw.l)),top:Math.max(0,Math.floor(raw.t)),right:Math.min(Math.ceil(sourceDoc.width),Math.ceil(raw.r)),bottom:Math.min(Math.ceil(sourceDoc.height),Math.ceil(raw.b))};
+    if(crop.right<=crop.left||crop.bottom<=crop.top)throw Error("对象超出临时文档画布");
+    const opts={documentID:docId,componentSize:8,colorSpace:"RGB",applyAlpha:false,sourceBounds:crop};
     if(!composite)opts.layerID=layer.id;
     if(target<1) opts.targetSize={width:Math.max(1,Math.round(raw.w*target)),height:Math.max(1,Math.round(raw.h*target))};
     let image;
