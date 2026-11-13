@@ -19,7 +19,7 @@ module.exports = function(root) {
     const grid=state.layout==="grid",copy=state.op==="copy";
     $("saQuantity").style.display=copy&&!grid?"flex":"none";
     $("saGridFields").style.display=grid?"flex":"none";
-    $("saAutoWrap").style.display=grid?"flex":"none";
+    $("saAutoWrap").style.display=grid&&!copy?"flex":"none";
     $("saFlowWrap").style.display=grid?"block":"none";
     $("saRows").disabled=$("saAuto").checked;
     $("saGapX").disabled=state.layout==="vertical";
@@ -47,11 +47,11 @@ module.exports = function(root) {
     if(isCopy&&state.layers.length!==1)throw Error("复制排列必须只选中一个对象。");
     if(!isCopy&&state.layers.length<2)throw Error("整理排列需要至少两个对象。");
     const auto=$("saAuto").checked;
-    if(isCopy&&state.layout==="grid"&&auto)throw Error("复制网格请取消自动行数，用行×列控制数量。");
+    
     const total=isCopy?(state.layout==="grid"?count("saRows",1,120,2)*count("saCols",1,120,3):count("saCount",1,120,6)):state.layers.length;
     if(total>120)throw Error("单次最多处理 120 个对象。");
     const cols=state.layout==="vertical"?1:state.layout==="horizontal"?total:count("saCols",1,120,3);
-    const rows=state.layout==="horizontal"?1:state.layout==="vertical"?total:(auto?Math.ceil(total/cols):count("saRows",1,120,2));
+    const rows=state.layout==="horizontal"?1:state.layout==="vertical"?total:(!isCopy&&auto?Math.ceil(total/cols):count("saRows",1,120,2));
     if(rows*cols<total)throw Error("排列位置不足，请增加行列数或启用自动行数。");
     const gx=count("saGapX",0,10000,20),gy=count("saGapY",0,10000,20);
     const sorted=state.layers.slice().sort((a,b)=>a.b.t-b.b.t||a.b.l-b.b.l);
@@ -110,6 +110,7 @@ module.exports = function(root) {
       const now=Array.from(doc.activeLayers||[]).map(l=>l.id).sort().join(",");
       const old=state.layers.map(o=>o.id).sort().join(",");
       if(now!==old)throw Error("图层选择发生变化，请重新读取。");
+      for(const item of state.layers){const b=bounds(item.layer);if(Math.abs(b.l-item.b.l)>0.5||Math.abs(b.t-item.b.t)>0.5||Math.abs(b.w-item.b.w)>0.5||Math.abs(b.h-item.b.h)>0.5)throw Error("对象位置或尺寸已变化，请重新读取。");}
       if(state.layers.some(o=>o.layer.positionLocked||o.layer.allLocked||o.layer.isBackgroundLayer))throw Error("含锁定图层或背景图层，不能排列。");
     }catch(e){status(e.message,true);return;}
     state.busy=true;$("saRun").disabled=true;status("正在处理 "+plan.placements.length+" 个对象…");
