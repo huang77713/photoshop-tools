@@ -15,11 +15,12 @@ module.exports = function(root) {
   }
   /* Read rendered group pixels, including clipping masks and masks.
      This does NOT merge, rasterize or change source layers. */
-  async function visibleBounds(layer,raw,docId,threshold) {
+  async function visibleBounds(layer,raw,docId,threshold,composite) {
     const maxSide=1200;
     const target=Math.min(1,maxSide/Math.max(raw.w,raw.h));
-    const opts={documentID:docId,layerID:layer.id,componentSize:8,colorSpace:"RGB",applyAlpha:false,
+    const opts={documentID:docId,componentSize:8,colorSpace:"RGB",applyAlpha:false,
       sourceBounds:{left:Math.floor(raw.l),top:Math.floor(raw.t),right:Math.ceil(raw.r),bottom:Math.ceil(raw.b)}};
+    if(!composite)opts.layerID=layer.id;
     if(target<1) opts.targetSize={width:Math.max(1,Math.round(raw.w*target)),height:Math.max(1,Math.round(raw.h*target))};
     let image;
     try {
@@ -52,14 +53,35 @@ module.exports = function(root) {
       return measured;
     }finally{if(image)image.dispose();}
   }
-  async function measureLayer(item,docId) {
+  // Photoshop imaging.getPixels(layerID) does not support group layers.
+  // Instead duplicate only the requested group into a transparent scratch document,
+  // measure its document composite and delete it. The source PSD is untouched.
+  async function measureLayer(item,sourceDoc,workDoc) {
     if(state.measure!=="visible"){item.b=item.raw;item.fallback=false;item.reason="";return;}
-    try {
-      item.b=await visibleBounds(item.layer,item.raw,docId,state.alpha);
+    let clone=null;
+    try{
+      if(!item.layer.layers){
+        try {
+          item.b=await visibleBounds(item.layer,item.raw,sourceDoc.id,state.alpha,false);
+          item.fallback=false;item.reason="";return;
+        }catch(err){ /* masks, fills and smart objects may require composite mode */ }
+      }
+      if(!workDoc)throw Error("无法创建临时合成文档");
+      const copies=await sourceDoc.duplicateLayers([item.layer],workDoc);
+      clone=copies&&copies[0];
+      if(!clone)throw Error("无法复制图层到临时文档");
+      // Keep internal clipping masks and effects intact. The duplicate document
+      // contains only this group, so composite alpha reflects actually visible pixels.
+      const cloneRaw=bounds(clone);
+      const sampled=await visibleBounds(clone,cloneRaw,workDoc.id,state.alpha,true);
+      const shiftX=item.raw.l-cloneRaw.l,shiftY=item.raw.t-cloneRaw.t;
+      item.b={l:sampled.l+shiftX,t:sampled.t+shiftY,r:sampled.r+shiftX,b:sampled.b+shiftY,w:sampled.w,h:sampled.h};
       item.fallback=false;item.reason="";
     }catch(error){
       item.b=item.raw;item.fallback=true;item.reason=String(error&&error.message||error);
-      console.warn("[Smart Arrange] visible bounds fallback for",item.name,error);
+      console.warn("[Smart Arrange] composite measurement failed for",item.name,error);
+    }finally{
+      if(clone)try{await clone.delete();}catch(error){console.error("[Smart Arrange] scratch cleanup failed:",error);}
     }
   }
   function status(str,err){$("saStatus").textContent=str;$("saStatus").className="sa-status"+(err?" error":"");}
@@ -86,11 +108,23 @@ module.exports = function(root) {
     entries.forEach(e=>{let parent=e.layer.parent;while(parent){if(entries.some(x=>x.id===parent.id))throw Error("不能同时排列父组及组内子图层。");parent=parent.parent;}});
     state.layers=entries;state.docId=doc.id;
     if(state.measure==="visible") {
-      await core.executeAsModal(async()=>{
-        for(const item of entries) await measureLayer(item,doc.id);
-      }, {commandName:"读取图层可见边界"});
+      await core.executeAsModal(async(ctx)=>{
+        let scratch=null;
+        try{
+          // Create once for the whole selection, not once per group.
+          scratch=await app.createDocument({
+            name:"智能排列-临时可见范围",width:Math.round(doc.width),height:Math.round(doc.height),
+            resolution:Number(doc.resolution)||72,mode:"RGBColorMode",fill:"transparent"
+          });
+          if(!scratch)throw Error("临时文档创建失败");
+          await ctx.hostControl.registerAutoCloseDocument(scratch.id);
+          for(const item of entries)await measureLayer(item,doc,scratch);
+        }finally{
+          if(scratch)await scratch.close(photoshop.constants.SaveOptions.DONOTSAVECHANGES);
+        }
+      },{commandName:"读取可见像素（临时合成）"});
     } else {
-      for(const item of entries) await measureLayer(item,doc.id);
+      for(const item of entries)await measureLayer(item,doc,null);
     }
     $("saSelected").textContent=entries.length===1?entries[0].name:entries.length+" 个对象已选中";
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
@@ -181,6 +215,7 @@ module.exports = function(root) {
     let plan,doc;
     try{
       plan=getPlan();doc=app.activeDocument;
+      if(state.measure==="visible"&&state.layers.some(x=>x.fallback))throw Error("有对象无法测量可见像素，请先修复读取失败或在更多设置选择图层边界。");
       if(!doc||doc.id!==state.docId)throw Error("文档已切换，请重新读取。");
       const now=Array.from(doc.activeLayers||[]).map(l=>l.id).sort().join(",");
       const old=state.layers.map(o=>o.id).sort().join(",");
