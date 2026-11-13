@@ -251,6 +251,21 @@ module.exports = function(root) {
     await selectExactly(layer.id,docId);
     await layer.translate(dx,dy);
   }
+  async function duplicateKeepingParent(original,docId,index) {
+    // Duplicating a nested group without a destination may trigger
+    // "Invalid target for move" internally (inside Photoshop's duplicate).
+    // Explicitly pass its parent as the destination and keep it nested.
+    try{
+      await selectExactly(original.id,docId);
+      const parent=original.parent;
+      if(parent&&parent.id!==docId){
+        return await original.duplicate(parent,photoshop.constants.ElementPlacement.PLACEINSIDE);
+      }
+      return await original.duplicate();
+    }catch(error){
+      throw Error("复制第 "+(index+1)+" 个对象「"+original.name+"」失败："+(error.message||error));
+    }
+  }
   async function generate(){
     if(state.busy)return;
     let plan,doc;
@@ -272,7 +287,9 @@ module.exports = function(root) {
           const original=state.layers[0].layer;
           for(let i=0;i<plan.placements.length;i++){
             const p=plan.placements[i];
-            const target=state.op==="copy"?(i===0?original:await original.duplicate()):p.item.layer;
+            const target=state.op==="copy"
+              ?(i===0?original:await duplicateKeepingParent(original,state.docId,i))
+              :p.item.layer;
             const b=bounds(target);
             const dx=p.x-(b.l+(p.item.b.l-p.item.raw.l)),dy=p.y-(b.t+(p.item.b.t-p.item.raw.t));
             if(Math.abs(dx)>0.01||Math.abs(dy)>0.01){
