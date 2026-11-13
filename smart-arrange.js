@@ -18,7 +18,7 @@ module.exports = function(root) {
   async function visibleBounds(layer,raw,docId,threshold,composite) {
     const maxSide=1200;
     const target=Math.min(1,maxSide/Math.max(raw.w,raw.h));
-    const sourceDoc=app.documents.find(d=>d.id===docId);
+    const sourceDoc=Array.from(app.documents||[]).find(d=>d.id===docId);
     if(!sourceDoc)throw Error("合成文档不存在");
     const crop={left:Math.max(0,Math.floor(raw.l)),top:Math.max(0,Math.floor(raw.t)),right:Math.min(Math.ceil(sourceDoc.width),Math.ceil(raw.r)),bottom:Math.min(Math.ceil(sourceDoc.height),Math.ceil(raw.b))};
     if(crop.right<=crop.left||crop.bottom<=crop.top)throw Error("对象超出临时文档画布");
