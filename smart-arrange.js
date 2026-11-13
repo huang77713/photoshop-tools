@@ -85,7 +85,13 @@ module.exports = function(root) {
     const entries=picked.map(layer=>({layer,id:layer.id,name:layer.name,raw:bounds(layer),b:bounds(layer)}));
     entries.forEach(e=>{let parent=e.layer.parent;while(parent){if(entries.some(x=>x.id===parent.id))throw Error("不能同时排列父组及组内子图层。");parent=parent.parent;}});
     state.layers=entries;state.docId=doc.id;
-    for(const item of entries) await measureLayer(item,doc.id);
+    if(state.measure==="visible") {
+      await core.executeAsModal(async()=>{
+        for(const item of entries) await measureLayer(item,doc.id);
+      }, {commandName:"读取图层可见边界"});
+    } else {
+      for(const item of entries) await measureLayer(item,doc.id);
+    }
     $("saSelected").textContent=entries.length===1?entries[0].name:entries.length+" 个对象已选中";
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
     if(entries.length>1){state.op="organize";$("saAuto").checked=true;active("saOp","organize");}
@@ -140,13 +146,13 @@ module.exports = function(root) {
     try{
       const p=getPlan();
       // Always fit the complete grid into the small preview stage, with safe margins.
-      const panelW=Math.max(160,Math.min(300,surface.clientWidth-22||280));
-      const panelH=80;
+      const panelW=Math.max(100,Math.min(300,surface.clientWidth-22||280));
+      const panelH=88;
       const scale=Math.min(panelW/Math.max(1,p.width),panelH/Math.max(1,p.height),1.5);
       const stage=document.createElement("div");stage.className="sa-stage";
       stage.style.width=Math.max(1,p.width*scale)+"px";
       stage.style.height=Math.max(1,p.height*scale)+"px";
-      const colRight=state.corner.endsWith("r"),rowBottom=state.corner.startsWith("b");
+
       const rawLeft=Math.min(...p.placements.map(o=>o.x));
       const rawTop=Math.min(...p.placements.map(o=>o.y));
       // Keep bounding cells consistent for uniform mode; minX/minY are from the bounding
@@ -212,6 +218,7 @@ module.exports = function(root) {
   });
   $("saRead").addEventListener("click",async()=>{try{await read();}catch(e){status(e.message,true);}});
   $("saRun").addEventListener("click",generate);
+  $("saAdvancedToggle").addEventListener("click",()=>{const panel=$("saAdvancedPanel");const open=panel.style.display!=="none";panel.style.display=open?"none":"block";$("saAdvancedToggle").setAttribute("aria-expanded",String(!open));$("saAdvanceArrow").textContent=open?"▾":"▴";});
   root.querySelectorAll("#saSpacingMode button").forEach(b=>b.addEventListener("click",()=>{state.spacingMode=b.dataset.value;active("saSpacingMode",state.spacingMode);update();preview();}));
   root.querySelectorAll("#saMeasure button").forEach(b=>b.addEventListener("click",async()=>{state.measure=b.dataset.value;active("saMeasure",state.measure);try{await read();}catch(e){status(e.message,true);}}));
   $("saReset").addEventListener("click",()=>{
