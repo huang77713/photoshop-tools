@@ -53,7 +53,7 @@ module.exports = function(root) {
     }finally{if(image)image.dispose();}
   }
   async function measureLayer(item,docId) {
-    if(state.measure!=="visible"){item.b=item.raw;item.fallback=false;return;}
+    if(state.measure!=="visible"){item.b=item.raw;item.fallback=false;item.reason="";return;}
     try {
       item.b=await visibleBounds(item.layer,item.raw,docId,state.alpha);
       item.fallback=false;item.reason="";
@@ -88,7 +88,7 @@ module.exports = function(root) {
     for(const item of entries) await measureLayer(item,doc.id);
     $("saSelected").textContent=entries.length===1?entries[0].name:entries.length+" 个对象已选中";
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
-    if(entries.length>1){state.op="organize";active("saOp","organize");}
+    if(entries.length>1){state.op="organize";$("saAuto").checked=true;active("saOp","organize");}
     else {state.op="copy";active("saOp","copy");}
     update();preview();status(entries.some(e=>e.fallback)?"部分对象无法读取可见像素，回退到原始边界："+entries.filter(e=>e.fallback).map(e=>e.name+"（"+e.reason+"）").slice(0,2).join("、"):"已按"+(state.measure==="visible"?"可见像素":"图层边界")+"读取，可以开始排列。",entries.some(e=>e.fallback));
   }
