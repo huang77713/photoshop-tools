@@ -112,7 +112,7 @@ module.exports = function(root) {
     $("saRows").disabled=!copy&&$("saAuto").checked;
     $("saGapX").disabled=state.layout==="vertical";
     $("saGapY").disabled=state.layout==="horizontal";
-    $("saSpacingNote").textContent=state.spacingMode==="uniform"?"用所有对象的最大宽高建立统一单元格，图层在单元格内居中。":"按每行和每列实际尺寸安排，图层左上对齐。";
+    $("saSpacingNote").textContent="固定以 1 号对象尺寸建立单元格，其他对象在每格内居中，允许重叠。";
     $("saHint").textContent=copy?"一个图层或组：原对象 + 复制对象。":"至少两个对象：移动原图层，不生成副本。";
     $("saRun").textContent=copy?"生成复制排列":"整理选中对象";
   }
@@ -168,35 +168,29 @@ module.exports = function(root) {
     const rows=state.layout==="horizontal"?1:state.layout==="vertical"?total:(!isCopy&&auto?Math.ceil(total/cols):count("saRows",1,120,2));
     if(rows*cols<total)throw Error("排列位置不足，请增加行列数或启用自动行数。");
     const gx=count("saGapX",0,10000,20),gy=count("saGapY",0,10000,20);
-    const sorted=state.layers.slice().sort((a,b)=>a.b.t-b.b.t||a.b.l-b.b.l);
+    const sorted=state.layers.slice().sort((a,b)=>(a.b.t+a.b.h/2)-(b.b.t+b.b.h/2)|| (a.b.l+a.b.w/2)-(b.b.l+b.b.w/2));
     const list=isCopy?Array.from({length:total},()=>sorted[0]):sorted;
-    const colWidth=Array(cols).fill(0),rowHeight=Array(rows).fill(0);
-    const maxW=Math.max(...list.map(x=>x.b.w)),maxH=Math.max(...list.map(x=>x.b.h));
+    // Anchor-only layout: object #1 is the single fixed-size template.
+    // Every other layer is centered on that virtual cell. Differences in
+    // actual sizes never affect spacing, and overlapping is intentional.
+    const anchor=list[0];
+    const cellW=anchor.b.w,cellH=anchor.b.h;
+    const stepX=cellW+gx,stepY=cellH+gy;
+    const left=anchor.b.l,top=anchor.b.t;
     const cells=list.map((item,i)=>{
-      let r,c;
-      if(state.layout==="horizontal"){r=0;c=i;}
-      else if(state.layout==="vertical"){r=i;c=0;}
-      else if(state.flow==="column"){r=i%rows;c=Math.floor(i/rows);}
-      else {r=Math.floor(i/cols);c=i%cols;}
-      colWidth[c]=Math.max(colWidth[c],item.b.w);rowHeight[r]=Math.max(rowHeight[r],item.b.h);
-      return {item,i,r,c};
+      let row,col;
+      if(state.layout==="horizontal"){row=0;col=i;}
+      else if(state.layout==="vertical"){row=i;col=0;}
+      else if(state.flow==="column"){row=i%rows;col=Math.floor(i/rows);}
+      else {row=Math.floor(i/cols);col=i%cols;}
+      const visualCol=state.corner.endsWith("r")?-col:col;
+      const visualRow=state.corner.startsWith("b")?-row:row;
+      const x=left+visualCol*stepX+(cellW-item.b.w)/2;
+      const y=top+visualRow*stepY+(cellH-item.b.h)/2;
+      return {item,i,r:row,c:col,x,y};
     });
-    if(state.spacingMode==="uniform"){colWidth.fill(maxW);rowHeight.fill(maxH);}
-    const X=[0],Y=[0];
-    for(let k=1;k<cols;k++)X[k]=X[k-1]+colWidth[k-1]+gx;
-    for(let k=1;k<rows;k++)Y[k]=Y[k-1]+rowHeight[k-1]+gy;
-    const width=X[cols-1]+colWidth[cols-1],height=Y[rows-1]+rowHeight[rows-1];
-    const l=Math.min(...sorted.map(o=>o.b.l)),t=Math.min(...sorted.map(o=>o.b.t));
-    const right=Math.max(...sorted.map(o=>o.b.r)),bottom=Math.max(...sorted.map(o=>o.b.b));
-    const originX=state.corner.endsWith("r")?right-width:l,originY=state.corner.startsWith("b")?bottom-height:t;
-    const placements=cells.map(cell=>{
-      const c=state.corner.endsWith("r")?cols-1-cell.c:cell.c;
-      const r=state.corner.startsWith("b")?rows-1-cell.r:cell.r;
-      const innerX=state.spacingMode==="uniform"?(colWidth[c]-cell.item.b.w)/2:0;
-      const innerY=state.spacingMode==="uniform"?(rowHeight[r]-cell.item.b.h)/2:0;
-      return {...cell,x:originX+X[c]+innerX,y:originY+Y[r]+innerY};
-    });
-    return {placements,width,height,gx,gy};
+    return {placements:cells,width:cols*cellW+(cols-1)*gx,height:rows*cellH+(rows-1)*gy,
+      gx,gy,anchor:anchor.name,cellW,cellH};
   }
   function preview(){
     const surface=$("saPreview");surface.innerHTML="";
@@ -227,24 +221,35 @@ module.exports = function(root) {
       });
       surface.appendChild(stage);
       $("saCountLabel").textContent=p.placements.length+" 个对象";
-      $("saPreviewNote").textContent="整体 "+Math.round(p.width)+" × "+Math.round(p.height)+" px · 间距 "+p.gx+" / "+p.gy+" px";
+      $("saPreviewNote").textContent="基准 "+Math.round(p.cellW)+" × "+Math.round(p.cellH)+" px · 间距 "+p.gx+" / "+p.gy+" px";
     }catch(e){
       const el=document.createElement("div");el.className="sa-empty";el.textContent=e.message;surface.appendChild(el);
       $("saCountLabel").textContent="待调整";
     }
   }
-  // Always address a specific layer ID. Layer.translate() is selection-dependent
-  // in some Photoshop versions and can fail with "Invalid target for move".
-  async function translateById(layer,dx,dy){
-    const cmd={
-      _obj:"move",
-      _target:[{_ref:"layer",_id:layer.id}],
-      to:{_obj:"offset",horizontal:{_unit:"pixelsUnit",_value:dx},vertical:{_unit:"pixelsUnit",_value:dy}},
-      _options:{dialogOptions:"dontDisplay"}
-    };
-    const result=await photoshop.action.batchPlay([cmd],{});
-    const reply=result&&result[0];
-    if(reply && (reply._obj==="error" || reply._obj==="Error"))throw Error(reply.message||"Photoshop 移动指令失败");
+  async function selectExactly(id,docId) {
+    const response=await photoshop.action.batchPlay([{
+      _obj:"select",_target:[{_ref:"layer",_id:id},{_ref:"document",_id:docId}],
+      makeVisible:false,_options:{dialogOptions:"silent"}
+    }],{});
+    if(response[0]&&String(response[0]._obj).toLowerCase()==="error")
+      throw Error(response[0].message||"选中目标图层失败");
+  }
+  async function selectOriginal(ids,docId){
+    for(let i=0;i<ids.length;i++){
+      const cmd={_obj:"select",_target:[{_ref:"layer",_id:ids[i]},{_ref:"document",_id:docId}],
+        makeVisible:false,_options:{dialogOptions:"silent"}};
+      if(i>0)cmd.selectionModifier={_enum:"selectionModifierType",_value:"addToSelection"};
+      const r=await photoshop.action.batchPlay([cmd],{});
+      if(r[0]&&String(r[0]._obj).toLowerCase()==="error")throw Error(r[0].message);
+    }
+  }
+  async function translateById(layer,docId,dx,dy){
+    // Crucial for nested layers: select the actual group by unique ID first.
+    // A _obj:"move" ... to:{_obj:"offset"} command is NOT equivalent to
+    // Layer.translate and fails on nested groups with Invalid target for move.
+    await selectExactly(layer.id,docId);
+    await layer.translate(dx,dy);
   }
   async function generate(){
     if(state.busy)return;
@@ -272,13 +277,17 @@ module.exports = function(root) {
             const dx=p.x-(b.l+(p.item.b.l-p.item.raw.l)),dy=p.y-(b.t+(p.item.b.t-p.item.raw.t));
             if(Math.abs(dx)>0.01||Math.abs(dy)>0.01){
               try{
-                await translateById(target,dx,dy);
+                await translateById(target,state.docId,dx,dy);
               }catch(error){
                 throw Error("无法移动第 "+(i+1)+" 个对象「"+p.item.name+"」（图层ID "+target.id+"）："+(error.message||error));
               }
             }
           }
-        }finally{await ctx.hostControl.resumeHistory(token);}
+        }finally{
+          try{await selectOriginal(state.layers.map(x=>x.id),state.docId);}
+          catch(error){console.warn("[Smart Arrange] selection restore:",error);}
+          await ctx.hostControl.resumeHistory(token);
+        }
       },{commandName:"智能排列"});
       status("完成！共 "+plan.placements.length+" 个对象，可用 Ctrl+Z 撤销。");
     }catch(e){status("操作失败："+(e.message||e)+"；若有部分修改，可 Ctrl+Z 撤销。",true);}
