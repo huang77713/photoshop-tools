@@ -154,7 +154,11 @@ async function read(){
       const entry=needsComposite[i];
       try{
        isolate(temp,entry.path,originalVis);
-       entry.visible=await compositeAlpha(temp,null,null);
+       const vb=entry.raw;
+       const region={left:Math.max(0,Math.floor(vb.l)),top:Math.max(0,Math.floor(vb.t)),
+         right:Math.min(n(temp.width),Math.ceil(vb.r)),bottom:Math.min(n(temp.height),Math.ceil(vb.b))};
+       if(region.right<=region.left||region.bottom<=region.top)throw Error("对象超出画布");
+       entry.visible=await compositeAlpha(temp,null,region);
       }catch(e){
        throw Error("第 "+(i+1)+" 个复杂对象「"+entry.name+"」测量失败："+(e.message||e));
       }
