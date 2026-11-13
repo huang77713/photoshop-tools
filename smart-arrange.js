@@ -3,7 +3,7 @@ module.exports = function(root) {
   "use strict";
   const photoshop=require("photoshop"),app=photoshop.app,core=photoshop.core,imaging=photoshop.imaging;
   const $=id=>root.querySelector("#"+id);
-  const state={op:"copy",layout:"grid",flow:"row",corner:"tl",layers:[],docId:null,busy:false,measure:"visible",alpha:12,spacingMode:"uniform"};
+  const state={op:"copy",layout:"grid",flow:"row",corner:"tl",layers:[],docId:null,busy:false,measure:"visible",forceVisible:false,forceBounds:false,alpha:12,spacingMode:"uniform"};
   const count=(id,min,max,d)=>{const n=Number($(id).value);return Number.isFinite(n)?Math.max(min,Math.min(max,Math.floor(n))):d;};
   function unit(v){return typeof v==="number"?v:(v&&typeof v.value==="number"?v.value:(v&&typeof v._value==="number"?v._value:Number(v)));}
   function bounds(layer){
@@ -124,6 +124,14 @@ module.exports = function(root) {
     const entries=picked.map(layer=>({layer,id:layer.id,name:layer.name,raw:bounds(layer),b:bounds(layer)}));
     entries.forEach(e=>{let parent=e.layer.parent;while(parent){if(entries.some(x=>x.id===parent.id))throw Error("不能同时排列父组及组内子图层。");parent=parent.parent;}});
     state.layers=entries;state.docId=doc.id;
+    // Organizing many existing objects must be instantaneous by default.
+    // Save the expensive pixel-composite scan for a single complex group,
+    // or for a user explicitly enabling it in Advanced settings.
+    if(entries.length>1 && !state.forceVisible){
+      state.measure="bounds";active("saMeasure","bounds");
+    }else if(entries.length===1 && !state.forceBounds){
+      state.measure="visible";active("saMeasure","visible");
+    }
     if(state.measure==="visible") {
       for(const item of entries)item.path=pathToLayer(doc,item.layer);
       // Duplicating the whole PSD preserves nested clipping masks and groups.
@@ -145,7 +153,7 @@ module.exports = function(root) {
     $("saDetail").textContent=entries.length===1?Math.round(entries[0].b.w)+" × "+Math.round(entries[0].b.h)+" px · "+(entries[0].layer.layers?"图层组":"图层"):entries.slice(0,3).map(e=>e.name).join("、")+(entries.length>3?"…":"");
     if(entries.length>1){state.op="organize";$("saAuto").checked=true;active("saOp","organize");}
     else {state.op="copy";active("saOp","copy");}
-    update();preview();status(entries.some(e=>e.fallback)?"部分对象无法读取可见像素，回退到原始边界："+entries.filter(e=>e.fallback).map(e=>e.name+"（"+e.reason+"）").slice(0,2).join("、"):"已按"+(state.measure==="visible"?"可见像素":"图层边界")+"读取，可以开始排列。",entries.some(e=>e.fallback));
+    update();preview();status(entries.some(e=>e.fallback)?"部分对象无法读取可见像素，回退到原始边界："+entries.filter(e=>e.fallback).map(e=>e.name+"（"+e.reason+"）").slice(0,2).join("、"):"已按"+(state.measure==="visible"?"可见像素":"图层边界（快速）")+"读取，可以开始排列。",entries.some(e=>e.fallback));
   }
   function getPlan(){
     if(!state.layers.length)throw Error("请先读取选中图层。");
@@ -270,9 +278,9 @@ module.exports = function(root) {
   $("saRun").addEventListener("click",generate);
   $("saAdvancedToggle").addEventListener("click",()=>{const panel=$("saAdvancedPanel");const open=panel.style.display!=="none";panel.style.display=open?"none":"block";$("saAdvancedToggle").setAttribute("aria-expanded",String(!open));$("saAdvanceArrow").textContent=open?"▾":"▴";});
   root.querySelectorAll("#saSpacingMode button").forEach(b=>b.addEventListener("click",()=>{state.spacingMode=b.dataset.value;active("saSpacingMode",state.spacingMode);update();preview();}));
-  root.querySelectorAll("#saMeasure button").forEach(b=>b.addEventListener("click",async()=>{state.measure=b.dataset.value;active("saMeasure",state.measure);try{await read();}catch(e){status(e.message,true);}}));
+  root.querySelectorAll("#saMeasure button").forEach(b=>b.addEventListener("click",async()=>{state.measure=b.dataset.value;state.forceVisible=state.measure==="visible";state.forceBounds=state.measure==="bounds";active("saMeasure",state.measure);try{await read();}catch(e){status(e.message,true);}}));
   $("saReset").addEventListener("click",()=>{
-    state.layout="grid";state.flow="row";state.corner="tl";state.spacingMode="uniform";active("saSpacingMode","uniform");
+    state.layout="grid";state.flow="row";state.corner="tl";state.spacingMode="uniform";state.forceVisible=false;state.forceBounds=false;active("saSpacingMode","uniform");
     [["saCount",6],["saRows",2],["saCols",3],["saGapX",20],["saGapY",20]].forEach(p=>$(p[0]).value=p[1]);
     $("saAuto").checked=false;
     active("saLayout","grid");active("saFlow","row");active("saCorner","tl");update();preview();
