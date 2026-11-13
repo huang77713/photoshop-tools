@@ -233,6 +233,19 @@ module.exports = function(root) {
       $("saCountLabel").textContent="待调整";
     }
   }
+  // Always address a specific layer ID. Layer.translate() is selection-dependent
+  // in some Photoshop versions and can fail with "Invalid target for move".
+  async function translateById(layer,dx,dy){
+    const cmd={
+      _obj:"move",
+      _target:[{_ref:"layer",_id:layer.id}],
+      to:{_obj:"offset",horizontal:{_unit:"pixelsUnit",_value:dx},vertical:{_unit:"pixelsUnit",_value:dy}},
+      _options:{dialogOptions:"dontDisplay"}
+    };
+    const result=await photoshop.action.batchPlay([cmd],{});
+    const reply=result&&result[0];
+    if(reply && (reply._obj==="error" || reply._obj==="Error"))throw Error(reply.message||"Photoshop 移动指令失败");
+  }
   async function generate(){
     if(state.busy)return;
     let plan,doc;
@@ -257,7 +270,13 @@ module.exports = function(root) {
             const target=state.op==="copy"?(i===0?original:await original.duplicate()):p.item.layer;
             const b=bounds(target);
             const dx=p.x-(b.l+(p.item.b.l-p.item.raw.l)),dy=p.y-(b.t+(p.item.b.t-p.item.raw.t));
-            if(Math.abs(dx)>0.01||Math.abs(dy)>0.01)await target.translate(dx,dy);
+            if(Math.abs(dx)>0.01||Math.abs(dy)>0.01){
+              try{
+                await translateById(target,dx,dy);
+              }catch(error){
+                throw Error("无法移动第 "+(i+1)+" 个对象「"+p.item.name+"」（图层ID "+target.id+"）："+(error.message||error));
+              }
+            }
           }
         }finally{await ctx.hostControl.resumeHistory(token);}
       },{commandName:"智能排列"});
