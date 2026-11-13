@@ -73,3 +73,28 @@
 #smartArrangeView .sa-measure>span{font-size:10px;color:#aba7b3;white-space:nowrap}
 #smartArrangeView .sa-measure .sa-segments{flex:1}
 #smartArrangeView .sa-measure .sa-segments button{font-size:10px!important;min-height:28px!important}
+
+
+/* v1.2 - PSD-focused compact layout, no oversized selection card */
+#smartArrangeView{padding:8px 10px 14px!important;background:#29292d!important}
+#smartArrangeView .sa-head{margin-bottom:7px!important;padding-bottom:6px!important}
+#smartArrangeView .sa-source{display:flex!important;flex-direction:column!important;padding:5px 8px!important;margin-bottom:8px!important;background:#303037!important}
+#smartArrangeView .sa-source-top{font-size:10px!important}
+#smartArrangeView .sa-source-name{font-size:11px!important;font-weight:600!important;line-height:1.25!important}
+#smartArrangeView .sa-source .sa-muted{font-size:10px!important;max-height:25px!important;overflow:hidden!important;white-space:nowrap!important;text-overflow:ellipsis!important}
+#smartArrangeView .sa-source .sa-button{font-size:10px!important;padding:3px 6px!important;height:25px!important;min-height:25px!important;border-radius:4px!important}
+#smartArrangeView .sa-segments button{font-family:Arial,"Microsoft YaHei",sans-serif!important;line-height:1.15!important;min-height:28px!important;height:28px!important;padding:4px 3px!important;border-radius:0!important}
+#smartArrangeView .sa-segments button:first-child{border-radius:5px 0 0 5px!important}
+#smartArrangeView .sa-segments button:last-child{border-radius:0 5px 5px 0!important}
+#smartArrangeView .sa-segments button.active{background:#57496b!important;border-color:#80699d!important;color:#efe8ff!important}
+#smartArrangeView .sa-section{margin-bottom:9px!important}
+#smartArrangeView .sa-label{font-size:11px!important;margin-bottom:5px!important}
+#smartArrangeView .sa-fields{margin-top:6px!important}
+#smartArrangeView .sa-preview{height:116px!important;min-height:116px!important;max-height:116px!important;overflow:hidden!important;padding:9px!important;align-items:center!important;justify-content:center!important}
+#smartArrangeView .sa-stage{display:block!important;position:relative!important;flex:none!important;min-height:1px!important;min-width:1px!important;max-width:100%!important;max-height:100%!important}
+#smartArrangeView .sa-tile{font-size:10px!important;box-shadow:none!important}
+#smartArrangeView .sa-measure{margin-bottom:7px!important}
+#smartArrangeView .sa-measure .sa-segments button{height:26px!important;min-height:26px!important}
+#smartArrangeView .sa-spacing-section .sa-segments button{font-size:10px!important}
+#smartArrangeView .sa-spacing-section .sa-hint{margin-top:3px!important}
+#smartArrangeView .sa-actions .sa-button{font-size:11px!important;border-radius:5px!important;min-height:32px!important}
