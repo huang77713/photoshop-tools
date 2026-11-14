@@ -1,35 +1,35 @@
-/* Dedicated bounds-frame panel; no globals. */
-#boundsFrameView{width:100%;min-width:0;color:#ededed;font-size:12px}
+/* Bounds Frame: all styles scoped to this view, UXP-friendly compact layout. */
+#boundsFrameView{width:100%;min-width:0;color:#f1f1f1;font:12px/1.45 Arial,"Microsoft YaHei",sans-serif}
 #boundsFrameView *{box-sizing:border-box}
-#boundsFrameView .bf-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
-#boundsFrameView .bf-title{font-size:16px;font-weight:700}
-#boundsFrameView .bf-tag{font-size:10px;color:#96cbb1;background:#263b30;border:1px solid #416a51;padding:3px 7px;border-radius:4px}
-#boundsFrameView .bf-subtitle{margin-top:4px;color:#a5a5a5;font-size:11px}
-#boundsFrameView .bf-card{padding:13px;background:#303030;border:1px solid #454545;border-radius:8px;margin-bottom:12px}
-#boundsFrameView .bf-card-title{font-weight:700;margin-bottom:11px;color:#e7e7e7}
-#boundsFrameView .bf-source{display:flex;align-items:center;gap:10px}
-#boundsFrameView .bf-source-text{flex:1;min-width:0}
-#boundsFrameView .bf-count{font-weight:700;color:#d9f1dd}
-#boundsFrameView .bf-names{font-size:11px;line-height:1.5;color:#aaa;overflow-wrap:anywhere;margin-top:5px}
-#boundsFrameView .bf-button{min-height:34px;border:1px solid #5b5b5b;border-radius:6px;padding:8px 12px;background:#424242;color:#f5f5f5;cursor:pointer;flex:none}
-#boundsFrameView .bf-primary{width:100%;min-height:40px;background:#397f62;border-color:#50a17d;font-weight:700;font-size:13px}
+#boundsFrameView .bf-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px}
+#boundsFrameView .bf-title{font-size:16px;font-weight:700;line-height:1.4}
+#boundsFrameView .bf-subtitle{font-size:11px;color:#c4c4c4;margin-top:3px}
+#boundsFrameView .bf-tag{font-size:10px;color:#a8e1c3;background:#283d34;border:1px solid #4c745e;padding:3px 7px;border-radius:5px}
+#boundsFrameView .bf-card{padding:12px;background:#323232;border:1px solid #515151;border-radius:8px;margin:0 0 10px}
+#boundsFrameView .bf-card-title{font-size:13px;font-weight:700;color:#fff;line-height:18px;margin:0 0 11px}
+#boundsFrameView .bf-source{display:flex;align-items:center;justify-content:space-between}
+#boundsFrameView .bf-source-text{flex:1;min-width:0;margin-right:10px}
+#boundsFrameView .bf-count{font-weight:700;color:#b4f5ce}
+#boundsFrameView .bf-names{font-size:11px;color:#ddd;overflow-wrap:anywhere;margin-top:3px}
+#boundsFrameView .bf-button{min-height:34px;flex:none;border:1px solid #777;border-radius:6px;background:#474747;color:#fff;padding:7px 12px;font-size:12px;cursor:pointer}
+#boundsFrameView .bf-primary{width:100%;min-height:40px;background:#347a5b;border-color:#65b991;font-size:13px;font-weight:700}
 #boundsFrameView .bf-button:disabled{opacity:.5}
-#boundsFrameView .bf-colorrow{display:flex;align-items:center;gap:9px}
-#boundsFrameView .bf-swatch{width:32px;height:32px;flex:none;border-radius:6px;border:1px solid #888}
-#boundsFrameView #bfColor{width:36px;min-width:36px;height:34px;padding:1px;background:#222;border:1px solid #666;border-radius:5px}
-#boundsFrameView #bfHex{width:112px;max-width:100%;flex:1}
-#boundsFrameView .bf-fields{display:flex;flex-wrap:wrap;justify-content:space-between}
-#boundsFrameView .bf-field{width:48%;min-width:0;margin-top:12px}
-#boundsFrameView .bf-field label{display:block;margin-bottom:6px;color:#bdbdbd}
-#boundsFrameView input[type=number],#boundsFrameView input[type=text]{width:100%;min-width:0;min-height:34px;padding:7px 9px;background:#222;border:1px solid #585858;border-radius:5px;color:#f4f4f4;font-size:13px}
-#boundsFrameView .bf-check{display:flex;align-items:flex-start;gap:9px;color:#e0e0e0;line-height:1.5;margin:5px 0 13px}
-#boundsFrameView .bf-check:last-child{margin-bottom:0}
-#boundsFrameView .bf-check input{margin:2px 0 0;flex:none}
-#boundsFrameView .bf-note{font-size:11px;color:#a5a5a5;line-height:1.55;margin-top:8px}
-#boundsFrameView .bf-status{margin-top:11px;line-height:1.6;color:#add9b8;white-space:pre-wrap}
-#boundsFrameView .bf-error{color:#ffaaa6}
-
-#boundsFrameView .bf-mode{margin-bottom:10px;cursor:pointer}
-#boundsFrameView .bf-mode input{accent-color:#67c995}
-#boundsFrameView #bfFixedDimensions{margin-top:0;margin-bottom:3px}
+#boundsFrameView .bf-radio-row{display:flex;flex-wrap:wrap;align-items:center;margin:0 0 9px}
+#boundsFrameView .bf-radio-row .bf-mode{margin:0 18px 0 0}
+#boundsFrameView .bf-check{display:flex;align-items:center;color:#f0f0f0;min-height:26px;margin:0 0 8px;line-height:1.4;cursor:pointer}
+#boundsFrameView .bf-check:last-of-type{margin-bottom:0}
+#boundsFrameView .bf-check input{margin:0 8px 0 0;flex:none}
+#boundsFrameView .bf-check span{display:block;flex:1}
+#boundsFrameView .bf-fields{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;width:100%;margin:0}
+#boundsFrameView .bf-field{display:block;width:48%;flex:0 0 48%;min-width:0;margin:0 0 11px;padding:0}
+#boundsFrameView .bf-field-label{font-size:12px;line-height:16px;color:#e4e4e4;margin:0 0 5px}
+#boundsFrameView .bf-field input{display:block;width:100%;min-width:0;max-width:100%;height:34px;margin:0;padding:6px 9px;background:#222;border:1px solid #686868;border-radius:5px;color:#fff;font-size:14px}
+#boundsFrameView .bf-field:nth-last-child(-n+2){margin-bottom:0}
+#boundsFrameView .bf-colorrow{display:flex;align-items:center;width:100%;margin:0 0 12px}
+#boundsFrameView .bf-color-button{display:flex;align-items:center;justify-content:center;height:34px;min-width:87px;flex:none;margin:0 12px 0 0;padding:4px 8px;background:#454545;color:#fff;border:1px solid #727272;border-radius:5px;cursor:pointer;font-size:12px}
+#boundsFrameView .bf-swatch{display:block;width:23px;height:23px;flex:none;border:1px solid #8e8e8e;border-radius:4px;margin-right:7px}
+#boundsFrameView #bfHex{display:block;width:112px;max-width:125px;min-width:0;height:34px;padding:6px 8px;background:#222;border:1px solid #686868;border-radius:5px;color:#fff;font-size:13px}
+#boundsFrameView .bf-note{font-size:11px;color:#c4c4c4;line-height:1.5;margin:9px 0 0}
+#boundsFrameView .bf-status{margin:10px 0 4px;color:#b7e6c8;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+#boundsFrameView .bf-error{color:#ffaca6}
 #boundsFrameView input:disabled{opacity:.45}
