@@ -4,6 +4,7 @@ module.exports = function initBoundsFrame(root) {
   const ps = require("photoshop"), app = ps.app, core = ps.core, imaging = ps.imaging;
   const $ = id => root.querySelector("#" + id);
   let busy = false, snapshot = null;
+  const uiState={sizeMode:"auto",group:false,precise:true};
   const scalar = v => typeof v === "number" ? v : Number(v && (v.value !== undefined ? v.value : v._value));
   function rect(layer) {
     const b = layer.boundsNoEffects || layer.bounds;
@@ -138,9 +139,9 @@ module.exports = function initBoundsFrame(root) {
   function options() {
     return {rgb:hexRgb(currentColor),opacity:number("bfOpacity",0,100),
       stroke:number("bfStroke",1,12),dash:number("bfDash",2,60),
-      margin:number("bfMargin",0,100),group:$("bfGroup").checked,
-      precise:$("bfPrecise").checked,
-      sizeMode:root.querySelector('input[name="bfSizeMode"]:checked').value,
+      margin:number("bfMargin",0,100),group:uiState.group,
+      precise:uiState.precise,
+      sizeMode:uiState.sizeMode,
       fixedWidth:positiveDimension("bfWidth"),fixedHeight:positiveDimension("bfHeight")};
   }
   async function read(precise) {
@@ -280,24 +281,44 @@ module.exports = function initBoundsFrame(root) {
     }finally{busy=false;$("bfGenerate").disabled=false;$("bfRead").disabled=false;}
   }
   function syncSizeMode() {
-    const fixed=root.querySelector('input[name="bfSizeMode"]:checked').value==="fixed";
+    const fixed=uiState.sizeMode==="fixed";
     $("bfFixedDimensions").style.display=fixed?"flex":"none";
     $("bfMargin").disabled=fixed;
     $("bfMarginNote").textContent=fixed
       ?"统一尺寸以每个对象的可见范围中心对齐；留白不再额外叠加。"
       :"边缘留白只在跟随对象尺寸时生效。";
   }
-  root.querySelectorAll('input[name="bfSizeMode"]').forEach(input=>input.addEventListener("change",syncSizeMode));
+  function syncChoices(){
+    root.querySelectorAll(".bf-choice[data-mode]").forEach(button=>{
+      const active=button.getAttribute("data-mode")===uiState.sizeMode;
+      button.classList.toggle("bf-selected",active);
+      button.setAttribute("aria-pressed",String(active));
+    });
+    [["bfGroup",uiState.group],["bfPrecise",uiState.precise]].forEach(pair=>{
+      const button=$(pair[0]),active=pair[1];
+      button.classList.toggle("bf-selected",active);
+      button.setAttribute("aria-pressed",String(active));
+    });
+    syncSizeMode();
+  }
+  root.querySelectorAll(".bf-choice[data-mode]").forEach(button=>button.addEventListener("click",()=>{
+    uiState.sizeMode=button.getAttribute("data-mode");
+    syncChoices();
+  }));
+  $("bfGroup").addEventListener("click",()=>{uiState.group=!uiState.group;syncChoices();});
+  $("bfPrecise").addEventListener("click",()=>{
+    uiState.precise=!uiState.precise;snapshot=null;
+    syncChoices();say("测量模式已切换，生成前会重新读取。");
+  });
   $("bfPick").addEventListener("click",openPicker);
   $("bfHex").addEventListener("change",()=>{
     try {setColor($("bfHex").value);}
     catch(error){say(error.message,true);setColor(currentColor);}
   });
   $("bfRead").addEventListener("click",async()=>{if(busy)return;busy=true;$("bfRead").disabled=true;
-    try{await read($("bfPrecise").checked);}catch(e){say(e.message||String(e),true);}
+    try{await read(uiState.precise);}catch(e){say(e.message||String(e),true);}
     finally{busy=false;$("bfRead").disabled=false;}});
   $("bfGenerate").addEventListener("click",create);
-  $("bfPrecise").addEventListener("change",()=>{snapshot=null;say("测量模式已切换，生成前会重新读取。");});
   root.__boundsFrameActivate=()=>{snapshot=null;say("选择图层或组，点击「读取对象」或直接生成。");};
-  setColor(currentColor);syncSizeMode();
+  setColor(currentColor);syncChoices();
 };
