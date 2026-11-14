@@ -157,6 +157,8 @@ module.exports = function initBoundsFrame(root) {
     const right=Math.min(Number(doc.width),Math.ceil(box.r+pad));
     const bottom=Math.min(Number(doc.height),Math.ceil(box.b+pad));
     const w=right-left,h=bottom-top;
+    if(opt.sizeMode==="fixed" && (w!==opt.fixedWidth || h!==opt.fixedHeight))
+      throw Error("统一尺寸框超出画布边缘，无法保持完整宽高；请移动对象或调小尺寸。");
     if(w<2 || h<2)throw Error("矩形范围过小或完全位于画布外。");
     if(w*h>18000000)throw Error("框尺寸过大（超过 1800 万像素），请缩小对象后再试。");
     const data=new Uint8Array(w*h*4),fill=Math.round(opt.opacity*255/100);
