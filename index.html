@@ -505,11 +505,20 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
     <div id="boundsFrameView" style="display:none">
       <div class="bf-head"><div><div class="bf-title">边界框</div><div class="bf-subtitle">独立对象 · 半透明填充 · 虚线边框</div></div><span class="bf-tag">TEST</span></div>
       <div class="bf-card"><div class="bf-card-title">当前选择</div><div class="bf-source"><div class="bf-source-text"><div id="bfCount" class="bf-count">尚未读取</div><div id="bfNames" class="bf-names">支持多选图层、组以及混合选择</div></div><button id="bfRead" class="bf-button">读取对象</button></div></div>
+      <div class="bf-card"><div class="bf-card-title">矩形尺寸</div>
+      <label class="bf-check bf-mode"><input type="radio" name="bfSizeMode" value="auto" checked><span>跟随每个对象的实际范围</span></label>
+      <label class="bf-check bf-mode"><input type="radio" name="bfSizeMode" value="fixed"><span>统一自定义尺寸</span></label>
+      <div id="bfFixedDimensions" class="bf-fields" style="display:none">
+        <div class="bf-field"><label for="bfWidth">宽度 (px)</label><input id="bfWidth" type="number" min="2" max="100000" step="1" value="320"></div>
+        <div class="bf-field"><label for="bfHeight">高度 (px)</label><input id="bfHeight" type="number" min="2" max="100000" step="1" value="420"></div>
+      </div>
+      <div class="bf-note">统一模式：所有框的宽高完全一致，各自以对应图层或组的可见范围中心定位，不缩放原对象。</div></div>
       <div class="bf-card"><div class="bf-card-title">外观设置</div><div class="bf-colorrow"><span id="bfSwatch" class="bf-swatch"></span><input type="color" id="bfColor" value="#20cf52" aria-label="选色"><input id="bfHex" type="text" value="#20CF52" aria-label="颜色十六进制值"></div>
       <div class="bf-fields"><div class="bf-field"><label for="bfOpacity">填充透明度 (%)</label><input id="bfOpacity" type="number" min="0" max="100" value="20"></div>
       <div class="bf-field"><label for="bfStroke">虚线粗细 (px)</label><input id="bfStroke" type="number" min="1" max="12" value="2"></div>
       <div class="bf-field"><label for="bfDash">虚线长度 (px)</label><input id="bfDash" type="number" min="2" max="60" value="8"></div>
       <div class="bf-field"><label for="bfMargin">边缘留白 (px)</label><input id="bfMargin" type="number" min="0" max="100" value="0"></div></div>
+      <div id="bfMarginNote" class="bf-note">边缘留白只在跟随对象尺寸时生效。</div>
       <div class="bf-note">描边使用所选颜色，描边不透明；填充与描边保存在同一新图层。</div></div>
       <div class="bf-card"><div class="bf-card-title">图层处理</div>
       <label class="bf-check"><input id="bfGroup" type="checkbox"><span>原对象与对应边界框自动成组</span></label>
