@@ -100,7 +100,7 @@ module.exports = function initBoundsFrame(root) {
       // UXP does not implement HTML input[type=color]; use Photoshop native picker.
       const result=await core.executeAsModal(async()=>{
         const output=await ps.action.batchPlay([
-          {_obj:"showColorPicker",_target:[{_ref:"application"}]}
+          {_obj:"showColorPicker",_target:[{_ref:"application"}],context:"边界框颜色",color:rgbDescriptor(hexRgb(currentColor))}
         ],{synchronousExecution:false});
         return output && output[0];
       },{commandName:"选择边界框颜色"});
@@ -199,7 +199,7 @@ module.exports = function initBoundsFrame(root) {
         _obj:"contentLayer",
         name:name,
         type:{_obj:"solidColorLayer",color:rgbDescriptor(opt.rgb)},
-        shape:{_obj:"rectangle",top:pixel(top),left:pixel(left),bottom:pixel(bottom),right:pixel(right)},
+        shape:{_obj:"rectangle",unitValueQuadVersion:1,top:pixel(top),left:pixel(left),bottom:pixel(bottom),right:pixel(right),topLeft:pixel(0),topRight:pixel(0),bottomLeft:pixel(0),bottomRight:pixel(0)},
         strokeStyle:{
           _obj:"strokeStyle",strokeStyleVersion:2,
           strokeEnabled:true,fillEnabled:true,
@@ -223,7 +223,7 @@ module.exports = function initBoundsFrame(root) {
     if(!response || !response[0] || /error/i.test(response[0]._obj||""))
       throw Error("Photoshop 创建矢量形状失败："+(response&&response[0]&&response[0].message||"未知错误"));
     const frame=Array.from(doc.activeLayers||[])[0];
-    if(!frame || frame.id===undefined || frame.kind!==ps.constants.LayerKind.SOLIDFILL)
+    if(!frame || frame.id===undefined || (ps.constants.LayerKind.SOLIDFILL && frame.kind!==ps.constants.LayerKind.SOLIDFILL))
       throw Error("未能确认新建的形状图层，请检查 Photoshop 日志。");
     frame.name=name;
     frame.fillOpacity=opt.opacity;
