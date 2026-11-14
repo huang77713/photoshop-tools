@@ -277,6 +277,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 <link rel="stylesheet" href="text-cutter-ui.css">
 <link rel="stylesheet" href="smart-arrange.css">
 <link rel="stylesheet" href="visible-resize.css">
+<link rel="stylesheet" href="bounds-frame.css">
 </head>
 <body>
 <div id="app">
@@ -293,6 +294,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div class="item" data-name="文字批量切图"><span>文字批量切图</span><span class="check"></span></div>
       <div class="item" data-name="智能排列"><span>智能排列</span><span class="check"></span></div>
       <div class="item" data-name="批量尺寸统一"><span>批量尺寸统一</span><span class="check"></span></div>
+      <div class="item" data-name="边界框"><span>边界框</span><span class="check"></span></div>
     </div>
   </div>
   <div id="bodyArea">
@@ -500,6 +502,22 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
  <div class="sa-actions"><button id="saReset" class="sa-button sa-reset">重置</button><button id="saRun" class="sa-button sa-primary">生成排列</button></div>
  <div id="saStatus" class="sa-status">请选择图层并读取</div>
  </div>
+    <div id="boundsFrameView" style="display:none">
+      <div class="bf-head"><div><div class="bf-title">边界框</div><div class="bf-subtitle">独立对象 · 半透明填充 · 虚线边框</div></div><span class="bf-tag">TEST</span></div>
+      <div class="bf-card"><div class="bf-card-title">当前选择</div><div class="bf-source"><div class="bf-source-text"><div id="bfCount" class="bf-count">尚未读取</div><div id="bfNames" class="bf-names">支持多选图层、组以及混合选择</div></div><button id="bfRead" class="bf-button">读取对象</button></div></div>
+      <div class="bf-card"><div class="bf-card-title">外观设置</div><div class="bf-colorrow"><span id="bfSwatch" class="bf-swatch"></span><input type="color" id="bfColor" value="#20cf52" aria-label="选色"><input id="bfHex" type="text" value="#20CF52" aria-label="颜色十六进制值"></div>
+      <div class="bf-fields"><div class="bf-field"><label for="bfOpacity">填充透明度 (%)</label><input id="bfOpacity" type="number" min="0" max="100" value="20"></div>
+      <div class="bf-field"><label for="bfStroke">虚线粗细 (px)</label><input id="bfStroke" type="number" min="1" max="12" value="2"></div>
+      <div class="bf-field"><label for="bfDash">虚线长度 (px)</label><input id="bfDash" type="number" min="2" max="60" value="8"></div>
+      <div class="bf-field"><label for="bfMargin">边缘留白 (px)</label><input id="bfMargin" type="number" min="0" max="100" value="0"></div></div>
+      <div class="bf-note">描边使用所选颜色，描边不透明；填充与描边保存在同一新图层。</div></div>
+      <div class="bf-card"><div class="bf-card-title">图层处理</div>
+      <label class="bf-check"><input id="bfGroup" type="checkbox"><span>原对象与对应边界框自动成组</span></label>
+      <label class="bf-check"><input id="bfPrecise" type="checkbox" checked><span>精确读取可见像素范围</span></label>
+      <div class="bf-note">精确模式通过临时文档读取 Alpha，复杂 PSD 可能较慢；关闭后使用快速图层边界。嵌套选择自动去重，原组不拆散。</div></div>
+      <button id="bfGenerate" class="bf-button bf-primary">为选中对象生成边界框</button>
+      <div id="bfStatus" class="bf-status">请选择图层或组。</div>
+    </div>
     <div id="heading">菜单交互测试</div>
     <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
     <div class="spacer">滚动测试：可向下滑动直到末尾。</div>
