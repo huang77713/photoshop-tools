@@ -19,6 +19,11 @@
     // the content's visibility prevents them from covering the selector.
     // Visibility preserves DOM, input values, layout, and scroll position.
     bodyArea.style.visibility = open ? "hidden" : "visible";
+    if (open) {
+      // Use all available panel height; only scroll if the panel is truly too short.
+      menu.style.maxHeight = Math.max(120, window.innerHeight - 62) + "px";
+      menu.scrollTop = 0;
+    }
     menu.style.display = open ? "block" : "none";
   }
   picker.addEventListener("click", function () {
