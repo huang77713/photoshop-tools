@@ -130,11 +130,16 @@ module.exports = function initBoundsFrame(root) {
     if(!Number.isFinite(v))throw Error("参数不是有效数字。");
     return Math.max(min,Math.min(max,Math.round(v)));
   }
+  // Round dimensions normally, then advance odd values to the next even pixel.
+  function evenDimension(value) {
+    const rounded=Math.max(2,Math.round(value));
+    return rounded%2===0?rounded:rounded+1;
+  }
   function positiveDimension(id) {
     const value=Number($(id).value);
-    if(!Number.isFinite(value) || value<2 || value>100000 || !Number.isInteger(value))
-      throw Error("统一尺寸需要 2–100000 之间的整数像素。");
-    return value;
+    if(!Number.isFinite(value) || value<2 || value>100000)
+      throw Error("统一尺寸需要 2–100000 之间的有效像素数值。");
+    return evenDimension(value);
   }
   function options() {
     return {rgb:hexRgb(currentColor),opacity:number("bfOpacity",0,100),
@@ -176,10 +181,12 @@ module.exports = function initBoundsFrame(root) {
     return snapshot;
   }
   function targetFrameBounds(box,opt) {
-    if(opt.sizeMode!=="fixed")return box;
     const centerX=(box.l+box.r)/2,centerY=(box.t+box.b)/2;
-    const left=Math.round(centerX-opt.fixedWidth/2),top=Math.round(centerY-opt.fixedHeight/2);
-    return {l:left,t:top,r:left+opt.fixedWidth,b:top+opt.fixedHeight};
+    const margin=opt.sizeMode==="fixed"?0:opt.margin;
+    const width=opt.sizeMode==="fixed"?opt.fixedWidth:evenDimension(box.r-box.l+margin*2);
+    const height=opt.sizeMode==="fixed"?opt.fixedHeight:evenDimension(box.b-box.t+margin*2);
+    const left=Math.round(centerX-width/2),top=Math.round(centerY-height/2);
+    return {l:left,t:top,r:left+width,b:top+height};
   }
   function rgbDescriptor(rgb) {
     return {_obj:"RGBColor",red:rgb[0],grain:rgb[1],blue:rgb[2]};
@@ -187,8 +194,9 @@ module.exports = function initBoundsFrame(root) {
   function pixel(v) {return {_unit:"pixelsUnit",_value:v};}
   function point(v) {return {_unit:"pointsUnit",_value:v};}
   async function makeVectorFrame(doc,box,opt,name) {
-    const pad=opt.sizeMode==="fixed"?0:opt.margin;
-    const left=box.l-pad,top=box.t-pad,right=box.r+pad,bottom=box.b+pad;
+    // targetFrameBounds has already applied margins, integer coordinates,
+    // and even dimensions. Do not apply padding a second time.
+    const left=box.l,top=box.t,right=box.r,bottom=box.b;
     if(![left,top,right,bottom].every(Number.isFinite) || right-left<2 || bottom-top<2)
       throw Error("无法生成尺寸无效的矢量矩形。");
     // Shape paths may extend beyond the canvas, but no pixel raster is cropped.
