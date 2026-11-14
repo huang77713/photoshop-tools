@@ -508,8 +508,10 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
         <div class="bf-source"><div class="bf-source-text"><div id="bfCount" class="bf-count">尚未读取</div><div id="bfNames" class="bf-names">支持多选图层、组和混合选择</div></div><button id="bfRead" class="bf-button">读取对象</button></div>
       </div>
       <div class="bf-card"><div class="bf-card-title">矩形尺寸</div>
-        <div class="bf-radio-row"><label class="bf-check bf-mode"><input type="radio" name="bfSizeMode" value="auto" checked><span>跟随对象</span></label>
-        <label class="bf-check bf-mode"><input type="radio" name="bfSizeMode" value="fixed"><span>统一尺寸</span></label></div>
+        <div class="bf-mode-row" role="group" aria-label="矩形尺寸模式">
+          <button type="button" class="bf-choice bf-mode-button bf-selected" data-mode="auto" aria-pressed="true"><span class="bf-mark bf-radio-mark"></span><span class="bf-choice-text">跟随对象</span></button>
+          <button type="button" class="bf-choice bf-mode-button" data-mode="fixed" aria-pressed="false"><span class="bf-mark bf-radio-mark"></span><span class="bf-choice-text">统一尺寸</span></button>
+        </div>
         <div id="bfFixedDimensions" class="bf-fields" style="display:none">
           <div class="bf-field"><div class="bf-field-label">宽度 (px)</div><input id="bfWidth" type="number" min="2" max="100000" step="1" value="320"></div>
           <div class="bf-field"><div class="bf-field-label">高度 (px)</div><input id="bfHeight" type="number" min="2" max="100000" step="1" value="420"></div>
@@ -528,8 +530,8 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
         <div id="bfMarginNote" class="bf-note">边缘留白只在跟随对象尺寸时生效。</div>
       </div>
       <div class="bf-card"><div class="bf-card-title">图层处理</div>
-        <label class="bf-check"><input id="bfGroup" type="checkbox"><span>原对象与矩形框自动成组</span></label>
-        <label class="bf-check"><input id="bfPrecise" type="checkbox" checked><span>精确读取可见像素范围</span></label>
+        <button id="bfGroup" type="button" class="bf-choice bf-option" aria-pressed="false"><span class="bf-mark bf-check-mark"></span><span class="bf-choice-text">原对象与矩形框自动成组</span></button>
+        <button id="bfPrecise" type="button" class="bf-choice bf-option bf-selected" aria-pressed="true"><span class="bf-mark bf-check-mark"></span><span class="bf-choice-text">精确读取可见像素范围</span></button>
         <div class="bf-note">使用临时文档测量，复杂文件可能较慢；关闭后使用快速图层边界。</div>
       </div>
       <button id="bfGenerate" class="bf-button bf-primary">生成矢量边界框</button>
