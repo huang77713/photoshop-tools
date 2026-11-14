@@ -100,11 +100,19 @@ module.exports = function initBoundsFrame(root) {
     if(!Number.isFinite(v))throw Error("参数不是有效数字。");
     return Math.max(min,Math.min(max,Math.round(v)));
   }
+  function positiveDimension(id) {
+    const value=Number($(id).value);
+    if(!Number.isFinite(value) || value<2 || value>100000 || !Number.isInteger(value))
+      throw Error("统一尺寸需要 2–100000 之间的整数像素。");
+    return value;
+  }
   function options() {
     return {rgb:hexRgb($("bfColor").value),opacity:number("bfOpacity",0,100),
       stroke:number("bfStroke",1,12),dash:number("bfDash",2,60),
       margin:number("bfMargin",0,100),group:$("bfGroup").checked,
-      precise:$("bfPrecise").checked};
+      precise:$("bfPrecise").checked,
+      sizeMode:root.querySelector('input[name="bfSizeMode"]:checked').value,
+      fixedWidth:positiveDimension("bfWidth"),fixedHeight:positiveDimension("bfHeight")};
   }
   async function read(precise) {
     const doc=app.activeDocument;
@@ -137,8 +145,14 @@ module.exports = function initBoundsFrame(root) {
     say("已读取 "+items.length+" 个对象"+(fallback.length?"；"+fallback.length+" 个对象已回退到图层边界":"")+".",!!fallback.length);
     return snapshot;
   }
+  function targetFrameBounds(box,opt) {
+    if(opt.sizeMode!=="fixed")return box;
+    const centerX=(box.l+box.r)/2,centerY=(box.t+box.b)/2;
+    const left=Math.round(centerX-opt.fixedWidth/2),top=Math.round(centerY-opt.fixedHeight/2);
+    return {l:left,t:top,r:left+opt.fixedWidth,b:top+opt.fixedHeight};
+  }
   function raster(box, opt, doc) {
-    const pad=opt.margin,s=opt.stroke,d=opt.dash,[r,g,b]=opt.rgb;
+    const pad=opt.sizeMode==="fixed"?0:opt.margin,s=opt.stroke,d=opt.dash,[r,g,b]=opt.rgb;
     const left=Math.max(0,Math.floor(box.l-pad)),top=Math.max(0,Math.floor(box.t-pad));
     const right=Math.min(Number(doc.width),Math.ceil(box.r+pad));
     const bottom=Math.min(Number(doc.height),Math.ceil(box.b+pad));
@@ -196,7 +210,7 @@ module.exports = function initBoundsFrame(root) {
         try {
           for(const item of items) {
             const source=item.layer;
-            const result=raster(item.box,opt,doc);
+            const result=raster(targetFrameBounds(item.box,opt),opt,doc);
             const frame=await doc.createLayer({name:item.name+" - 边界框"});
             let pixels;
             try {
@@ -229,6 +243,15 @@ module.exports = function initBoundsFrame(root) {
       console.error("[Bounds Frame]",error);
     }finally{busy=false;$("bfGenerate").disabled=false;$("bfRead").disabled=false;}
   }
+  function syncSizeMode() {
+    const fixed=root.querySelector('input[name="bfSizeMode"]:checked').value==="fixed";
+    $("bfFixedDimensions").style.display=fixed?"flex":"none";
+    $("bfMargin").disabled=fixed;
+    $("bfMarginNote").textContent=fixed
+      ?"统一尺寸以每个对象的可见范围中心对齐；留白不再额外叠加。"
+      :"边缘留白只在跟随对象尺寸时生效。";
+  }
+  root.querySelectorAll('input[name="bfSizeMode"]').forEach(input=>input.addEventListener("change",syncSizeMode));
   $("bfColor").addEventListener("input",syncSwatch);
   $("bfHex").addEventListener("change",()=>{
     const v=$("bfHex").value.trim();
@@ -241,5 +264,5 @@ module.exports = function initBoundsFrame(root) {
   $("bfGenerate").addEventListener("click",create);
   $("bfPrecise").addEventListener("change",()=>{snapshot=null;say("测量模式已切换，生成前会重新读取。");});
   root.__boundsFrameActivate=()=>{snapshot=null;say("选择图层或组，点击「读取对象」或直接生成。");};
-  syncSwatch();
+  syncSwatch();syncSizeMode();
 };
