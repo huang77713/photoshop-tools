@@ -28,3 +28,4 @@
 #boundsFrameView .bf-note{font-size:11px;color:#a5a5a5;line-height:1.55;margin-top:8px}
 #boundsFrameView .bf-status{margin-top:11px;line-height:1.6;color:#add9b8;white-space:pre-wrap}
 #boundsFrameView .bf-error{color:#ffaaa6}
+\n#boundsFrameView .bf-mode{margin-bottom:10px;cursor:pointer}\n#boundsFrameView .bf-mode input{accent-color:#67c995}\n#boundsFrameView #bfFixedDimensions{margin-top:0;margin-bottom:3px}\n#boundsFrameView input:disabled{opacity:.45}\n
