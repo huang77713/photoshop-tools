@@ -12,6 +12,7 @@
   var loadedTextCutter = false;
   var loadedSmartArrange = false;
   var loadedVisibleResize = false;
+  var loadedBoundsFrame = false;
   var bodyArea = document.getElementById("bodyArea");
   function setMenuOpen(open) {
     // Some UXP input controls render above CSS z-index layers. Hiding only
@@ -32,6 +33,7 @@
       var showTextCutter = name === "文字批量切图";
       var showSmartArrange = name === "智能排列";
       var showVisibleResize = name === "批量尺寸统一";
+      var showBoundsFrame = name === "边界框";
       label.textContent = name;
       heading.textContent = name;
       message.textContent = "此工具将在后续测试阶段接入。";
@@ -45,13 +47,15 @@
       var textView = document.getElementById("textCutterView");
       var smartView = document.getElementById("smartArrangeView");
       var resizeView = document.getElementById("visibleResizeView");
+      var frameView = document.getElementById("boundsFrameView");
       nineView.style.display = showNine ? "block" : "none";
       spriteView.style.display = showSprite ? "block" : "none";
       removeView.style.display = showRemoveBg ? "block" : "none";
       textView.style.display = showTextCutter ? "block" : "none";
       smartView.style.display = showSmartArrange ? "block" : "none";
       resizeView.style.display = showVisibleResize ? "block" : "none";
-      var showFallback = !showNine && !showSprite && !showRemoveBg && !showTextCutter && !showSmartArrange && !showVisibleResize;
+      frameView.style.display = showBoundsFrame ? "block" : "none";
+      var showFallback = !showNine && !showSprite && !showRemoveBg && !showTextCutter && !showSmartArrange && !showVisibleResize && !showBoundsFrame;
       heading.style.display = showFallback ? "block" : "none";
       message.style.display = showFallback ? "block" : "none";
       document.querySelector(".spacer").style.display = showFallback ? "block" : "none";
@@ -137,6 +141,21 @@
         }
       } else if (showSmartArrange && loadedSmartArrange && typeof smartView.__smartArrangeActivate === "function") {
         smartView.__smartArrangeActivate();
+      }
+      if (showBoundsFrame && !loadedBoundsFrame) {
+        try {
+          require("./bounds-frame.js")(frameView);
+          loadedBoundsFrame = true;
+        } catch (error) {
+          console.error("[Photoshop Tools] Bounds Frame failed:", error);
+          frameView.style.display = "none";
+          heading.style.display = "block";
+          message.style.display = "block";
+          heading.textContent = "边界框工具启动失败";
+          message.textContent = String(error && error.message || error);
+        }
+      } else if (showBoundsFrame && loadedBoundsFrame && typeof frameView.__boundsFrameActivate === "function") {
+        frameView.__boundsFrameActivate();
       }
       if (showVisibleResize && !loadedVisibleResize) {
         try {
