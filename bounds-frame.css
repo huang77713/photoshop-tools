@@ -1,0 +1,30 @@
+/* Dedicated bounds-frame panel; no globals. */
+#boundsFrameView{width:100%;min-width:0;color:#ededed;font-size:12px}
+#boundsFrameView *{box-sizing:border-box}
+#boundsFrameView .bf-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+#boundsFrameView .bf-title{font-size:16px;font-weight:700}
+#boundsFrameView .bf-tag{font-size:10px;color:#96cbb1;background:#263b30;border:1px solid #416a51;padding:3px 7px;border-radius:4px}
+#boundsFrameView .bf-subtitle{margin-top:4px;color:#a5a5a5;font-size:11px}
+#boundsFrameView .bf-card{padding:13px;background:#303030;border:1px solid #454545;border-radius:8px;margin-bottom:12px}
+#boundsFrameView .bf-card-title{font-weight:700;margin-bottom:11px;color:#e7e7e7}
+#boundsFrameView .bf-source{display:flex;align-items:center;gap:10px}
+#boundsFrameView .bf-source-text{flex:1;min-width:0}
+#boundsFrameView .bf-count{font-weight:700;color:#d9f1dd}
+#boundsFrameView .bf-names{font-size:11px;line-height:1.5;color:#aaa;overflow-wrap:anywhere;margin-top:5px}
+#boundsFrameView .bf-button{min-height:34px;border:1px solid #5b5b5b;border-radius:6px;padding:8px 12px;background:#424242;color:#f5f5f5;cursor:pointer;flex:none}
+#boundsFrameView .bf-primary{width:100%;min-height:40px;background:#397f62;border-color:#50a17d;font-weight:700;font-size:13px}
+#boundsFrameView .bf-button:disabled{opacity:.5}
+#boundsFrameView .bf-colorrow{display:flex;align-items:center;gap:9px}
+#boundsFrameView .bf-swatch{width:32px;height:32px;flex:none;border-radius:6px;border:1px solid #888}
+#boundsFrameView #bfColor{width:36px;min-width:36px;height:34px;padding:1px;background:#222;border:1px solid #666;border-radius:5px}
+#boundsFrameView #bfHex{width:112px;max-width:100%;flex:1}
+#boundsFrameView .bf-fields{display:flex;flex-wrap:wrap;justify-content:space-between}
+#boundsFrameView .bf-field{width:48%;min-width:0;margin-top:12px}
+#boundsFrameView .bf-field label{display:block;margin-bottom:6px;color:#bdbdbd}
+#boundsFrameView input[type=number],#boundsFrameView input[type=text]{width:100%;min-width:0;min-height:34px;padding:7px 9px;background:#222;border:1px solid #585858;border-radius:5px;color:#f4f4f4;font-size:13px}
+#boundsFrameView .bf-check{display:flex;align-items:flex-start;gap:9px;color:#e0e0e0;line-height:1.5;margin:5px 0 13px}
+#boundsFrameView .bf-check:last-child{margin-bottom:0}
+#boundsFrameView .bf-check input{margin:2px 0 0;flex:none}
+#boundsFrameView .bf-note{font-size:11px;color:#a5a5a5;line-height:1.55;margin-top:8px}
+#boundsFrameView .bf-status{margin-top:11px;line-height:1.6;color:#add9b8;white-space:pre-wrap}
+#boundsFrameView .bf-error{color:#ffaaa6}
