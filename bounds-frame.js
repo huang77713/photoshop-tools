@@ -85,10 +85,39 @@ module.exports = function initBoundsFrame(root) {
     } finally {if(image)image.dispose();}
   }
   function say(message,error) { $("bfStatus").textContent=message; $("bfStatus").className="bf-status"+(error?" bf-error":""); }
-  function syncSwatch() {
-    const color=$("bfColor").value;
-    $("bfSwatch").style.background=color;
-    $("bfHex").value=color.toUpperCase();
+  let currentColor="#20CF52";
+  function setColor(value) {
+    const hex=String(value||"").trim().toUpperCase();
+    if(!/^#[0-9A-F]{6}$/.test(hex))throw Error("请输入 #RRGGBB 格式的颜色。");
+    currentColor=hex;
+    $("bfSwatch").style.backgroundColor=hex;
+    $("bfHex").value=hex;
+  }
+  async function openPicker() {
+    if(busy)return;
+    busy=true;$("bfPick").disabled=true;
+    try {
+      // UXP does not implement HTML input[type=color]; use Photoshop native picker.
+      const result=await core.executeAsModal(async()=>{
+        const output=await ps.action.batchPlay([
+          {_obj:"showColorPicker",_target:[{_ref:"application"}]}
+        ],{synchronousExecution:false});
+        return output && output[0];
+      },{commandName:"选择边界框颜色"});
+      const rgb=result && (result.RGBFloatColor||result.RGBColor);
+      if(rgb) {
+        const components=[rgb.red,rgb.grain!==undefined?rgb.grain:rgb.green,rgb.blue];
+        if(components.every(v=>Number.isFinite(Number(v)))) {
+          const normalized=components.map(Number);
+          const multiplier=Math.max(...normalized)<=1?255:1;
+          const hex=normalized.map(v=>Math.max(0,Math.min(255,Math.round(v*multiplier))).toString(16).padStart(2,"0")).join("");
+          setColor("#"+hex);
+        }
+      } else if(result && /error/i.test(result._obj||"")) {
+        throw Error(result.message||"无法打开 Photoshop 选色器");
+      }
+    }catch(error){say("颜色选择失败："+(error.message||error),true);}
+    finally{busy=false;$("bfPick").disabled=false;}
   }
   function hexRgb(hex) {
     const text=String(hex||"").trim();
@@ -107,7 +136,7 @@ module.exports = function initBoundsFrame(root) {
     return value;
   }
   function options() {
-    return {rgb:hexRgb($("bfColor").value),opacity:number("bfOpacity",0,100),
+    return {rgb:hexRgb(currentColor),opacity:number("bfOpacity",0,100),
       stroke:number("bfStroke",1,12),dash:number("bfDash",2,60),
       margin:number("bfMargin",0,100),group:$("bfGroup").checked,
       precise:$("bfPrecise").checked,
@@ -151,39 +180,54 @@ module.exports = function initBoundsFrame(root) {
     const left=Math.round(centerX-opt.fixedWidth/2),top=Math.round(centerY-opt.fixedHeight/2);
     return {l:left,t:top,r:left+opt.fixedWidth,b:top+opt.fixedHeight};
   }
-  function raster(box, opt, doc) {
-    const pad=opt.sizeMode==="fixed"?0:opt.margin,s=opt.stroke,d=opt.dash,[r,g,b]=opt.rgb;
-    const left=Math.max(0,Math.floor(box.l-pad)),top=Math.max(0,Math.floor(box.t-pad));
-    const right=Math.min(Number(doc.width),Math.ceil(box.r+pad));
-    const bottom=Math.min(Number(doc.height),Math.ceil(box.b+pad));
-    const w=right-left,h=bottom-top;
-    if(opt.sizeMode==="fixed" && (w!==opt.fixedWidth || h!==opt.fixedHeight))
-      throw Error("统一尺寸框超出画布边缘，无法保持完整宽高；请移动对象或调小尺寸。");
-    if(w<2 || h<2)throw Error("矩形范围过小或完全位于画布外。");
-    if(w*h>18000000)throw Error("框尺寸过大（超过 1800 万像素），请缩小对象后再试。");
-    const data=new Uint8Array(w*h*4),fill=Math.round(opt.opacity*255/100);
-    // Border is anchored to the object bounds rather than the canvas crop.
-    const L=Math.max(0,Math.round(box.l-pad-left)),T=Math.max(0,Math.round(box.t-pad-top));
-    const R=Math.min(w-1,Math.round(box.r+pad-left)-1),B=Math.min(h-1,Math.round(box.b+pad-top)-1);
-    for(let y=0;y<h;y++)for(let x=0;x<w;x++) {
-      if(x<L||x>R||y<T||y>B)continue;
-      const edge=(x<L+s || x>R-s || y<T+s || y>B-s);
-      let ink=false;
-      if(edge) {
-        // Same dash cadence on all four edges with a continuous perimeter.
-        const dx=x-L,dy=y-T,perimeter=2*((R-L)+(B-T));
-        let p;
-        if(dy<s)p=dx;
-        else if(dx>R-L-s)p=(R-L)+dy;
-        else if(dy>B-T-s)p=(R-L)+(B-T)+(R-x);
-        else p=2*(R-L)+(B-T)+(B-y);
-        ink=perimeter<=0 || p%(d*2)<d;
-      }
-      const at=(y*w+x)*4;
-      data[at]=r;data[at+1]=g;data[at+2]=b;
-      data[at+3]=ink?255:fill;
-    }
-    return {left,top,w,h,data};
+  function rgbDescriptor(rgb) {
+    return {_obj:"RGBColor",red:rgb[0],grain:rgb[1],blue:rgb[2]};
+  }
+  function pixel(v) {return {_unit:"pixelsUnit",_value:v};}
+  function point(v) {return {_unit:"pointsUnit",_value:v};}
+  async function makeVectorFrame(doc,box,opt,name) {
+    const pad=opt.sizeMode==="fixed"?0:opt.margin;
+    const left=box.l-pad,top=box.t-pad,right=box.r+pad,bottom=box.b+pad;
+    if(![left,top,right,bottom].every(Number.isFinite) || right-left<2 || bottom-top<2)
+      throw Error("无法生成尺寸无效的矢量矩形。");
+    // Shape paths may extend beyond the canvas, but no pixel raster is cropped.
+    // Native vector fill, stroke width, color and dash array remain editable.
+    const dash=opt.dash,stroke=opt.stroke;
+    const descriptor={
+      _obj:"make",_target:[{_ref:"contentLayer"}],
+      using:{
+        _obj:"contentLayer",
+        name:name,
+        type:{_obj:"solidColorLayer",color:rgbDescriptor(opt.rgb)},
+        shape:{_obj:"rectangle",top:pixel(top),left:pixel(left),bottom:pixel(bottom),right:pixel(right)},
+        strokeStyle:{
+          _obj:"strokeStyle",strokeStyleVersion:2,
+          strokeEnabled:true,fillEnabled:true,
+          strokeStyleLineWidth:pixel(stroke),
+          strokeStyleLineDashOffset:point(0),
+          strokeStyleMiterLimit:100,
+          strokeStyleLineCapType:{_enum:"strokeStyleLineCapType",_value:"strokeStyleButtCap"},
+          strokeStyleLineJoinType:{_enum:"strokeStyleLineJoinType",_value:"strokeStyleMiterJoin"},
+          strokeStyleLineAlignment:{_enum:"strokeStyleLineAlignment",_value:"strokeStyleAlignInside"},
+          strokeStyleScaleLock:false,strokeStyleStrokeAdjust:false,
+          strokeStyleLineDashSet:[point(dash),point(dash)],
+          strokeStyleBlendMode:{_enum:"blendMode",_value:"normal"},
+          strokeStyleOpacity:{_unit:"percentUnit",_value:100},
+          strokeStyleContent:{_obj:"solidColorLayer",color:rgbDescriptor(opt.rgb)},
+          strokeStyleResolution:72
+        }
+      },
+      _options:{dialogOptions:"dontDisplay"}
+    };
+    const response=await ps.action.batchPlay([descriptor],{synchronousExecution:false});
+    if(!response || !response[0] || /error/i.test(response[0]._obj||""))
+      throw Error("Photoshop 创建矢量形状失败："+(response&&response[0]&&response[0].message||"未知错误"));
+    const frame=Array.from(doc.activeLayers||[])[0];
+    if(!frame || frame.id===undefined || frame.kind!==ps.constants.LayerKind.SOLIDFILL)
+      throw Error("未能确认新建的形状图层，请检查 Photoshop 日志。");
+    frame.name=name;
+    frame.fillOpacity=opt.opacity;
+    return frame;
   }
   async function restoreSelection(doc,ids) {
     if(!ids.length)return;
@@ -212,17 +256,7 @@ module.exports = function initBoundsFrame(root) {
         try {
           for(const item of items) {
             const source=item.layer;
-            const result=raster(targetFrameBounds(item.box,opt),opt,doc);
-            const frame=await doc.createLayer({name:item.name+" - 边界框"});
-            let pixels;
-            try {
-              pixels=await imaging.createImageDataFromBuffer(result.data,{
-                width:result.w,height:result.h,components:4,chunky:true,
-                colorSpace:"RGB",colorProfile:"sRGB IEC61966-2.1"
-              });
-              await imaging.putPixels({documentID:doc.id,layerID:frame.id,imageData:pixels,
-                targetBounds:{left:result.left,top:result.top},replace:true});
-            }finally{if(pixels)pixels.dispose();}
+            const frame=await makeVectorFrame(doc,targetFrameBounds(item.box,opt),opt,item.name+" - 边界框");
             // Move below the entire original group, not inside it.
             frame.move(source,ps.constants.ElementPlacement.PLACEAFTER);
             if(opt.group) {
@@ -254,11 +288,10 @@ module.exports = function initBoundsFrame(root) {
       :"边缘留白只在跟随对象尺寸时生效。";
   }
   root.querySelectorAll('input[name="bfSizeMode"]').forEach(input=>input.addEventListener("change",syncSizeMode));
-  $("bfColor").addEventListener("input",syncSwatch);
+  $("bfPick").addEventListener("click",openPicker);
   $("bfHex").addEventListener("change",()=>{
-    const v=$("bfHex").value.trim();
-    if(/^#[0-9a-f]{6}$/i.test(v)){$("bfColor").value=v;syncSwatch();}
-    else say("色值格式应为 #RRGGBB。",true);
+    try {setColor($("bfHex").value);}
+    catch(error){say(error.message,true);setColor(currentColor);}
   });
   $("bfRead").addEventListener("click",async()=>{if(busy)return;busy=true;$("bfRead").disabled=true;
     try{await read($("bfPrecise").checked);}catch(e){say(e.message||String(e),true);}
@@ -266,5 +299,5 @@ module.exports = function initBoundsFrame(root) {
   $("bfGenerate").addEventListener("click",create);
   $("bfPrecise").addEventListener("change",()=>{snapshot=null;say("测量模式已切换，生成前会重新读取。");});
   root.__boundsFrameActivate=()=>{snapshot=null;say("选择图层或组，点击「读取对象」或直接生成。");};
-  syncSwatch();syncSizeMode();
+  setColor(currentColor);syncSizeMode();
 };
