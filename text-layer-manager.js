@@ -193,7 +193,7 @@ module.exports = function initTextLayerManager(root) {
     status("已核对：选中 "+targets.length+" 个文字图层","ok");
   }));
   $("tlmRefresh").addEventListener("click",()=>{
-    clearPlan();
+
     try {
       const all=Array.from(doc().activeLayers||[]);
       const texts=all.filter(textLayer);
@@ -241,7 +241,7 @@ module.exports = function initTextLayerManager(root) {
     status("已将 "+jobs.length+" 个文字图层统一修改为："+value,"ok");
   }));
   root.__textLayerManagerActivate=()=>{
-    clearPlan();
+
     try{const selected=Array.from(doc().activeLayers||[]);
       status("当前选中 "+selected.length+" 个图层，其中 "+selected.filter(textLayer).length+" 个文字图层");
     }catch(e){status("请先打开 Photoshop 文档");}
