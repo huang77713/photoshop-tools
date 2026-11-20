@@ -6,8 +6,10 @@ module.exports = function initTextLayerManager(root) {
   const $ = id => root.querySelector("#" + id);
   let scopeValue = "selection";
   let fitMode = "keep";
+  let wrapMode = "manual";
   const scopeDropdown = $("tlmScopeDropdown");
   const fitDropdown = $("tlmFitMode");
+  const wrapDropdown = $("tlmWrapMode");
   scopeDropdown.addEventListener("change", function () {
     const values=["selection","all","visible"];
     const index=Number(scopeDropdown.selectedIndex);
@@ -16,6 +18,25 @@ module.exports = function initTextLayerManager(root) {
   fitDropdown.addEventListener("change", function () {
     fitMode=Number(fitDropdown.selectedIndex)===1 ? "shrink" : "keep";
   });
+  function normalizedText() {
+    // Photoshop textKey uses CR for hard line breaks.
+    const value=String($("tlmReplacement").value || "").replace(/\r\n|\n|\r/g,"\r");
+    return wrapMode==="single" ? value.replace(/\r/g," ") : value;
+  }
+  function updateLivePreview() {
+    const value=normalizedText();
+    const lines=value.split("\r");
+    const preview=$("tlmLivePreview");
+    preview.textContent=value ? lines.join("\n") : "输入文字后显示预览";
+    preview.classList.toggle("tlm-empty-preview",!value);
+    $("tlmLineCount").textContent=(value ? lines.length : 0)+" 行";
+  }
+  wrapDropdown.addEventListener("change",function(){
+    wrapMode=Number(wrapDropdown.selectedIndex)===1?"single":"manual";
+    updateLivePreview();
+  });
+  $("tlmReplacement").addEventListener("input",updateLivePreview);
+  updateLivePreview();
   let busy = false;
   const clone = x => JSON.parse(JSON.stringify(x));
 
@@ -528,7 +549,7 @@ module.exports = function initTextLayerManager(root) {
     status("已处理 "+result.count+" 个文字图层"+note,"ok");
   }
   $("tlmApply").addEventListener("click",()=>guarded(async()=>{
-    const value=$("tlmReplacement").value;
+    const value=normalizedText();
     status("正在检查选中文字图层…");
     const jobs=await prepareJobs("all","",value);
     renderResult(await runJobs(jobs));
