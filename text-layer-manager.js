@@ -116,6 +116,149 @@ module.exports = function initTextLayerManager(root) {
     return {raw,text};
   }
   function equal(a,b) { return JSON.stringify(a)===JSON.stringify(b); }
+  // Numeric-tolerant descriptor comparison, including Photoshop text transforms.
+  function almostEqual(a,b,tolerance) {
+    if (typeof a === "number" && typeof b === "number")
+      return Math.abs(a-b) <= tolerance;
+    if (a===b) return true;
+    if (!a || !b || typeof a !== typeof b) return false;
+    if (typeof a!=="object") return false;
+    const ak=Object.keys(a).sort(),bk=Object.keys(b).sort();
+    return ak.length===bk.length && ak.every((key,i)=>
+      key===bk[i] && almostEqual(a[key],b[key],tolerance));
+  }
+  function px(n) { return Number(n && typeof n === "object" && "value" in n ? n.value : n); }
+  function warningsFor(job,actual) {
+    const warnings=[];
+    if ((job.after.textShape||[]).some(x=>x.textType && (x.textType._value==="box" || x.textType==="box")))
+      warnings.push(job.name+"：段落文字框请确认是否溢出");
+    const b=actual.raw.boundsNoEffects || actual.raw.bounds;
+    if(b) {
+      const width=px(doc().width), height=px(doc().height);
+      if([px(b.left),px(b.top),px(b.right),px(b.bottom),width,height].every(Number.isFinite) &&
+        (px(b.left)<-0.5 || px(b.top)<-0.5 || px(b.right)>width+0.5 || px(b.bottom)>height+0.5))
+        warnings.push(job.name+"：文字可能超出画布");
+    }
+    return warnings;
+  }
+  function checkEditable(layer) {
+    if (layer.locked === true || layer.allLocked === true)
+      throw Error(layer.name+"：图层已锁定，请先解锁");
+  }
+  function verifyDescriptor(job,actual) {
+    if(actual.text.textKey !== job.newText)
+      throw Error(job.name+"：写入内容不一致");
+    for (const [key,kind] of [["textStyleRange","textStyle"],["paragraphStyleRange","paragraphStyle"]]) {
+      const expected=job.after[key],got=actual.text[key];
+      if(!Array.isArray(expected)||!Array.isArray(got)||expected.length!==got.length)
+        throw Error(job.name+"："+key+" 样式区间数量变化");
+      for(let i=0;i<expected.length;i++) {
+        if(expected[i].from!==got[i].from||expected[i].to!==got[i].to ||
+          !almostEqual(expected[i][kind],got[i][kind],0.02))
+          throw Error(job.name+"："+key+" 样式验证失败");
+      }
+    }
+    if(!almostEqual(job.before.textShape,actual.text.textShape,0.02))
+      throw Error(job.name+"：文字框形状或变换发生变化");
+    if(!almostEqual(job.raw.layerEffects,actual.raw.layerEffects,0.02))
+      throw Error(job.name+"：图层效果发生变化");
+    if(actual.raw.name!==job.raw.name)
+      throw Error(job.name+"：图层名称意外变化");
+  }
+  let previewPlan=null;
+  function invalidatePreview() {
+    previewPlan=null;
+    $("tlmPreview").textContent="尚未检查";
+    $("tlmRunFind").disabled=true;
+  }
+  function sourceEdits(old,find,replacement) {
+    const finds=String(find).split(","), inserts=String(replacement).split(",");
+    if(!finds.some(Boolean))throw Error("查找内容不能为空");
+    if(finds.length!==inserts.length)throw Error("查找与替换组数不一致");
+    // Preserve the source implementation's sequential comma-pair behavior.
+    const units=old.split("").map((ch,origin)=>({ch,origin}));
+    for(let i=0;i<finds.length;i++) {
+      const needle=finds[i],insert=inserts[i];
+      if(!needle)continue;
+      const value=units.map(x=>x.ch).join("");
+      const out=[];let cursor=0,at;
+      while((at=value.indexOf(needle,cursor))!==-1) {
+        out.push(...units.slice(cursor,at));
+        out.push(...insert.split("").map(ch=>({ch,origin:null})));
+        cursor=at+needle.length;
+        if(out.length>30000)throw Error("文案超过30000字符");
+      }
+      out.push(...units.slice(cursor));
+      if(out.length>30000)throw Error("文案超过30000字符");
+      units.splice(0,units.length,...out);
+    }
+    const edits=[];let cursor=0,insert="";
+    for(const item of units) {
+      if(item.origin===null){insert+=item.ch;continue;}
+      if(insert||item.origin>cursor)edits.push({start:cursor,end:item.origin,insert});
+      insert="";cursor=item.origin+1;
+    }
+    if(insert||cursor<old.length)edits.push({start:cursor,end:old.length,insert});
+    return edits;
+  }
+  async function prepareJobs(mode,find,replacement) {
+    const d=doc(), layers=selectedTexts();
+    if(!layers.length)throw Error("请先选中文字图层");
+    if(mode==="all"&&!replacement.length)throw Error("请输入新的文字内容");
+    if(mode==="find")sourceEdits("",find,replacement);
+    const jobs=[];
+    for(const layer of layers) {
+      checkEditable(layer);
+      const {raw,text}=await readDescriptor(layer.id);
+      const edits=mode==="all"
+        ?[{start:0,end:text.textKey.length,insert:replacement}]
+        :sourceEdits(text.textKey,find,replacement);
+      const change=planText(text,edits);
+      if(change) jobs.push({id:layer.id,name:layer.name,raw,...change});
+    }
+    return {mode,docId:d.id,selectionIds:layers.map(x=>x.id),jobs,find,replacement,skipped:layers.length-jobs.length};
+  }
+  async function runJobs(prepared) {
+    if(doc().id!==prepared.docId ||
+      !sameIds(prepared.selectionIds,selectedTexts().map(l=>l.id)))
+      throw Error("文档或选中图层发生变化，请重新检查");
+    if(!prepared.jobs.length)return {count:0,warnings:[]};
+    const jobs=prepared.jobs;
+    const warnings=[];
+    // History suspension protects against partial edits: any failed check or
+    // cancellation rolls back the entire batch instead of leaving half-edited PSD.
+    await core.executeAsModal(async context=>{
+      const hc=context.hostControl;
+      const suspension=await hc.suspendHistory({documentID:prepared.docId,name:"批量文字管理"});
+      let commit=false;
+      try {
+        for(const job of jobs) {
+          if(context.isCancelled)throw Error("用户取消操作");
+          const current=await readDescriptor(job.id);
+          if(!almostEqual(current.text,job.before,0.001) ||
+             !almostEqual(current.raw.layerEffects,job.raw.layerEffects,0.02))
+            throw Error(job.name+"：内容或样式已发生变化，请重新检查");
+        }
+        for(let i=0;i<jobs.length;i++) {
+          if(context.isCancelled)throw Error("用户取消操作");
+          const job=jobs[i];
+          await batch({_obj:"set",_target:[{_ref:"textLayer",_id:job.id}],
+            to:{...clone(job.after),_obj:"textLayer"}});
+          const actual=await readDescriptor(job.id);
+          verifyDescriptor(job,actual);
+          warnings.push(...warningsFor(job,actual));
+          if(context.reportProgress)
+            context.reportProgress({value:(i+1)/jobs.length,commandName:"批量文字管理"});
+        }
+        commit=true;
+      }finally {
+        // On error or cancellation, explicitly rollback all written layers.
+        await hc.resumeHistory(suspension,commit);
+      }
+    },{commandName:"批量文字管理"});
+    return {count:jobs.length,warnings};
+  }
+
 
   /* Same edit and style range mapping approach as the supplied find-replace-text.js */
   function applyEdits(old,edits) {
@@ -200,45 +343,47 @@ module.exports = function initTextLayerManager(root) {
       status("当前选中 "+all.length+" 个图层，其中 "+texts.length+" 个文字图层","ok");
     }catch(e){status(e.message,"error");}
   });
+  function renderResult(result) {
+    const note=result.warnings.length
+      ? "；提示："+result.warnings.slice(0,4).join("；")
+      : "；文字及样式已校验";
+    status("已处理 "+result.count+" 个文字图层"+note,"ok");
+  }
   $("tlmApply").addEventListener("click",()=>guarded(async()=>{
-    const d=doc();
     const value=$("tlmReplacement").value;
-    if(!value.length)throw Error("请输入新的文字内容");
-    if(value.length>30000)throw Error("文字内容不能超过30000字符");
-    const texts=selectedTexts();
-    if(!texts.length)throw Error("请先选中文字图层，或使用上方的批量选择");
-    const selectedIds=texts.map(l=>l.id);
-    const jobs=[];
-    status("正在读取 "+texts.length+" 个文字图层…");
-    for(const layer of texts){
-      const {text}=await readDescriptor(layer.id);
-      // Replace all existing content, while remapping text and paragraph
-      // style ranges to prevent destructive loss of the original formatting.
-      const planned=planText(text,[{start:0,end:text.textKey.length,insert:value}]);
-      if(planned)jobs.push({id:layer.id,name:layer.name,...planned});
-    }
-    if(!jobs.length){status("所有选中文字图层已经是该内容，无需修改","ok");return;}
-    if(doc().id!==d.id||!sameIds(selectedIds,selectedTexts().map(l=>l.id)))
-      throw Error("文档或选择发生变化，请重新操作");
-    status("正在修改 "+jobs.length+" 个文字图层…");
-    await core.executeAsModal(async()=>{
-      // Verify before modifying inside the document transaction.
-      for(const job of jobs){
-        const current=await readDescriptor(job.id);
-        if(!equal(current.text,job.before))
-          throw Error(job.name+"：文字内容或样式已变化");
-      }
-      for(const job of jobs){
-        await batch({_obj:"set",_target:[{_ref:"textLayer",_id:job.id}],
-          to:{...clone(job.after),_obj:"textLayer"}});
-      }
-    },{commandName:"批量统一修改文字内容"});
-    for(const job of jobs){
-      const actual=await readDescriptor(job.id);
-      if(actual.text.textKey!==value)
-        throw Error(job.name+"：写入后的文字内容核对失败");
-    }
-    status("已将 "+jobs.length+" 个文字图层统一修改为："+value,"ok");
+    status("正在检查选中文字图层…");
+    const jobs=await prepareJobs("all","",value);
+    renderResult(await runJobs(jobs));
+  }));
+  $("tlmAdvancedToggle").addEventListener("click",function(){
+    const panel=$("tlmAdvancedPanel");
+    const open=panel.style.display==="none";
+    panel.style.display=open?"block":"none";
+    this.setAttribute("aria-expanded",open?"true":"false");
+  });
+  $("tlmFind").addEventListener("input",invalidatePreview);
+  $("tlmFindReplacement").addEventListener("input",invalidatePreview);
+  $("tlmCheck").addEventListener("click",()=>guarded(async()=>{
+    invalidatePreview();
+    const find=$("tlmFind").value,replacement=$("tlmFindReplacement").value;
+    const prepared=await prepareJobs("find",find,replacement);
+    previewPlan=prepared;
+    $("tlmPreview").textContent=prepared.jobs.length
+      ?prepared.jobs.slice(0,30).map(j=>j.name+"："+
+        j.old.slice(0,45)+" → "+j.newText.slice(0,45)).join("\n")
+      :"没有匹配的文字";
+    $("tlmRunFind").disabled=!prepared.jobs.length;
+    status("检查完成：将修改 "+prepared.jobs.length+" 个文字图层，跳过 "+
+      prepared.skipped+" 个","ok");
+  }));
+  $("tlmRunFind").addEventListener("click",()=>guarded(async()=>{
+    if(!previewPlan)throw Error("请先检查预览");
+    if(previewPlan.find!==$("tlmFind").value ||
+      previewPlan.replacement!==$("tlmFindReplacement").value)
+      throw Error("输入已变化，请重新检查");
+    const prepared=previewPlan;
+    invalidatePreview();
+    renderResult(await runJobs(prepared));
   }));
   root.__textLayerManagerActivate=()=>{
 
