@@ -5,8 +5,7 @@
 #textLayerManagerView .tlm-section-title{display:flex;align-items:center;justify-content:center;text-align:center;min-height:38px;padding:7px 10px;margin:0 0 16px;background:#424242;color:#fff;border:0;border-radius:8px;font-size:15px;font-weight:400;line-height:1.45}
 #textLayerManagerView .tlm-filter-row{display:flex;align-items:center;width:100%;min-width:0}
 #textLayerManagerView .tlm-filter-row select{height:44px;min-height:44px;width:0;min-width:0;padding:6px 8px;flex:1 1 0;border:1px solid #666;border-radius:6px;background:#2c2c2c;color:#f1f1f1;font-size:14px}
-#textLayerManagerView .tlm-filter-row #tlmLayerType{flex:1.45 1 0}
-#textLayerManagerView .tlm-all-label{flex:none;padding:0 9px;font-size:13px;color:#f0f0f0;white-space:nowrap}
+#textLayerManagerView .tlm-filter-row #tlmLayerType{flex:1.5 1 0;margin-left:9px}
 #textLayerManagerView .tlm-run{flex:0 0 43px;width:43px;height:44px;min-height:44px;margin-left:9px;border:1px solid #656565;border-radius:6px;background:#303030;color:#bfbfbf;font-size:20px;line-height:1;cursor:pointer}
 #textLayerManagerView .tlm-note{font-size:13px;color:#ececec;line-height:1.55;margin:0 0 12px}
 #textLayerManagerView .tlm-checks{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;width:100%;margin:0 0 14px}
@@ -22,7 +21,6 @@
 #textLayerManagerView .tlm-status.ok{color:#a3d4b0}
 #textLayerManagerView .tlm-status.error{color:#f0a4a4}
 @media(max-width:360px){
- #textLayerManagerView .tlm-filter-row .tlm-all-label{padding:0 5px;font-size:12px}
  #textLayerManagerView .tlm-filter-row select{font-size:12px;padding:5px}
  #textLayerManagerView .tlm-run{flex-basis:36px;width:36px;margin-left:6px}
  #textLayerManagerView .tlm-check{font-size:11px}
