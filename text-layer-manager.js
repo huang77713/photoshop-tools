@@ -1,4 +1,4 @@
-/* Text Layer Manager: selection and style-preserving find/replace */
+/* Text Layer Manager: selection and unified text replacement */
 module.exports = function initTextLayerManager(root) {
   "use strict";
   const ps = require("photoshop");
@@ -25,7 +25,6 @@ module.exports = function initTextLayerManager(root) {
       closePicker();
     });
   });
-  let plan = null;
   let busy = false;
   const clone = x => JSON.parse(JSON.stringify(x));
 
@@ -119,36 +118,6 @@ module.exports = function initTextLayerManager(root) {
   function equal(a,b) { return JSON.stringify(a)===JSON.stringify(b); }
 
   /* Same edit and style range mapping approach as the supplied find-replace-text.js */
-  function editsForFind(old,find,replacement) {
-    const finds=String(find||"").split(",");
-    const replacements=String(replacement??"").split(",");
-    if (!finds.some(Boolean)) throw Error("查找内容不能为空");
-    if (finds.length!==replacements.length) throw Error("查找与替换组数必须一致（逗号分隔）");
-    const units=String(old).split("").map((ch,origin)=>({ch,origin}));
-    for (let i=0;i<finds.length;i++) {
-      const needle=finds[i], insert=replacements[i];
-      if (!needle) continue;
-      const value=units.map(x=>x.ch).join("");
-      const out=[]; let cursor=0,at;
-      while ((at=value.indexOf(needle,cursor))!==-1) {
-        out.push(...units.slice(cursor,at));
-        out.push(...insert.split("").map(ch=>({ch,origin:null})));
-        cursor=at+needle.length;
-        if (out.length>30000) throw Error("文案超过30000字符");
-      }
-      out.push(...units.slice(cursor));
-      if(out.length>30000) throw Error("文案超过30000字符");
-      units.splice(0,units.length,...out);
-    }
-    const edits=[];let cursor=0,insert="";
-    for (const unit of units) {
-      if(unit.origin===null){insert+=unit.ch;continue;}
-      if(insert||unit.origin>cursor) edits.push({start:cursor,end:unit.origin,insert});
-      insert="";cursor=unit.origin+1;
-    }
-    if(insert||cursor<old.length) edits.push({start:cursor,end:old.length,insert});
-    return edits;
-  }
   function applyEdits(old,edits) {
     let result="",cursor=0;
     for(const e of edits) {
@@ -208,11 +177,6 @@ module.exports = function initTextLayerManager(root) {
       after[name]=mapRanges(old,edits,after[name],kind,newText.length);
     return {before:descriptor,after,old,newText};
   }
-  function clearPlan() {
-    plan=null;
-    $("tlmPreview").textContent="尚未检查";
-    $("tlmApply").disabled=true;
-  }
   async function guarded(task) {
     if(busy)return;
     busy=true;
@@ -221,7 +185,6 @@ module.exports = function initTextLayerManager(root) {
     finally {busy=false;}
   }
   $("tlmSelect").addEventListener("click",()=>guarded(async()=>{
-    clearPlan();
     const scope=scopeValue;
     closePicker();
     const targets=unique(layersInScope(scope).filter(textLayer));
@@ -237,57 +200,46 @@ module.exports = function initTextLayerManager(root) {
       status("当前选中 "+all.length+" 个图层，其中 "+texts.length+" 个文字图层","ok");
     }catch(e){status(e.message,"error");}
   });
-  $("tlmCheck").addEventListener("click",()=>guarded(async()=>{
-    clearPlan();
-    const d=doc(), texts=selectedTexts();
-    if(!texts.length)throw Error("请先在 Photoshop 中选中文字图层，或点击上方“选中文字图层”");
-    const find=$("tlmFind").value, replacement=$("tlmReplacement").value;
-    editsForFind("",find,replacement);
-    const jobs=[];
-    for(const layer of texts){
-      const {raw,text}=await readDescriptor(layer.id);
-      const planned=planText(text,editsForFind(text.textKey,find,replacement));
-      if(planned)jobs.push({id:layer.id,name:layer.name,raw,...planned});
-    }
-    plan={docId:d.id,selectionIds:texts.map(l=>l.id),jobs,find,replacement};
-    $("tlmPreview").textContent=jobs.length
-      ?jobs.slice(0,24).map(j=>j.name+"\n"+j.old.slice(0,70)+"  →  "+j.newText.slice(0,70)).join("\n\n")
-      :"当前文字图层无匹配内容";
-    $("tlmApply").disabled=!jobs.length;
-    status("检查完成：选中 "+texts.length+" 个文字图层，将修改 "+jobs.length+" 个","ok");
-  }));
   $("tlmApply").addEventListener("click",()=>guarded(async()=>{
-    if(!plan||!plan.jobs.length)throw Error("请先点击“检查预览”");
     const d=doc();
-    if(d.id!==plan.docId)throw Error("文档已切换，请重新检查");
-    if($("tlmFind").value!==plan.find||$("tlmReplacement").value!==plan.replacement)
-      throw Error("输入内容已变化，请重新检查");
-    if(!sameIds(plan.selectionIds,selectedTexts().map(l=>l.id)))
-      throw Error("选择的文字图层已变化，请重新检查");
-    // Re-read every descriptor before making changes.
-    for(const job of plan.jobs){
-      const current=await readDescriptor(job.id);
-      if(!equal(current.text,job.before))throw Error(job.name+" 内容或样式已变化，请重新检查");
+    const value=$("tlmReplacement").value;
+    if(!value.length)throw Error("请输入新的文字内容");
+    if(value.length>30000)throw Error("文字内容不能超过30000字符");
+    const texts=selectedTexts();
+    if(!texts.length)throw Error("请先选中文字图层，或使用上方的批量选择");
+    const selectedIds=texts.map(l=>l.id);
+    const jobs=[];
+    status("正在读取 "+texts.length+" 个文字图层…");
+    for(const layer of texts){
+      const {text}=await readDescriptor(layer.id);
+      // Replace all existing content, while remapping text and paragraph
+      // style ranges to prevent destructive loss of the original formatting.
+      const planned=planText(text,[{start:0,end:text.textKey.length,insert:value}]);
+      if(planned)jobs.push({id:layer.id,name:layer.name,...planned});
     }
-    const jobs=plan.jobs;
+    if(!jobs.length){status("所有选中文字图层已经是该内容，无需修改","ok");return;}
+    if(doc().id!==d.id||!sameIds(selectedIds,selectedTexts().map(l=>l.id)))
+      throw Error("文档或选择发生变化，请重新操作");
+    status("正在修改 "+jobs.length+" 个文字图层…");
     await core.executeAsModal(async()=>{
+      // Verify before modifying inside the document transaction.
       for(const job of jobs){
-        const descriptor={
-          _obj:"set",_target:[{_ref:"textLayer",_id:job.id}],
-          to:{...clone(job.after),_obj:"textLayer"}
-        };
-        await batch(descriptor);
+        const current=await readDescriptor(job.id);
+        if(!equal(current.text,job.before))
+          throw Error(job.name+"：文字内容或样式已变化");
       }
-    },{commandName:"文字查找替换"});
+      for(const job of jobs){
+        await batch({_obj:"set",_target:[{_ref:"textLayer",_id:job.id}],
+          to:{...clone(job.after),_obj:"textLayer"}});
+      }
+    },{commandName:"批量统一修改文字内容"});
     for(const job of jobs){
       const actual=await readDescriptor(job.id);
-      if(actual.text.textKey!==job.newText)throw Error(job.name+"：写入后内容核对失败");
+      if(actual.text.textKey!==value)
+        throw Error(job.name+"：写入后的文字内容核对失败");
     }
-    clearPlan();
-    status("替换完成，并核对了 "+jobs.length+" 个文字图层","ok");
+    status("已将 "+jobs.length+" 个文字图层统一修改为："+value,"ok");
   }));
-  $("tlmFind").addEventListener("input",clearPlan);
-  $("tlmReplacement").addEventListener("input",clearPlan);
   root.__textLayerManagerActivate=()=>{
     clearPlan();
     try{const selected=Array.from(doc().activeLayers||[]);
