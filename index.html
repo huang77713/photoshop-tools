@@ -553,15 +553,10 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
         <button id="tlmSelect" type="button" class="tlm-filter-btn">选中文字图层</button>
       </div>
       <div class="tlm-toolbar"><button id="tlmRefresh" type="button">刷新选中数量</button><span>只选择文字图层，不修改内容</span></div>
-      <div class="tlm-bar">查找与替换</div>
-      <div class="tlm-helper">先在 Photoshop 选中文字图层，或使用上方批量选择。</div>
-      <label class="tlm-field"><span>查找文字</span><input id="tlmFind" type="text" placeholder="例如 aabb"></label>
-      <label class="tlm-field"><span>替换为</span><input id="tlmReplacement" type="text" placeholder="例如 ccdd"></label>
-      <div class="tlm-helper">支持多组：查找 a,b 对应替换 c,d（用英文逗号分隔）。</div>
-      <button id="tlmCheck" type="button" class="tlm-action">检查预览</button>
-      <div class="tlm-preview-head">待修改预览</div>
-      <div id="tlmPreview" class="tlm-preview">尚未检查</div>
-      <button id="tlmApply" type="button" class="tlm-action tlm-primary" disabled>执行替换</button>
+      <div class="tlm-bar">批量修改文字内容</div>
+      <div class="tlm-helper">当前选中的所有文字图层将统一改为输入内容，其他图层不受影响。</div>
+      <label class="tlm-field"><span>新的文字内容</span><input id="tlmReplacement" type="text" placeholder="例如 ccdd"></label>
+      <button id="tlmApply" type="button" class="tlm-action tlm-primary">应用修改</button>
       <div id="tlmStatus" class="tlm-status">请先打开 Photoshop 文档</div>
     </div>
     <div id="heading">菜单交互测试</div>
