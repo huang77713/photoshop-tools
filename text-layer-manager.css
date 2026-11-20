@@ -1,29 +1,30 @@
-#textLayerManagerView{width:100%;min-height:100%;color:#eee;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px}
+/* Text Layer Manager: reference-inspired dark gray flat UXP UI */
+#textLayerManagerView{width:100%;min-height:100%;color:#f0f0f0;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px}
 #textLayerManagerView *{box-sizing:border-box}
-#textLayerManagerView .tlm-head{margin-bottom:14px}
-#textLayerManagerView .tlm-title{font-size:17px;font-weight:600;margin-bottom:4px}
-#textLayerManagerView .tlm-subtitle{font-size:11px;color:#a9a9b0;line-height:1.5}
-#textLayerManagerView .tlm-section{margin-bottom:16px;padding:13px;border:1px solid #47474e;border-radius:8px;background:#303034}
-#textLayerManagerView .tlm-section-title{font-size:14px;font-weight:600;margin-bottom:12px}
-#textLayerManagerView .tlm-row{display:flex;align-items:center;width:100%;margin-bottom:10px}
-#textLayerManagerView .tlm-row:last-child{margin-bottom:0}
-#textLayerManagerView .tlm-field{display:block;flex:1 1 0;min-width:0}
-#textLayerManagerView .tlm-field+.tlm-field{margin-left:9px}
-#textLayerManagerView .tlm-label{display:block;font-size:11px;color:#bebec5;margin-bottom:6px}
-#textLayerManagerView select,#textLayerManagerView input[type="text"]{display:block;width:100%;height:38px;min-height:38px;padding:7px 10px;background:#222226;color:#f1f1f3;border:1px solid #5a5a62;border-radius:6px;font-size:13px}
-#textLayerManagerView .tlm-run{flex:0 0 46px;width:46px;height:38px;margin-left:9px;padding:0;border:1px solid #66666f;border-radius:6px;background:#39393e;color:#ededf0;font-size:18px}
-#textLayerManagerView .tlm-run:hover{background:#46464d}
-#textLayerManagerView .tlm-note{font-size:11px;line-height:1.55;color:#b2b2b9;margin-bottom:10px}
-#textLayerManagerView .tlm-checks{display:flex;flex-wrap:wrap;margin-bottom:10px}
-#textLayerManagerView .tlm-check{display:flex;align-items:center;min-height:30px;margin-right:14px;cursor:pointer}
-#textLayerManagerView .tlm-check input{margin:0 7px 0 0}
-#textLayerManagerView .tlm-button{display:block;width:100%;height:40px;border:1px solid #74747c;border-radius:7px;background:#3a3a3f;color:#f1f1f3;font-size:14px;font-weight:600}
-#textLayerManagerView .tlm-button:hover{background:#48484e}
-#textLayerManagerView .tlm-primary{background:#6650a4;border-color:#7e67bd}
-#textLayerManagerView .tlm-primary:hover{background:#735cb3}
-#textLayerManagerView .tlm-replace-row{display:flex;align-items:flex-end;width:100%}
-#textLayerManagerView .tlm-replace-row .tlm-field{margin-right:9px}
-#textLayerManagerView .tlm-replace-row .tlm-button{flex:0 0 92px;width:92px}
-#textLayerManagerView .tlm-status{min-height:18px;padding:2px 2px 0;font-size:11px;line-height:1.5;color:#b8b8bf}
-#textLayerManagerView .tlm-status.ok{color:#92d6a3}
-#textLayerManagerView .tlm-status.error{color:#ef9b9b}
+#textLayerManagerView .tlm-section{margin:0 0 23px;padding:0;background:transparent;border:0}
+#textLayerManagerView .tlm-section-title{display:flex;align-items:center;justify-content:center;text-align:center;min-height:38px;padding:7px 10px;margin:0 0 16px;background:#424242;color:#fff;border:0;border-radius:8px;font-size:15px;font-weight:400;line-height:1.45}
+#textLayerManagerView .tlm-filter-row{display:flex;align-items:center;width:100%;min-width:0}
+#textLayerManagerView .tlm-filter-row select{height:44px;min-height:44px;width:0;min-width:0;padding:6px 8px;flex:1 1 0;border:1px solid #666;border-radius:6px;background:#2c2c2c;color:#f1f1f1;font-size:14px}
+#textLayerManagerView .tlm-filter-row #tlmLayerType{flex:1.45 1 0}
+#textLayerManagerView .tlm-all-label{flex:none;padding:0 9px;font-size:13px;color:#f0f0f0;white-space:nowrap}
+#textLayerManagerView .tlm-run{flex:0 0 43px;width:43px;height:44px;min-height:44px;margin-left:9px;border:1px solid #656565;border-radius:6px;background:#303030;color:#bfbfbf;font-size:20px;line-height:1;cursor:pointer}
+#textLayerManagerView .tlm-note{font-size:13px;color:#ececec;line-height:1.55;margin:0 0 12px}
+#textLayerManagerView .tlm-checks{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;width:100%;margin:0 0 14px}
+#textLayerManagerView .tlm-check{display:flex;align-items:center;justify-content:flex-start;min-width:0;margin:0;cursor:pointer;font-size:13px;color:#f0f0f0;white-space:nowrap}
+#textLayerManagerView .tlm-check input[type="checkbox"]{display:block;flex:none;width:19px;height:19px;min-width:19px;min-height:19px;margin:0 7px 0 0;accent-color:#c6c6c6}
+#textLayerManagerView .tlm-lang-row{display:flex;align-items:center;margin-bottom:12px;min-height:37px}
+#textLayerManagerView .tlm-lang-row span{flex:none;margin-right:12px;color:#d0d0d0;font-size:12px}
+#textLayerManagerView .tlm-lang-row select{width:100%;min-width:0;flex:1;height:36px;min-height:36px;padding:5px 9px;background:#2d2d2d;border:1px solid #626262;border-radius:6px;color:#f3f3f3;font-size:13px}
+#textLayerManagerView .tlm-button{display:block;width:100%;height:43px;min-height:43px;padding:8px 12px;background:#2e2e2e;color:#cfcfcf;border:2px solid #b2b2b2;border-radius:12px;font-size:14px;font-weight:400;cursor:pointer}
+#textLayerManagerView .tlm-button:hover{background:#383838;color:#fff}
+#textLayerManagerView .tlm-text-input{display:block;width:100%;height:40px;min-height:40px;padding:8px 11px;margin:0 0 13px;border:1px solid #686868;border-radius:6px;background:#292929;color:#fff;font-size:14px}
+#textLayerManagerView .tlm-status{min-height:17px;padding:0 2px 8px;font-size:11px;line-height:1.5;color:#b6b6b6}
+#textLayerManagerView .tlm-status.ok{color:#a3d4b0}
+#textLayerManagerView .tlm-status.error{color:#f0a4a4}
+@media(max-width:360px){
+ #textLayerManagerView .tlm-filter-row .tlm-all-label{padding:0 5px;font-size:12px}
+ #textLayerManagerView .tlm-filter-row select{font-size:12px;padding:5px}
+ #textLayerManagerView .tlm-run{flex-basis:36px;width:36px;margin-left:6px}
+ #textLayerManagerView .tlm-check{font-size:11px}
+ #textLayerManagerView .tlm-check input[type="checkbox"]{width:17px;height:17px;min-width:17px;min-height:17px;margin-right:4px}
+}
