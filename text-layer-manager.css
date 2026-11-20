@@ -47,3 +47,12 @@
 #textLayerManagerView .tlm-fit-row>span{font-size:12px;color:#d0d0d0;flex:none;margin-right:12px}
 #textLayerManagerView .tlm-fit-dropdown{display:block;width:160px;max-width:66%;height:33px;min-height:33px;font-size:12px}
 #textLayerManagerView .tlm-native-dropdown sp-menu-item,#textLayerManagerView .tlm-fit-dropdown sp-menu-item{font-size:12px}
+
+/* Manual hard line breaks and live content preview. */
+#textLayerManagerView .tlm-multiline{height:76px;min-height:76px;max-height:150px;resize:vertical;line-height:1.45;white-space:pre-wrap;padding:8px 10px}
+#textLayerManagerView .tlm-wrap-row{display:flex;align-items:center;justify-content:space-between;min-height:37px;margin:0 0 10px}
+#textLayerManagerView .tlm-row-label{font-size:12px;color:#d0d0d0;flex:none;margin-right:10px}
+#textLayerManagerView .tlm-preview-label{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;color:#c9c9c9;font-size:11px}
+#textLayerManagerView #tlmLineCount{color:#969696}
+#textLayerManagerView .tlm-live-preview{min-height:86px;max-height:170px;overflow-y:auto;overflow-wrap:anywhere;white-space:pre-wrap;padding:13px 10px;margin:0 0 11px;border:1px solid #505050;border-radius:6px;background:#252525;color:#f0f0f0;font-size:13px;line-height:1.5;text-align:center}
+#textLayerManagerView .tlm-empty-preview{color:#7f7f7f}
