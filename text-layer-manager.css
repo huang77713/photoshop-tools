@@ -1,28 +1,24 @@
-/* Text Layer Manager: reference-inspired dark gray flat UXP UI */
-#textLayerManagerView{width:100%;min-height:100%;color:#f0f0f0;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px}
+/* Compact Photoshop UXP interface based on original gray reference */
+#textLayerManagerView{width:100%;min-width:0;padding:0 0 16px;color:#efefef;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px}
 #textLayerManagerView *{box-sizing:border-box}
-#textLayerManagerView .tlm-section{margin:0 0 23px;padding:0;background:transparent;border:0}
-#textLayerManagerView .tlm-section-title{display:flex;align-items:center;justify-content:center;text-align:center;min-height:38px;padding:7px 10px;margin:0 0 16px;background:#424242;color:#fff;border:0;border-radius:8px;font-size:15px;font-weight:400;line-height:1.45}
-#textLayerManagerView .tlm-filter-row{display:flex;align-items:center;width:100%;min-width:0}
-#textLayerManagerView .tlm-filter-row select{height:44px;min-height:44px;width:0;min-width:0;padding:6px 8px;flex:1 1 0;border:1px solid #666;border-radius:6px;background:#2c2c2c;color:#f1f1f1;font-size:14px}
-#textLayerManagerView .tlm-filter-row #tlmLayerType{flex:1.5 1 0;margin-left:9px}
-#textLayerManagerView .tlm-run{flex:0 0 43px;width:43px;height:44px;min-height:44px;margin-left:9px;border:1px solid #656565;border-radius:6px;background:#303030;color:#bfbfbf;font-size:20px;line-height:1;cursor:pointer}
-#textLayerManagerView .tlm-note{font-size:13px;color:#ececec;line-height:1.55;margin:0 0 12px}
-#textLayerManagerView .tlm-checks{display:flex;align-items:center;justify-content:space-between;flex-wrap:nowrap;width:100%;margin:0 0 14px}
-#textLayerManagerView .tlm-check{display:flex;align-items:center;justify-content:flex-start;min-width:0;margin:0;cursor:pointer;font-size:13px;color:#f0f0f0;white-space:nowrap}
-#textLayerManagerView .tlm-check input[type="checkbox"]{display:block;flex:none;width:19px;height:19px;min-width:19px;min-height:19px;margin:0 7px 0 0;accent-color:#c6c6c6}
-#textLayerManagerView .tlm-lang-row{display:flex;align-items:center;margin-bottom:12px;min-height:37px}
-#textLayerManagerView .tlm-lang-row span{flex:none;margin-right:12px;color:#d0d0d0;font-size:12px}
-#textLayerManagerView .tlm-lang-row select{width:100%;min-width:0;flex:1;height:36px;min-height:36px;padding:5px 9px;background:#2d2d2d;border:1px solid #626262;border-radius:6px;color:#f3f3f3;font-size:13px}
-#textLayerManagerView .tlm-button{display:block;width:100%;height:43px;min-height:43px;padding:8px 12px;background:#2e2e2e;color:#cfcfcf;border:2px solid #b2b2b2;border-radius:12px;font-size:14px;font-weight:400;cursor:pointer}
-#textLayerManagerView .tlm-button:hover{background:#383838;color:#fff}
-#textLayerManagerView .tlm-text-input{display:block;width:100%;height:40px;min-height:40px;padding:8px 11px;margin:0 0 13px;border:1px solid #686868;border-radius:6px;background:#292929;color:#fff;font-size:14px}
-#textLayerManagerView .tlm-status{min-height:17px;padding:0 2px 8px;font-size:11px;line-height:1.5;color:#b6b6b6}
-#textLayerManagerView .tlm-status.ok{color:#a3d4b0}
-#textLayerManagerView .tlm-status.error{color:#f0a4a4}
-@media(max-width:360px){
- #textLayerManagerView .tlm-filter-row select{font-size:12px;padding:5px}
- #textLayerManagerView .tlm-run{flex-basis:36px;width:36px;margin-left:6px}
- #textLayerManagerView .tlm-check{font-size:11px}
- #textLayerManagerView .tlm-check input[type="checkbox"]{width:17px;height:17px;min-width:17px;min-height:17px;margin-right:4px}
-}
+#textLayerManagerView .tlm-bar{min-height:38px;padding:8px 10px;margin:0 0 13px;background:#434343;border-radius:8px;text-align:center;color:#fff;font-size:15px;font-weight:400}
+#textLayerManagerView .tlm-filter{display:flex;width:100%;align-items:center;margin-bottom:9px}
+#textLayerManagerView .tlm-filter select{display:block;min-width:0;flex:1 1 0;height:42px;min-height:42px;padding:6px 8px;border-radius:6px;border:1px solid #777;background:#2b2b2b;color:#f4f4f4;font-size:13px}
+#textLayerManagerView button{cursor:pointer}
+#textLayerManagerView .tlm-filter-btn{display:block;flex:none;min-width:114px;height:42px;margin-left:9px;padding:7px 9px;border:1px solid #969696;border-radius:7px;background:#353535;color:#efefef;font-size:13px}
+#textLayerManagerView .tlm-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;min-height:28px}
+#textLayerManagerView .tlm-toolbar button{background:none;border:0;color:#d0d0d0;text-decoration:underline;padding:4px 0;font-size:11px}
+#textLayerManagerView .tlm-toolbar span{color:#929292;font-size:10px;text-align:right}
+#textLayerManagerView .tlm-helper{font-size:11px;color:#c2c2c2;line-height:1.5;margin-bottom:12px}
+#textLayerManagerView .tlm-field{display:block;width:100%;margin-bottom:12px}
+#textLayerManagerView .tlm-field span{display:block;margin-bottom:6px;color:#dedede;font-size:12px}
+#textLayerManagerView .tlm-field input{display:block;width:100%;height:40px;min-height:40px;padding:8px 10px;border:1px solid #6a6a6a;border-radius:6px;background:#272727;color:#fff;font-size:14px}
+#textLayerManagerView .tlm-action{display:block;width:100%;height:42px;min-height:42px;margin:7px 0 13px;padding:7px 12px;border:2px solid #a6a6a6;border-radius:12px;background:#303030;color:#eee;font-size:14px}
+#textLayerManagerView .tlm-action:disabled{opacity:.4;cursor:default}
+#textLayerManagerView .tlm-primary{margin-top:13px}
+#textLayerManagerView .tlm-preview-head{font-size:12px;color:#ccc;margin:16px 0 7px}
+#textLayerManagerView .tlm-preview{width:100%;min-height:74px;max-height:175px;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid #4f4f4f;border-radius:6px;background:#252525;padding:10px;font-size:11px;line-height:1.55;color:#d2d2d2}
+#textLayerManagerView .tlm-status{font-size:11px;line-height:1.5;color:#b5b5b5;overflow-wrap:anywhere;margin-top:5px}
+#textLayerManagerView .tlm-status.ok{color:#a2d8af}
+#textLayerManagerView .tlm-status.error{color:#f1a2a2}
+@media(max-width:325px){#textLayerManagerView .tlm-filter-btn{min-width:92px;font-size:11px}#textLayerManagerView .tlm-filter select{font-size:11px}}
