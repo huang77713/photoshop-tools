@@ -543,16 +543,13 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div class="tlm-section">
         <div class="tlm-bar">筛选和操作</div>
         <div class="tlm-filter">
-          <div class="tlm-picker" id="tlmScopePicker">
-            <button id="tlmScopeButton" type="button" class="tlm-picker-current" aria-label="筛选范围" aria-expanded="false">
-              <span id="tlmScopeLabel">选中 / 组内</span><span class="tlm-chevron">⌄</span>
-            </button>
-            <div id="tlmScopeMenu" class="tlm-picker-menu" style="display:none">
-              <button type="button" class="tlm-picker-option active" data-scope="selection">选中 / 组内</button>
-              <button type="button" class="tlm-picker-option" data-scope="all">整个文档</button>
-              <button type="button" class="tlm-picker-option" data-scope="visible">可见图层</button>
-            </div>
-          </div>
+          <sp-dropdown id="tlmScopeDropdown" class="tlm-native-dropdown" size="s" aria-label="筛选范围">
+            <sp-menu slot="options">
+              <sp-menu-item value="selection" selected>选中 / 组内</sp-menu-item>
+              <sp-menu-item value="all">整个文档</sp-menu-item>
+              <sp-menu-item value="visible">可见图层</sp-menu-item>
+            </sp-menu>
+          </sp-dropdown>
           <button id="tlmSelect" type="button" class="tlm-filter-btn" title="选中文字图层">筛选</button>
         </div>
         <div class="tlm-meta">
@@ -564,6 +561,14 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
         <div class="tlm-bar">批量修改文字</div>
         <label class="tlm-field" for="tlmReplacement">新的文字内容</label>
         <input id="tlmReplacement" class="tlm-input" type="text" placeholder="输入要统一显示的文字">
+        <div class="tlm-fit-row"><span>长文字处理</span>
+          <sp-dropdown id="tlmFitMode" class="tlm-fit-dropdown" size="s" aria-label="长文字处理">
+            <sp-menu slot="options">
+              <sp-menu-item value="keep" selected>保持原样</sp-menu-item>
+              <sp-menu-item value="shrink">超宽自动缩小</sp-menu-item>
+            </sp-menu>
+          </sp-dropdown>
+        </div>
         <button id="tlmApply" type="button" class="tlm-action tlm-primary">应用修改</button>
       </div>
       <div class="tlm-advanced">
