@@ -1,0 +1,29 @@
+#textLayerManagerView{width:100%;min-height:100%;color:#eee;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:13px}
+#textLayerManagerView *{box-sizing:border-box}
+#textLayerManagerView .tlm-head{margin-bottom:14px}
+#textLayerManagerView .tlm-title{font-size:17px;font-weight:600;margin-bottom:4px}
+#textLayerManagerView .tlm-subtitle{font-size:11px;color:#a9a9b0;line-height:1.5}
+#textLayerManagerView .tlm-section{margin-bottom:16px;padding:13px;border:1px solid #47474e;border-radius:8px;background:#303034}
+#textLayerManagerView .tlm-section-title{font-size:14px;font-weight:600;margin-bottom:12px}
+#textLayerManagerView .tlm-row{display:flex;align-items:center;width:100%;margin-bottom:10px}
+#textLayerManagerView .tlm-row:last-child{margin-bottom:0}
+#textLayerManagerView .tlm-field{display:block;flex:1 1 0;min-width:0}
+#textLayerManagerView .tlm-field+.tlm-field{margin-left:9px}
+#textLayerManagerView .tlm-label{display:block;font-size:11px;color:#bebec5;margin-bottom:6px}
+#textLayerManagerView select,#textLayerManagerView input[type="text"]{display:block;width:100%;height:38px;min-height:38px;padding:7px 10px;background:#222226;color:#f1f1f3;border:1px solid #5a5a62;border-radius:6px;font-size:13px}
+#textLayerManagerView .tlm-run{flex:0 0 46px;width:46px;height:38px;margin-left:9px;padding:0;border:1px solid #66666f;border-radius:6px;background:#39393e;color:#ededf0;font-size:18px}
+#textLayerManagerView .tlm-run:hover{background:#46464d}
+#textLayerManagerView .tlm-note{font-size:11px;line-height:1.55;color:#b2b2b9;margin-bottom:10px}
+#textLayerManagerView .tlm-checks{display:flex;flex-wrap:wrap;margin-bottom:10px}
+#textLayerManagerView .tlm-check{display:flex;align-items:center;min-height:30px;margin-right:14px;cursor:pointer}
+#textLayerManagerView .tlm-check input{margin:0 7px 0 0}
+#textLayerManagerView .tlm-button{display:block;width:100%;height:40px;border:1px solid #74747c;border-radius:7px;background:#3a3a3f;color:#f1f1f3;font-size:14px;font-weight:600}
+#textLayerManagerView .tlm-button:hover{background:#48484e}
+#textLayerManagerView .tlm-primary{background:#6650a4;border-color:#7e67bd}
+#textLayerManagerView .tlm-primary:hover{background:#735cb3}
+#textLayerManagerView .tlm-replace-row{display:flex;align-items:flex-end;width:100%}
+#textLayerManagerView .tlm-replace-row .tlm-field{margin-right:9px}
+#textLayerManagerView .tlm-replace-row .tlm-button{flex:0 0 92px;width:92px}
+#textLayerManagerView .tlm-status{min-height:18px;padding:2px 2px 0;font-size:11px;line-height:1.5;color:#b8b8bf}
+#textLayerManagerView .tlm-status.ok{color:#92d6a3}
+#textLayerManagerView .tlm-status.error{color:#ef9b9b}
