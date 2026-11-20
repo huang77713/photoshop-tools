@@ -566,6 +566,18 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
         <input id="tlmReplacement" class="tlm-input" type="text" placeholder="输入要统一显示的文字">
         <button id="tlmApply" type="button" class="tlm-action tlm-primary">应用修改</button>
       </div>
+      <div class="tlm-advanced">
+        <button id="tlmAdvancedToggle" type="button" class="tlm-advanced-toggle" aria-expanded="false">高级：查找与替换 <span>⌄</span></button>
+        <div id="tlmAdvancedPanel" class="tlm-advanced-panel" style="display:none">
+          <label class="tlm-field" for="tlmFind">查找内容（多组用英文逗号分隔）</label>
+          <input id="tlmFind" class="tlm-input" type="text" placeholder="例如 a,b">
+          <label class="tlm-field" for="tlmFindReplacement">替换为（与查找组数对应）</label>
+          <input id="tlmFindReplacement" class="tlm-input" type="text" placeholder="例如 c,d">
+          <button id="tlmCheck" type="button" class="tlm-minor">检查预览</button>
+          <div id="tlmPreview" class="tlm-preview">尚未检查</div>
+          <button id="tlmRunFind" type="button" class="tlm-minor tlm-find-run" disabled>执行查找替换</button>
+        </div>
+      </div>
       <div id="tlmStatus" class="tlm-status">请选择图层后进行操作</div>
     </div>
     <div id="heading">菜单交互测试</div>
