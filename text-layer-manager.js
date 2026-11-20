@@ -118,7 +118,15 @@ module.exports = function initTextLayerManager(root) {
     return ak.length===bk.length && ak.every((key,i)=>
       key===bk[i] && almostEqual(a[key],b[key],tolerance));
   }
-  function px(n) { return Number(n && typeof n === "object" && "value" in n ? n.value : n); }
+  function px(n) {
+    if(typeof n==="number")return n;
+    if(n && typeof n==="object") {
+      if(n._value!==undefined)return Number(n._value);
+      if(n.value!==undefined)return Number(n.value);
+      if(n.asPixels!==undefined)return Number(n.asPixels);
+    }
+    return Number(n);
+  }
   function warningsFor(job,actual) {
     const warnings=[];
     if ((job.after.textShape||[]).some(x=>x.textType && (x.textType._value==="box" || x.textType==="box")))
@@ -254,11 +262,56 @@ module.exports = function initTextLayerManager(root) {
     }
     return {mode,fitMode:mode==="all"?fitMode:"keep",docId:d.id,selectionIds:layers.map(x=>x.id),jobs,find,replacement,skipped:layers.length-jobs.length};
   }
-  function boundsWidth(raw) {
-    const b=raw && (raw.boundsNoEffects || raw.bounds);
+  function widthFromBounds(b) {
     if(!b)return NaN;
-    const w=px(b.right)-px(b.left);
-    return Number.isFinite(w)&&w>0?w:NaN;
+    const width=px(b.right)-px(b.left);
+    return Number.isFinite(width)&&width>0?width:NaN;
+  }
+  function boundsWidth(raw) {
+    if(!raw)return NaN;
+    for(const b of [raw.boundsNoEffects,raw.bounds]) {
+      const width=widthFromBounds(b);
+      if(Number.isFinite(width))return width;
+    }
+    return NaN;
+  }
+  async function measuredWidth(id,cached) {
+    let width=boundsWidth(cached);
+    if(Number.isFinite(width))return width;
+    // Some Photoshop versions omit layer bounds in the full layer descriptor.
+    for(const key of ["boundsNoEffects","bounds"]) {
+      try {
+        const response=await batch({_obj:"get",_target:[
+          {_property:key},{_ref:"layer",_id:id}]});
+        width=widthFromBounds(response[key]);
+        if(Number.isFinite(width))return width;
+      }catch(error) {
+        console.warn("[Text Layer Manager] Bounds property unavailable:",key,error);
+      }
+    }
+    // Photoshop DOM bounds can be available even when action descriptors omit them.
+    function findLayer(layers) {
+      for(const layer of layers) {
+        if(layer.id===id)return layer;
+        if(groupLayer(layer)) {
+          const inside=findLayer(layer.layers);
+          if(inside)return inside;
+        }
+      }
+      return null;
+    }
+    const layer=findLayer(doc().layers);
+    if(layer) {
+      for(const key of ["boundsNoEffects","bounds"]) {
+        try {
+          width=widthFromBounds(layer[key]);
+          if(Number.isFinite(width))return width;
+        }catch(error) {
+          console.warn("[Text Layer Manager] DOM bounds unavailable:",key,error);
+        }
+      }
+    }
+    return NaN;
   }
   function scaleUnit(value,factor) {
     if(typeof value==="number")return value*factor;
@@ -300,7 +353,7 @@ module.exports = function initTextLayerManager(root) {
     }
   }
   async function fitLongText(job,initial,context,warnings) {
-    const originalWidth=boundsWidth(job.raw);
+    const originalWidth=await measuredWidth(job.id,job.raw);
     if(!Number.isFinite(originalWidth)) {
       warnings.push(job.name+"：无法读取原始宽度，未自动缩小");
       return initial;
@@ -311,7 +364,7 @@ module.exports = function initTextLayerManager(root) {
     const minRatio=0.5;
     for(let attempt=0;attempt<6;attempt++) {
       if(context.isCancelled)throw Error("用户取消操作");
-      const width=boundsWidth(result.raw);
+      const width=await measuredWidth(job.id,result.raw);
       if(!Number.isFinite(width)){
         warnings.push(job.name+"：无法测量修改后宽度");
         return result;
@@ -331,7 +384,7 @@ module.exports = function initTextLayerManager(root) {
       ratio=nextRatio;
       if(ratio<=minRatio+0.0001)break;
     }
-    if(boundsWidth(result.raw)>originalWidth+0.5)
+    if((await measuredWidth(job.id,result.raw))>originalWidth+0.5)
       warnings.push(job.name+"：缩至原字号50%后仍超宽，请手动检查");
     return result;
   }
@@ -463,8 +516,10 @@ module.exports = function initTextLayerManager(root) {
     }catch(e){status(e.message,"error");}
   });
   function renderResult(result) {
-    const note=result.warnings.length
-      ? "；提示："+result.warnings.slice(0,4).join("；")
+    const uniqueWarnings=[...new Set(result.warnings)];
+    const note=uniqueWarnings.length
+      ? "；"+uniqueWarnings.length+" 项提醒："+uniqueWarnings.slice(0,2).join("；")+
+        (uniqueWarnings.length>2?"；其余 "+(uniqueWarnings.length-2)+" 项":"")
       : "；文字及样式已校验";
     status("已处理 "+result.count+" 个文字图层"+note,"ok");
   }
