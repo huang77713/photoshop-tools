@@ -540,51 +540,25 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div id="bfStatus" class="bf-status">请选择图层或组。</div>
     </div>
     <div id="textLayerManagerView" style="display:none">
-      <div class="tlm-section">
-        <div class="tlm-section-title">筛选和操作</div>
-        <div class="tlm-filter-row">
-          <select id="tlmScope" aria-label="筛选范围">
-            <option value="selection">选中</option>
-            <option value="all">所有</option>
-          </select>
-          <select id="tlmLayerType" aria-label="图层类型">
-            <option value="text">文字图层</option>
-            <option value="group">图层组</option>
-            <option value="textAndGroup">文字 + 图层组</option>
-          </select>
-          <button id="tlmFilterRun" class="tlm-run" type="button" title="执行筛选">▶</button>
-        </div>
+      <div class="tlm-bar">文字图层选择</div>
+      <div class="tlm-filter">
+        <select id="tlmScope" aria-label="筛选范围">
+          <option value="selection">当前选中 / 组内</option>
+          <option value="all">整个文档</option>
+        </select>
+        <button id="tlmSelect" type="button" class="tlm-filter-btn">选中文字图层</button>
       </div>
-      <div class="tlm-section">
-        <div class="tlm-section-title">翻译功能</div>
-        <div class="tlm-note">选中图层，勾选下面选项进行翻译</div>
-        <div class="tlm-checks">
-          <label class="tlm-check"><input id="tlmTranslateNames" type="checkbox"><span>图层名称</span></label>
-          <label class="tlm-check"><input id="tlmTranslateText" type="checkbox" checked><span>文字内容</span></label>
-          <label class="tlm-check"><input id="tlmTranslateGroups" type="checkbox"><span>图层组</span></label>
-        </div>
-        <div class="tlm-lang-row">
-          <span>目标语言</span>
-          <select id="tlmTargetLang" aria-label="目标语言">
-            <option value="zh-CN">简体中文</option>
-            <option value="en">English</option>
-            <option value="hi">हिन्दी</option>
-            <option value="ja">日本語</option>
-            <option value="ko">한국어</option>
-            <option value="th">ไทย</option>
-            <option value="id">Bahasa Indonesia</option>
-            <option value="vi">Tiếng Việt</option>
-          </select>
-        </div>
-        <button id="tlmTranslate" class="tlm-button" type="button">翻译</button>
-      </div>
-      <div class="tlm-section">
-        <div class="tlm-section-title">批量修改文字内容</div>
-        <div class="tlm-note">输入文字，一键替换所有选中文字图层的显示内容</div>
-        <input id="tlmReplaceText" class="tlm-text-input" type="text" placeholder="输入新的文字，例如 ccdd">
-        <button id="tlmReplace" class="tlm-button tlm-replace" type="button">应用修改</button>
-      </div>
-      <div id="tlmStatus" class="tlm-status">请选择图层后进行操作。</div>
+      <div class="tlm-toolbar"><button id="tlmRefresh" type="button">刷新选中数量</button><span>只选择文字图层，不修改内容</span></div>
+      <div class="tlm-bar">查找与替换</div>
+      <div class="tlm-helper">先在 Photoshop 选中文字图层，或使用上方批量选择。</div>
+      <label class="tlm-field"><span>查找文字</span><input id="tlmFind" type="text" placeholder="例如 aabb"></label>
+      <label class="tlm-field"><span>替换为</span><input id="tlmReplacement" type="text" placeholder="例如 ccdd"></label>
+      <div class="tlm-helper">支持多组：查找 a,b 对应替换 c,d（用英文逗号分隔）。</div>
+      <button id="tlmCheck" type="button" class="tlm-action">检查预览</button>
+      <div class="tlm-preview-head">待修改预览</div>
+      <div id="tlmPreview" class="tlm-preview">尚未检查</div>
+      <button id="tlmApply" type="button" class="tlm-action tlm-primary" disabled>执行替换</button>
+      <div id="tlmStatus" class="tlm-status">请先打开 Photoshop 文档</div>
     </div>
     <div id="heading">菜单交互测试</div>
     <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>
