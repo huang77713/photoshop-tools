@@ -278,6 +278,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 <link rel="stylesheet" href="smart-arrange.css">
 <link rel="stylesheet" href="visible-resize.css">
 <link rel="stylesheet" href="bounds-frame.css">
+<link rel="stylesheet" href="text-layer-manager.css">
 </head>
 <body>
 <div id="app">
@@ -295,6 +296,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div class="item" data-name="智能排列"><span>智能排列</span><span class="check"></span></div>
       <div class="item" data-name="批量尺寸统一"><span>批量尺寸统一</span><span class="check"></span></div>
       <div class="item" data-name="边界框"><span>边界框</span><span class="check"></span></div>
+      <div class="item" data-name="文字图层管理"><span>文字图层管理</span><span class="check"></span></div>
     </div>
   </div>
   <div id="bodyArea">
@@ -536,6 +538,63 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       </div>
       <button id="bfGenerate" class="bf-button bf-primary">生成矢量边界框</button>
       <div id="bfStatus" class="bf-status">请选择图层或组。</div>
+    </div>
+    <div id="textLayerManagerView" style="display:none">
+      <div class="tlm-section">
+        <div class="tlm-bar">筛选和操作</div>
+        <div class="tlm-filter">
+          <sp-dropdown id="tlmScopeDropdown" class="tlm-native-dropdown" size="s" aria-label="筛选范围">
+            <sp-menu slot="options">
+              <sp-menu-item value="selection" selected>选中 / 组内</sp-menu-item>
+              <sp-menu-item value="all">整个文档</sp-menu-item>
+              <sp-menu-item value="visible">可见图层</sp-menu-item>
+            </sp-menu>
+          </sp-dropdown>
+          <button id="tlmSelect" type="button" class="tlm-filter-btn" title="选中文字图层">筛选</button>
+        </div>
+        <div class="tlm-meta">
+          <span class="tlm-meta-note">只选中文字图层</span>
+          <button id="tlmRefresh" type="button" class="tlm-refresh">刷新数量</button>
+        </div>
+      </div>
+      <div class="tlm-section tlm-replace-section">
+        <div class="tlm-bar">批量修改文字</div>
+        <label class="tlm-field" for="tlmReplacement">新的文字内容</label>
+        <textarea id="tlmReplacement" class="tlm-input tlm-multiline" rows="3" placeholder="输入新文字，按 Enter 指定换行位置"></textarea>
+        <div class="tlm-wrap-row">
+          <span class="tlm-row-label">换行方式</span>
+          <sp-dropdown id="tlmWrapMode" class="tlm-fit-dropdown" size="s" aria-label="换行方式">
+            <sp-menu slot="options">
+              <sp-menu-item value="manual" selected>手动指定换行</sp-menu-item>
+              <sp-menu-item value="single">不换行</sp-menu-item>
+            </sp-menu>
+          </sp-dropdown>
+        </div>
+        <div class="tlm-preview-label"><span>换行预览</span><span id="tlmLineCount">1 行</span></div>
+        <div id="tlmLivePreview" class="tlm-live-preview tlm-preview-center">输入文字后显示预览</div>
+        <div class="tlm-fit-row"><span>长文字处理</span>
+          <sp-dropdown id="tlmFitMode" class="tlm-fit-dropdown" size="s" aria-label="长文字处理">
+            <sp-menu slot="options">
+              <sp-menu-item value="keep" selected>保持原样</sp-menu-item>
+              <sp-menu-item value="shrink">超宽自动缩小</sp-menu-item>
+            </sp-menu>
+          </sp-dropdown>
+        </div>
+        <button id="tlmApply" type="button" class="tlm-action tlm-primary">应用修改</button>
+      </div>
+      <div class="tlm-advanced">
+        <button id="tlmAdvancedToggle" type="button" class="tlm-advanced-toggle" aria-expanded="false">高级：查找与替换 <span>⌄</span></button>
+        <div id="tlmAdvancedPanel" class="tlm-advanced-panel" style="display:none">
+          <label class="tlm-field" for="tlmFind">查找内容（多组用英文逗号分隔）</label>
+          <input id="tlmFind" class="tlm-input" type="text" placeholder="例如 a,b">
+          <label class="tlm-field" for="tlmFindReplacement">替换为（与查找组数对应）</label>
+          <input id="tlmFindReplacement" class="tlm-input" type="text" placeholder="例如 c,d">
+          <button id="tlmCheck" type="button" class="tlm-minor">检查预览</button>
+          <div id="tlmPreview" class="tlm-preview">尚未检查</div>
+          <button id="tlmRunFind" type="button" class="tlm-minor tlm-find-run" disabled>执行查找替换</button>
+        </div>
+      </div>
+      <div id="tlmStatus" class="tlm-status">请选择图层后进行操作</div>
     </div>
     <div id="heading">菜单交互测试</div>
     <div id="message">点击左上角选择工具；选择后，这里会显示选中的工具名称。此版本不包含任何 Photoshop 处理代码。</div>

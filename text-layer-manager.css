@@ -1,0 +1,58 @@
+/* Text Layer Manager — balanced compact Photoshop UXP interface. */
+#textLayerManagerView{box-sizing:border-box;width:100%;min-width:0;padding:0 0 12px;color:#ededed;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px;line-height:1.45}
+#textLayerManagerView *{box-sizing:border-box}
+#textLayerManagerView .tlm-section{display:block;margin:0 0 18px;padding:0;border:0;background:transparent}
+#textLayerManagerView .tlm-bar{display:block;width:100%;min-height:35px;height:35px;margin:0 0 12px;padding:8px 10px;border-radius:7px;background:#414141;color:#f0f0f0;text-align:center;font-size:13px;font-weight:400;line-height:19px}
+#textLayerManagerView .tlm-filter{display:flex;align-items:center;flex-direction:row;flex-wrap:nowrap;width:100%;position:relative;overflow:visible;z-index:5}
+#textLayerManagerView button{font-family:inherit;cursor:pointer;box-shadow:none;text-transform:none;letter-spacing:0}
+#textLayerManagerView .tlm-picker{position:relative;display:block;flex:1 1 auto;min-width:0}
+#textLayerManagerView .tlm-picker-current{display:flex;flex-direction:row;align-items:center;justify-content:space-between;width:100%;height:37px;min-height:37px;margin:0;padding:0 11px;border:1px solid #686868;border-radius:6px;background:#292929;color:#eee;font-size:12px;font-weight:400;text-align:left;outline:0;white-space:nowrap}
+#textLayerManagerView #tlmScopeLabel{display:block;flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#textLayerManagerView .tlm-chevron{display:block;flex:0 0 13px;width:13px;height:19px;line-height:15px;margin-left:7px;color:#bababa;font-family:Arial,sans-serif;font-size:22px;font-weight:400;text-align:center;pointer-events:none}
+#textLayerManagerView .tlm-picker-current:hover,#textLayerManagerView .tlm-filter-btn:hover{background:#353535;border-color:#8a8a8a}
+#textLayerManagerView .tlm-picker-menu{position:absolute;top:40px;left:0;right:0;z-index:20;display:block;padding:4px;border:1px solid #666;border-radius:6px;background:#343434;box-shadow:0 4px 12px rgba(0,0,0,.28)}
+#textLayerManagerView .tlm-picker-option{display:block;width:100%;height:31px;min-height:31px;margin:0;padding:5px 9px;border:0;border-radius:4px;background:transparent;color:#eee;font-size:12px;font-weight:400;text-align:left;line-height:21px;white-space:nowrap}
+#textLayerManagerView .tlm-picker-option.active{background:#484848}
+#textLayerManagerView .tlm-picker-option:hover{background:#525252}
+#textLayerManagerView .tlm-filter-btn{display:block;flex:0 0 65px;width:65px;min-width:65px;height:37px;min-height:37px;margin:0 0 0 8px;padding:0 6px;border:1px solid #777;border-radius:6px;background:#333;color:#f0f0f0;font-size:12px;font-weight:400;text-align:center}
+#textLayerManagerView .tlm-meta{display:flex;flex-direction:row;align-items:center;justify-content:space-between;width:100%;height:28px;min-height:28px;margin-top:4px;padding:0 1px}
+#textLayerManagerView .tlm-meta-note{font-size:11px;color:#9e9e9e}
+#textLayerManagerView .tlm-refresh{display:block;height:25px;min-height:25px;padding:3px 7px;margin:0;border:0;border-radius:4px;background:transparent;color:#bababa;font-size:11px;line-height:18px}
+#textLayerManagerView .tlm-refresh:hover{color:#fff;background:#393939}
+#textLayerManagerView .tlm-replace-section{margin-bottom:10px}
+#textLayerManagerView .tlm-field{display:block;width:100%;margin:0 0 7px;color:#d9d9d9;font-size:12px;font-weight:400}
+#textLayerManagerView .tlm-input{display:block;width:100%;height:37px;min-height:37px;margin:0 0 12px;padding:6px 10px;border:1px solid #686868;border-radius:6px;background:#272727;color:#f4f4f4;font-family:inherit;font-size:12px;font-weight:400;line-height:23px;outline:0;box-shadow:none}
+#textLayerManagerView .tlm-input::placeholder{color:#868686}
+#textLayerManagerView .tlm-input:focus{border-color:#a1a1a1}
+#textLayerManagerView .tlm-action{display:block;width:100%;height:39px;min-height:39px;margin:0;padding:6px 10px;border:1px solid #999;border-radius:8px;background:#353535;color:#eee;font-family:inherit;font-size:13px;font-weight:400;text-align:center}
+#textLayerManagerView .tlm-action:hover{background:#414141;border-color:#bbb}
+#textLayerManagerView .tlm-status{min-height:20px;margin:0;padding:3px 1px;border:0;border-radius:0;background:transparent;color:#a9a9a9;font-size:11px;line-height:1.5;overflow-wrap:anywhere}
+#textLayerManagerView .tlm-status.ok{color:#9bd3a9}
+#textLayerManagerView .tlm-status.error{color:#e9a2a2}
+@media(max-width:320px){#textLayerManagerView .tlm-filter-btn{flex-basis:58px;width:58px;min-width:58px}#textLayerManagerView .tlm-picker-current{font-size:11px}}
+
+#textLayerManagerView .tlm-advanced{margin:10px 0 12px;border-top:1px solid #404040;padding-top:10px}
+#textLayerManagerView .tlm-advanced-toggle{display:flex;width:100%;align-items:center;justify-content:space-between;height:32px;min-height:32px;border:0;background:transparent;color:#bfbfbf;font-size:12px;padding:0 2px;text-align:left}
+#textLayerManagerView .tlm-advanced-toggle span{font-size:17px;color:#aaa}
+#textLayerManagerView .tlm-advanced-panel{padding:9px 0 0}
+#textLayerManagerView .tlm-minor{width:100%;height:35px;min-height:35px;margin:0 0 9px;border:1px solid #797979;border-radius:6px;background:#343434;color:#ddd;font-size:12px}
+#textLayerManagerView .tlm-minor:disabled{opacity:.45}
+#textLayerManagerView .tlm-preview{max-height:155px;min-height:45px;overflow-y:auto;white-space:pre-wrap;overflow-wrap:anywhere;padding:9px;margin:0 0 9px;border:1px solid #494949;border-radius:6px;background:#242424;font-size:11px;color:#aaa}
+
+/* Use Adobe UXP Spectrum dropdowns instead of custom arrows and nested menus. */
+#textLayerManagerView .tlm-native-dropdown{display:block;flex:1 1 0;min-width:0;width:0;height:33px;min-height:33px;font-size:12px}
+#textLayerManagerView .tlm-filter{align-items:center}
+#textLayerManagerView .tlm-filter-btn{height:33px;min-height:33px;margin-left:8px}
+#textLayerManagerView .tlm-fit-row{display:flex;align-items:center;justify-content:space-between;min-height:38px;margin:0 0 11px}
+#textLayerManagerView .tlm-fit-row>span{font-size:12px;color:#d0d0d0;flex:none;margin-right:12px}
+#textLayerManagerView .tlm-fit-dropdown{display:block;width:160px;max-width:66%;height:33px;min-height:33px;font-size:12px}
+#textLayerManagerView .tlm-native-dropdown sp-menu-item,#textLayerManagerView .tlm-fit-dropdown sp-menu-item{font-size:12px}
+
+/* Manual hard line breaks and live content preview. */
+#textLayerManagerView .tlm-multiline{height:76px;min-height:76px;max-height:150px;resize:vertical;line-height:1.45;white-space:pre-wrap;padding:8px 10px}
+#textLayerManagerView .tlm-wrap-row{display:flex;align-items:center;justify-content:space-between;min-height:37px;margin:0 0 10px}
+#textLayerManagerView .tlm-row-label{font-size:12px;color:#d0d0d0;flex:none;margin-right:10px}
+#textLayerManagerView .tlm-preview-label{display:flex;justify-content:space-between;align-items:center;margin:0 0 6px;color:#c9c9c9;font-size:11px}
+#textLayerManagerView #tlmLineCount{color:#969696}
+#textLayerManagerView .tlm-live-preview{min-height:86px;max-height:170px;overflow-y:auto;overflow-wrap:anywhere;white-space:pre-wrap;padding:13px 10px;margin:0 0 11px;border:1px solid #505050;border-radius:6px;background:#252525;color:#f0f0f0;font-size:13px;line-height:1.5;text-align:center}
+#textLayerManagerView .tlm-empty-preview{color:#7f7f7f}

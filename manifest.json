@@ -72,6 +72,11 @@
     }
   ],
   "requiredPermissions": {
-    "localFileSystem": "request"
+    "localFileSystem": "request",
+    "network": {
+      "domains": [
+        "https://translate.googleapis.com"
+      ]
+    }
   }
 }
