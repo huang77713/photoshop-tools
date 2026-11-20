@@ -306,6 +306,7 @@ module.exports = function initTextLayerManager(root) {
       return initial;
     }
     let result=initial;
+    const baseDescriptor=clone(job.after);
     let ratio=1;
     const minRatio=0.5;
     for(let attempt=0;attempt<6;attempt++) {
@@ -318,7 +319,7 @@ module.exports = function initTextLayerManager(root) {
       if(width<=originalWidth+0.5)return result;
       const nextRatio=Math.max(minRatio,ratio*Math.min(0.96,(originalWidth/width)*0.985));
       if(nextRatio>=ratio-0.0001)break;
-      const next=scaledTextDescriptor(job.after,nextRatio);
+      const next=scaledTextDescriptor(baseDescriptor,nextRatio);
       if(!next){
         warnings.push(job.name+"：字号描述不可编辑，未能自动缩小");
         return result;
