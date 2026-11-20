@@ -29,3 +29,7 @@
 #textLayerManagerView .tlm-status.ok{color:#a2d8af}
 #textLayerManagerView .tlm-status.error{color:#f1a2a2}
 @media(max-width:325px){#textLayerManagerView .tlm-filter-btn{min-width:92px;font-size:11px}#textLayerManagerView .tlm-picker-current{font-size:11px}}
+
+/* Unified replacement mode: no preview or extra rows */
+#textLayerManagerView .tlm-primary{margin-top:8px}
+#textLayerManagerView .tlm-field{margin-top:13px}
