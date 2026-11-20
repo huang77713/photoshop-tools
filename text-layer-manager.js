@@ -16,7 +16,10 @@ module.exports = function initTextLayerManager(root) {
   }
 
   function isText(layer) {
-    return !!layer && layer.kind === constants.LayerKind.TEXT;
+    if (!layer) return false;
+    const kind = String(layer.kind || "").toLowerCase();
+    return layer.kind === constants.LayerKind.TEXT ||
+      kind === "text" || kind === "layerkind.text" || kind === "3";
   }
 
   function isGroup(layer) {
@@ -66,17 +69,52 @@ module.exports = function initTextLayerManager(root) {
 
   async function selectLayers(layers) {
     if (!layers.length) throw new Error("没有找到符合条件的图层。");
-    const commands = [];
-    for (let i = 0; i < layers.length; i++) {
-      commands.push({
-        _obj: "select",
-        _target: [{ _ref: "layer", _id: layers[i].id }],
-        makeVisible: false,
-        ...(i ? { selectionModifier: { _enum: "selectionModifierType", _value: "addToSelection" } } : {})
-      });
-    }
+    const ids = layers.map(layer => Number(layer.id)).filter(Number.isFinite);
+    if (!ids.length) throw new Error("无法读取目标图层 ID。");
+    const originalIds = (app.activeDocument.activeLayers || []).map(layer => Number(layer.id));
     await core.executeAsModal(async () => {
-      await action.batchPlay(commands, { synchronousExecution: false, modalBehavior: "execute" });
+      try {
+        // Send one selection action per layer. This avoids multi-command
+        // selection state races in Photoshop UXP batchPlay.
+        for (let i = 0; i < ids.length; i++) {
+          const command = {
+            _obj: "select",
+            _target: [{ _ref: "layer", _id: ids[i] }],
+            makeVisible: false
+          };
+          if (i > 0) {
+            command.selectionModifier = {
+              _enum: "selectionModifierType",
+              _value: "addToSelection"
+            };
+          }
+          await action.batchPlay([command], { synchronousExecution: true });
+        }
+        const selectedIds = new Set((app.activeDocument.activeLayers || []).map(layer => Number(layer.id)));
+        const missing = ids.filter(id => !selectedIds.has(id));
+        if (missing.length || selectedIds.size !== ids.length) {
+          throw new Error("选中结果不一致：目标 " + ids.length + " 个，实际 " +
+            selectedIds.size + " 个；请检查锁定图层或 Photoshop 选择状态。");
+        }
+      } catch (error) {
+        // Best-effort restoration of the previous selection.
+        if (originalIds.length) {
+          try {
+            for (let i = 0; i < originalIds.length; i++) {
+              const command = { _obj: "select",
+                _target: [{ _ref: "layer", _id: originalIds[i] }],
+                makeVisible: false };
+              if (i) command.selectionModifier = {
+                _enum: "selectionModifierType", _value: "addToSelection"
+              };
+              await action.batchPlay([command], { synchronousExecution: true });
+            }
+          } catch (restoreError) {
+            console.warn("[Text Layer Manager] Restore selection failed:", restoreError);
+          }
+        }
+        throw error;
+      }
     }, { commandName: "筛选文字图层" });
   }
 
