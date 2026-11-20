@@ -542,10 +542,14 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
     <div id="textLayerManagerView" style="display:none">
       <div class="tlm-bar">文字图层选择</div>
       <div class="tlm-filter">
-        <select id="tlmScope" aria-label="筛选范围">
-          <option value="selection">当前选中 / 组内</option>
-          <option value="all">整个文档</option>
-        </select>
+        <div class="tlm-picker" id="tlmScopePicker">
+          <button id="tlmScopeButton" type="button" class="tlm-picker-current" aria-label="筛选范围" aria-expanded="false"><span id="tlmScopeLabel">选中 / 组内</span><span class="tlm-chevron"></span></button>
+          <div id="tlmScopeMenu" class="tlm-picker-menu" style="display:none">
+            <button type="button" class="tlm-picker-option active" data-scope="selection">选中 / 组内</button>
+            <button type="button" class="tlm-picker-option" data-scope="all">整个文档</button>
+            <button type="button" class="tlm-picker-option" data-scope="visible">可见图层</button>
+          </div>
+        </div>
         <button id="tlmSelect" type="button" class="tlm-filter-btn">选中文字图层</button>
       </div>
       <div class="tlm-toolbar"><button id="tlmRefresh" type="button">刷新选中数量</button><span>只选择文字图层，不修改内容</span></div>
