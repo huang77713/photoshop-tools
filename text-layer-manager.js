@@ -258,7 +258,11 @@ module.exports = function initTextLayerManager(root) {
         ?[{start:0,end:text.textKey.length,insert:replacement}]
         :sourceEdits(text.textKey,find,replacement);
       const change=planText(text,edits);
-      if(change) jobs.push({id:layer.id,name:layer.name,raw,...change});
+      if(change) {
+        const originalWidth=(mode==="all"&&fitMode==="shrink")
+          ?await measuredWidth(layer.id,raw):NaN;
+        jobs.push({id:layer.id,name:layer.name,raw,originalWidth,...change});
+      }
     }
     return {mode,fitMode:mode==="all"?fitMode:"keep",docId:d.id,selectionIds:layers.map(x=>x.id),jobs,find,replacement,skipped:layers.length-jobs.length};
   }
@@ -353,7 +357,7 @@ module.exports = function initTextLayerManager(root) {
     }
   }
   async function fitLongText(job,initial,context,warnings) {
-    const originalWidth=await measuredWidth(job.id,job.raw);
+    const originalWidth=job.originalWidth;
     if(!Number.isFinite(originalWidth)) {
       warnings.push(job.name+"：无法读取原始宽度，未自动缩小");
       return initial;
