@@ -145,17 +145,62 @@ module.exports = function initTextLayerManager(root) {
     if (layer.locked === true || layer.allLocked === true)
       throw Error(layer.name+"：图层已锁定，请先解锁");
   }
+  function styleAt(ranges,position,kind) {
+    if (!Array.isArray(ranges) || !ranges.length) return null;
+    const range=ranges.find(x=>x.from<=position && x.to>position) || ranges[0];
+    return range && range[kind] || null;
+  }
+  const VISIBLE_STYLE_KEYS=[
+    "fontPostScriptName","fontName","fontStyleName","size","impliedFontSize",
+    "color","tracking","kerning","horizontalScale","verticalScale",
+    "baselineShift","fauxBold","fauxItalic","underline","strikethrough",
+    "capitalization","leading","autoLeading","ligature","baseline"
+  ];
+  function equivalentVisibleStyle(before,after) {
+    if(!before || !after)return false;
+    // Photoshop frequently inserts/removes implicit descriptor defaults.
+    // Compare explicitly shared visual properties; don't reject a successful
+    // text edit solely because Adobe normalized nonvisual metadata.
+    for(const key of VISIBLE_STYLE_KEYS){
+      if(Object.prototype.hasOwnProperty.call(before,key) &&
+         Object.prototype.hasOwnProperty.call(after,key) &&
+         !almostEqual(before[key],after[key],0.02)) return false;
+    }
+    return true;
+  }
   function verifyDescriptor(job,actual) {
     if(actual.text.textKey !== job.newText)
-      throw Error(job.name+"：写入内容不一致");
-    for (const [key,kind] of [["textStyleRange","textStyle"],["paragraphStyleRange","paragraphStyle"]]) {
-      const expected=job.after[key],got=actual.text[key];
-      if(!Array.isArray(expected)||!Array.isArray(got)||expected.length!==got.length)
-        throw Error(job.name+"："+key+" 样式区间数量变化");
-      for(let i=0;i<expected.length;i++) {
-        if(expected[i].from!==got[i].from||expected[i].to!==got[i].to ||
-          !almostEqual(expected[i][kind],got[i][kind],0.02))
-          throw Error(job.name+"："+key+" 样式验证失败");
+      throw Error(job.name+"：文字内容未写入成功");
+    const beforeStyles=job.before.textStyleRange || [];
+    const afterStyles=actual.text.textStyleRange || [];
+    const beforeParagraph=job.before.paragraphStyleRange || [];
+    const afterParagraph=actual.text.paragraphStyleRange || [];
+    if(!afterStyles.length || !afterParagraph.length)
+      throw Error(job.name+"：Photoshop 未返回有效文字样式");
+    // For complete replacement compare the source's first visible style.
+    // For partial replacement, compare preserved style samples by output span.
+    const newLength=job.newText.length;
+    const samples=[0];
+    for(const range of job.after.textStyleRange || [])samples.push(range.from);
+    for(const p of samples){
+      if(newLength && p>=newLength)continue;
+      const expected=styleAt(job.after.textStyleRange,p,"textStyle");
+      const observed=styleAt(afterStyles,p,"textStyle");
+      if(!equivalentVisibleStyle(expected,observed))
+        throw Error(job.name+"：替换后字体、大小或颜色发生变化");
+    }
+    const paraKeys=["align","justification","firstLineIndent","startIndent","endIndent",
+      "spaceBefore","spaceAfter","hyphenate","direction"];
+    for(const p of [0,...(job.after.paragraphStyleRange||[]).map(x=>x.from)]){
+      if(newLength && p>=newLength)continue;
+      const expected=styleAt(job.after.paragraphStyleRange,p,"paragraphStyle");
+      const observed=styleAt(afterParagraph,p,"paragraphStyle");
+      if(!expected||!observed)throw Error(job.name+"：段落样式读取失败");
+      for(const key of paraKeys) {
+        if(Object.prototype.hasOwnProperty.call(expected,key)&&
+           Object.prototype.hasOwnProperty.call(observed,key)&&
+           !almostEqual(expected[key],observed[key],0.02))
+          throw Error(job.name+"：段落排版发生变化");
       }
     }
     if(!almostEqual(job.before.textShape,actual.text.textShape,0.02))
