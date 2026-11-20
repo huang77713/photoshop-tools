@@ -289,6 +289,13 @@ module.exports = function initTextLayerManager(root) {
           const job=jobs[i];
           await batch({_obj:"set",_target:[{_ref:"textLayer",_id:job.id}],
             to:{...clone(job.after),_obj:"textLayer"}});
+          // Photoshop may automatically rename a text layer to match its
+          // changed contents. Restore the original layer name explicitly.
+          const written=await readDescriptor(job.id);
+          if(written.raw.name!==job.raw.name) {
+            await batch({_obj:"set",_target:[{_ref:"layer",_id:job.id}],
+              to:{_obj:"layer",name:job.raw.name}});
+          }
           const actual=await readDescriptor(job.id);
           verifyDescriptor(job,actual);
           warnings.push(...warningsFor(job,actual));
