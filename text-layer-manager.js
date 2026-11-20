@@ -252,7 +252,87 @@ module.exports = function initTextLayerManager(root) {
       const change=planText(text,edits);
       if(change) jobs.push({id:layer.id,name:layer.name,raw,...change});
     }
-    return {mode,docId:d.id,selectionIds:layers.map(x=>x.id),jobs,find,replacement,skipped:layers.length-jobs.length};
+    return {mode,fitMode:mode==="all"?fitMode:"keep",docId:d.id,selectionIds:layers.map(x=>x.id),jobs,find,replacement,skipped:layers.length-jobs.length};
+  }
+  function boundsWidth(raw) {
+    const b=raw && (raw.boundsNoEffects || raw.bounds);
+    if(!b)return NaN;
+    const w=px(b.right)-px(b.left);
+    return Number.isFinite(w)&&w>0?w:NaN;
+  }
+  function scaleUnit(value,factor) {
+    if(typeof value==="number")return value*factor;
+    if(value && typeof value==="object") {
+      const obj=clone(value);
+      if(Number.isFinite(obj._value))obj._value*=factor;
+      else if(Number.isFinite(obj.value))obj.value*=factor;
+      else return null;
+      return obj;
+    }
+    return null;
+  }
+  function scaledTextDescriptor(base,factor) {
+    const result=clone(base);
+    let count=0;
+    for(const range of result.textStyleRange || []) {
+      const style=range.textStyle;
+      if(!style)continue;
+      if(style.size!==undefined) {
+        const scaled=scaleUnit(style.size,factor);
+        if(scaled!==null){style.size=scaled;count++;}
+      }
+      if(style.impliedFontSize!==undefined) {
+        const scaled=scaleUnit(style.impliedFontSize,factor);
+        if(scaled!==null)style.impliedFontSize=scaled;
+      }
+    }
+    return count?result:null;
+  }
+  async function applyTextDescriptor(id,after) {
+    await batch({_obj:"set",_target:[{_ref:"textLayer",_id:id}],
+      to:{...clone(after),_obj:"textLayer"}});
+  }
+  async function restoreLayerName(job) {
+    const written=await readDescriptor(job.id);
+    if(written.raw.name!==job.raw.name) {
+      await batch({_obj:"set",_target:[{_ref:"layer",_id:job.id}],
+        to:{_obj:"layer",name:job.raw.name}});
+    }
+  }
+  async function fitLongText(job,initial,context,warnings) {
+    const originalWidth=boundsWidth(job.raw);
+    if(!Number.isFinite(originalWidth)) {
+      warnings.push(job.name+"：无法读取原始宽度，未自动缩小");
+      return initial;
+    }
+    let result=initial;
+    let ratio=1;
+    const minRatio=0.5;
+    for(let attempt=0;attempt<6;attempt++) {
+      if(context.isCancelled)throw Error("用户取消操作");
+      const width=boundsWidth(result.raw);
+      if(!Number.isFinite(width)){
+        warnings.push(job.name+"：无法测量修改后宽度");
+        return result;
+      }
+      if(width<=originalWidth+0.5)return result;
+      const nextRatio=Math.max(minRatio,ratio*Math.min(0.96,(originalWidth/width)*0.985));
+      if(nextRatio>=ratio-0.0001)break;
+      const next=scaledTextDescriptor(job.after,nextRatio);
+      if(!next){
+        warnings.push(job.name+"：字号描述不可编辑，未能自动缩小");
+        return result;
+      }
+      job.after=next;
+      await applyTextDescriptor(job.id,next);
+      await restoreLayerName(job);
+      result=await readDescriptor(job.id);
+      ratio=nextRatio;
+      if(ratio<=minRatio+0.0001)break;
+    }
+    if(boundsWidth(result.raw)>originalWidth+0.5)
+      warnings.push(job.name+"：缩至原字号50%后仍超宽，请手动检查");
+    return result;
   }
   async function runJobs(prepared) {
     if(doc().id!==prepared.docId ||
@@ -278,16 +358,12 @@ module.exports = function initTextLayerManager(root) {
         for(let i=0;i<jobs.length;i++) {
           if(context.isCancelled)throw Error("用户取消操作");
           const job=jobs[i];
-          await batch({_obj:"set",_target:[{_ref:"textLayer",_id:job.id}],
-            to:{...clone(job.after),_obj:"textLayer"}});
-          // Photoshop may automatically rename a text layer to match its
-          // changed contents. Restore the original layer name explicitly.
-          const written=await readDescriptor(job.id);
-          if(written.raw.name!==job.raw.name) {
-            await batch({_obj:"set",_target:[{_ref:"layer",_id:job.id}],
-              to:{_obj:"layer",name:job.raw.name}});
+          await applyTextDescriptor(job.id,job.after);
+          await restoreLayerName(job);
+          let actual=await readDescriptor(job.id);
+          if(prepared.mode==="all" && prepared.fitMode==="shrink") {
+            actual=await fitLongText(job,actual,context,warnings);
           }
-          const actual=await readDescriptor(job.id);
           verifyDescriptor(job,actual);
           warnings.push(...warningsFor(job,actual));
           if(context.reportProgress)
