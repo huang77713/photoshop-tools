@@ -5,25 +5,16 @@ module.exports = function initTextLayerManager(root) {
   const {app, action, core, constants} = ps;
   const $ = id => root.querySelector("#" + id);
   let scopeValue = "selection";
-  const pickerButton = $("tlmScopeButton");
-  const pickerMenu = $("tlmScopeMenu");
-  const pickerOptions = Array.from(root.querySelectorAll(".tlm-picker-option"));
-  function closePicker() {
-    pickerMenu.style.display = "none";
-    pickerButton.setAttribute("aria-expanded", "false");
-  }
-  pickerButton.addEventListener("click", function () {
-    const opening = pickerMenu.style.display === "none";
-    pickerMenu.style.display = opening ? "block" : "none";
-    pickerButton.setAttribute("aria-expanded", opening ? "true" : "false");
+  let fitMode = "keep";
+  const scopeDropdown = $("tlmScopeDropdown");
+  const fitDropdown = $("tlmFitMode");
+  scopeDropdown.addEventListener("change", function () {
+    const values=["selection","all","visible"];
+    const index=Number(scopeDropdown.selectedIndex);
+    scopeValue=values[index] || "selection";
   });
-  pickerOptions.forEach(option => {
-    option.addEventListener("click", function () {
-      scopeValue = option.getAttribute("data-scope");
-      $("tlmScopeLabel").textContent = option.textContent;
-      pickerOptions.forEach(item => item.classList.toggle("active", item === option));
-      closePicker();
-    });
+  fitDropdown.addEventListener("change", function () {
+    fitMode=Number(fitDropdown.selectedIndex)===1 ? "shrink" : "keep";
   });
   let busy = false;
   const clone = x => JSON.parse(JSON.stringify(x));
@@ -381,7 +372,6 @@ module.exports = function initTextLayerManager(root) {
   }
   $("tlmSelect").addEventListener("click",()=>guarded(async()=>{
     const scope=scopeValue;
-    closePicker();
     const targets=unique(layersInScope(scope).filter(textLayer));
     status("找到 "+targets.length+" 个文字图层，正在选中…");
     await selectIds(targets.map(l=>l.id));
