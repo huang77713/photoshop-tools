@@ -13,6 +13,7 @@
   var loadedSmartArrange = false;
   var loadedVisibleResize = false;
   var loadedBoundsFrame = false;
+  var loadedTextLayerManager = false;
   var bodyArea = document.getElementById("bodyArea");
   function setMenuOpen(open) {
     // Some UXP input controls render above CSS z-index layers. Hiding only
@@ -39,6 +40,7 @@
       var showSmartArrange = name === "智能排列";
       var showVisibleResize = name === "批量尺寸统一";
       var showBoundsFrame = name === "边界框";
+      var showTextLayerManager = name === "文字图层管理";
       label.textContent = name;
       heading.textContent = name;
       message.textContent = "此工具将在后续测试阶段接入。";
@@ -53,6 +55,7 @@
       var smartView = document.getElementById("smartArrangeView");
       var resizeView = document.getElementById("visibleResizeView");
       var frameView = document.getElementById("boundsFrameView");
+      var textManagerView = document.getElementById("textLayerManagerView");
       nineView.style.display = showNine ? "block" : "none";
       spriteView.style.display = showSprite ? "block" : "none";
       removeView.style.display = showRemoveBg ? "block" : "none";
@@ -60,7 +63,8 @@
       smartView.style.display = showSmartArrange ? "block" : "none";
       resizeView.style.display = showVisibleResize ? "block" : "none";
       frameView.style.display = showBoundsFrame ? "block" : "none";
-      var showFallback = !showNine && !showSprite && !showRemoveBg && !showTextCutter && !showSmartArrange && !showVisibleResize && !showBoundsFrame;
+      textManagerView.style.display = showTextLayerManager ? "block" : "none";
+      var showFallback = !showNine && !showSprite && !showRemoveBg && !showTextCutter && !showSmartArrange && !showVisibleResize && !showBoundsFrame && !showTextLayerManager;
       heading.style.display = showFallback ? "block" : "none";
       message.style.display = showFallback ? "block" : "none";
       document.querySelector(".spacer").style.display = showFallback ? "block" : "none";
@@ -161,6 +165,21 @@
         }
       } else if (showBoundsFrame && loadedBoundsFrame && typeof frameView.__boundsFrameActivate === "function") {
         frameView.__boundsFrameActivate();
+      }
+      if (showTextLayerManager && !loadedTextLayerManager) {
+        try {
+          require("./text-layer-manager.js")(textManagerView);
+          loadedTextLayerManager = true;
+        } catch (error) {
+          console.error("[Photoshop Tools] Text Layer Manager failed:", error);
+          textManagerView.style.display = "none";
+          heading.style.display = "block";
+          message.style.display = "block";
+          heading.textContent = "文字图层管理启动失败";
+          message.textContent = String(error && error.message || error);
+        }
+      } else if (showTextLayerManager && loadedTextLayerManager && typeof textManagerView.__textLayerManagerActivate === "function") {
+        textManagerView.__textLayerManagerActivate();
       }
       if (showVisibleResize && !loadedVisibleResize) {
         try {
