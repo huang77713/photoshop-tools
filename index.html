@@ -540,71 +540,51 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div id="bfStatus" class="bf-status">请选择图层或组。</div>
     </div>
     <div id="textLayerManagerView" style="display:none">
-      <div class="tlm-head">
-        <div class="tlm-title">文字图层管理</div>
-        <div class="tlm-subtitle">筛选文字图层 · 批量翻译 · 批量修改画布文字</div>
-      </div>
-
       <div class="tlm-section">
         <div class="tlm-section-title">筛选和操作</div>
-        <div class="tlm-row">
-          <label class="tlm-field">
-            <span class="tlm-label">范围</span>
-            <select id="tlmScope">
-              <option value="selection">选中</option>
-              <option value="all">所有</option>
-            </select>
-          </label>
-          <label class="tlm-field">
-            <span class="tlm-label">图层类型</span>
-            <select id="tlmLayerType">
-              <option value="text">文字图层</option>
-              <option value="group">图层组</option>
-              <option value="textAndGroup">文字 + 图层组</option>
-            </select>
-          </label>
-          <button id="tlmFilterRun" class="tlm-run" title="执行筛选">▶</button>
+        <div class="tlm-filter-row">
+          <select id="tlmScope" aria-label="筛选范围">
+            <option value="selection">选中</option>
+            <option value="all">所有</option>
+          </select>
+          <span class="tlm-all-label">所有</span>
+          <select id="tlmLayerType" aria-label="图层类型">
+            <option value="text">文字图层</option>
+            <option value="group">图层组</option>
+            <option value="textAndGroup">文字 + 图层组</option>
+          </select>
+          <button id="tlmFilterRun" class="tlm-run" type="button" title="执行筛选">▶</button>
         </div>
       </div>
-
       <div class="tlm-section">
         <div class="tlm-section-title">翻译功能</div>
-        <div class="tlm-note">选中图层，勾选下面选项进行翻译。选中图层组时会同时处理组内符合条件的内容。</div>
+        <div class="tlm-note">选中图层，勾选下面选项进行翻译</div>
         <div class="tlm-checks">
           <label class="tlm-check"><input id="tlmTranslateNames" type="checkbox"><span>图层名称</span></label>
           <label class="tlm-check"><input id="tlmTranslateText" type="checkbox" checked><span>文字内容</span></label>
           <label class="tlm-check"><input id="tlmTranslateGroups" type="checkbox"><span>图层组</span></label>
         </div>
-        <div class="tlm-row">
-          <label class="tlm-field">
-            <span class="tlm-label">目标语言</span>
-            <select id="tlmTargetLang">
-              <option value="zh-CN">简体中文</option>
-              <option value="en">English</option>
-              <option value="hi">हिन्दी</option>
-              <option value="ja">日本語</option>
-              <option value="ko">한국어</option>
-              <option value="th">ไทย</option>
-              <option value="id">Bahasa Indonesia</option>
-              <option value="vi">Tiếng Việt</option>
-            </select>
-          </label>
+        <div class="tlm-lang-row">
+          <span>目标语言</span>
+          <select id="tlmTargetLang" aria-label="目标语言">
+            <option value="zh-CN">简体中文</option>
+            <option value="en">English</option>
+            <option value="hi">हिन्दी</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="th">ไทย</option>
+            <option value="id">Bahasa Indonesia</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
         </div>
-        <button id="tlmTranslate" class="tlm-button">翻译</button>
+        <button id="tlmTranslate" class="tlm-button" type="button">翻译</button>
       </div>
-
       <div class="tlm-section">
         <div class="tlm-section-title">批量修改文字内容</div>
-        <div class="tlm-note">只修改当前选中的文字图层。比如原来显示 aabb，输入 ccdd 后执行，所有选中的文字图层都会变成 ccdd。</div>
-        <div class="tlm-replace-row">
-          <label class="tlm-field">
-            <span class="tlm-label">新的文字内容</span>
-            <input id="tlmReplaceText" type="text" placeholder="例如：ccdd">
-          </label>
-          <button id="tlmReplace" class="tlm-button tlm-primary">应用</button>
-        </div>
+        <div class="tlm-note">输入文字，一键替换所有选中文字图层的显示内容</div>
+        <input id="tlmReplaceText" class="tlm-text-input" type="text" placeholder="输入新的文字，例如 ccdd">
+        <button id="tlmReplace" class="tlm-button tlm-replace" type="button">应用修改</button>
       </div>
-
       <div id="tlmStatus" class="tlm-status">请选择图层后进行操作。</div>
     </div>
     <div id="heading">菜单交互测试</div>
