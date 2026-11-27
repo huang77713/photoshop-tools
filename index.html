@@ -211,7 +211,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
     <div id="nineSliceView" style="display:none"><div class="root"><div class="scroll-area">
   <div class="ns-layer">
     <div class="ns-layer-text"><div id="nsLayerName" class="ns-layer-name">未读取图层</div><div id="sourceInfo" class="ns-layer-meta">在 Photoshop 中选中一个图层</div></div>
-    <button id="load" class="ns-btn ns-btn-small">重新读取</button>
+    <div id="load" class="ns-btn ns-btn-small" role="button" tabindex="0">重新读取</div>
   </div>
   <div class="ns-compare">
     <div class="ns-preview-column">
@@ -224,7 +224,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
     </div>
   </div>
   <div class="ns-section">
-    <div class="ns-section-head"><span class="ns-section-title">固定边距 (px)</span><span class="ns-head-actions"><span id="nsSymmetric" class="ns-toggle" role="button" tabindex="0" aria-pressed="false" title="开启后左右、上下自动保持一致">对称</span><button id="reset" class="ns-btn ns-btn-small">重置</button></span></div>
+    <div class="ns-section-head"><span class="ns-section-title">固定边距 (px)</span><span class="ns-head-actions"><span id="nsSymmetric" class="ns-toggle" role="button" tabindex="0" aria-pressed="false" title="开启后左右、上下自动保持一致">对称</span><div id="reset" class="ns-btn ns-btn-small" role="button" tabindex="0">重置</div></span></div>
     <div class="ns-cross">
       <div class="ns-cross-row"><div class="ns-cross-field ns-label-first"><label for="top">上</label><input id="top" type="text" inputmode="numeric" value="20"></div><span class="ns-cross-spacer"></span></div>
       <div class="ns-cross-row ns-cross-middle">
@@ -246,7 +246,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
     <div class="ns-segment mode"><label class="ns-mode-item" data-mode="stretch" tabindex="0"><input type="radio" name="mode" value="stretch" checked><span>拉伸</span></label><label class="ns-mode-item ns-mode-second" data-mode="tile" tabindex="0"><input type="radio" name="mode" value="tile"><span>平铺</span></label></div>
     <div id="nsModeNote" class="ns-mode-note">中间区域整体拉伸到目标尺寸。</div>
   </div>
-  </div><div class="footer"><div class="ns-actions"><button id="sameDoc" class="ns-btn ns-btn-primary">生成到当前文档</button><button id="newDoc" class="ns-btn">新建文档</button></div><div id="status" class="hint">请先选中图层</div></div>
+  </div><div class="footer"><div class="ns-actions"><div id="sameDoc" class="ns-btn ns-btn-primary" role="button" tabindex="0">生成到当前文档</div><div id="newDoc" class="ns-btn" role="button" tabindex="0">新建文档</div></div><div id="status" class="hint">请先选中图层</div></div>
 </div></div>
      <div id="spriteFontView" style="display:none"><main class="panel">
   <header class="header">

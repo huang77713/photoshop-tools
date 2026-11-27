@@ -15,13 +15,14 @@
 #nineSliceView .error{color:#ff9d94!important}
 #nineSliceView .ok{color:#8fd19e!important}
 
-/* Buttons */
-#nineSliceView .ns-btn{display:block;min-height:30px;padding:0 12px;margin:0;border:1px solid #555555;border-radius:4px;background:#3a3a3a;color:#e6e6e6;font-size:12px;cursor:pointer}
+/* Buttons: plain <div role="button"> because UXP draws native <button> elements with its
+   own font and size, ignoring this stylesheet. */
+#nineSliceView .ns-btn{display:flex;align-items:center;justify-content:center;min-height:30px;padding:0 12px;margin:0;border:1px solid #555555;border-radius:4px;background:#3a3a3a;color:#e6e6e6;font-size:12px;white-space:nowrap;cursor:pointer;user-select:none}
 #nineSliceView .ns-btn:hover{background:#454545;border-color:#666666}
 #nineSliceView .ns-btn-small{min-height:26px;padding:0 9px;font-size:11px}
 #nineSliceView .ns-btn-primary{background:#1473e6;border-color:#1473e6;color:#ffffff}
 #nineSliceView .ns-btn-primary:hover{background:#0d66d0;border-color:#0d66d0}
-#nineSliceView .ns-btn:disabled{opacity:.5;cursor:default}
+#nineSliceView .ns-btn.ns-busy{opacity:.5;cursor:default}
 
 /* Current layer bar */
 #nineSliceView .ns-layer{display:flex;flex-direction:row;align-items:center;padding:6px 6px 6px 9px;background:#262626;border:1px solid #3d3d3d;border-radius:4px}
@@ -60,8 +61,9 @@
 #nineSliceView .ns-toggle:hover{border-color:#666666;color:#e6e6e6}
 #nineSliceView .ns-toggle[aria-pressed="true"]{background:#1f3a5c;border-color:#3ea6ff;color:#ffffff}
 
-/* Inputs (UXP native inputs need firm overrides) */
-#nineSliceView input[type="text"]{display:block!important;height:28px!important;min-width:0!important;margin:0!important;padding:0 7px!important;background:#1e1e1e!important;color:#ffffff!important;border:1px solid #4a4a4a!important;border-radius:3px!important;font-size:13px!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
+/* Inputs (UXP native inputs need firm overrides). Keep vertical padding: without it the
+   native text field is taller than the box, sits at the top and covers the bottom border. */
+#nineSliceView input[type="text"]{display:block!important;height:32px!important;min-width:0!important;margin:0!important;padding:6px 8px!important;line-height:normal!important;background:#1e1e1e!important;color:#ffffff!important;border:1px solid #4a4a4a!important;border-radius:3px!important;font-size:13px!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
 #nineSliceView input[type="text"]:focus{border-color:#3ea6ff!important}
 
 /* Margin inputs laid out as a cross: top / left · centre · right / bottom */
@@ -74,13 +76,13 @@
 #nineSliceView .ns-cross-field.ns-label-first label{margin-right:4px}
 #nineSliceView .ns-cross-field.ns-label-last label{margin-left:4px}
 #nineSliceView .ns-cross-spacer{flex:none;width:20px}
-#nineSliceView .ns-cross-center{flex:none;width:46px;height:32px;margin:0 8px;display:flex;align-items:center;justify-content:center;border:1px dashed #575757;border-radius:3px;color:#7a7a7a;font-size:11px}
+#nineSliceView .ns-cross-center{flex:none;width:46px;height:34px;margin:0 8px;display:flex;align-items:center;justify-content:center;border:1px dashed #575757;border-radius:3px;color:#7a7a7a;font-size:11px}
 
 /* Output size row */
 #nineSliceView .ns-size-row{display:flex;flex-direction:row;align-items:center;width:100%}
 #nineSliceView .ns-inline-label{flex:none;margin-right:5px;color:#9a9a9a;font-size:11px}
 #nineSliceView .ns-size-row input[type="text"]{flex:1 1 0;width:0!important}
-#nineSliceView .ns-aspect-lock{display:block;flex:none;width:28px;height:28px;margin:0 6px;background-image:url("icons/aspect-unlocked.png");background-repeat:no-repeat;background-size:20px 20px;background-position:center center;opacity:.7;cursor:pointer;border-radius:3px}
+#nineSliceView .ns-aspect-lock{display:block;flex:none;width:28px;height:32px;margin:0 6px;background-image:url("icons/aspect-unlocked.png");background-repeat:no-repeat;background-size:20px 20px;background-position:center center;opacity:.7;cursor:pointer;border-radius:3px}
 #nineSliceView .ns-aspect-lock:hover{opacity:1;background-color:#3a3a3a}
 #nineSliceView .ns-aspect-lock[aria-pressed="true"]{background-image:url("icons/aspect-locked.png");opacity:1}
 

@@ -403,6 +403,10 @@ root.querySelectorAll('.ns-mode-item').forEach(item=>{
 });
 selectMode(readStore(STORE.mode,'stretch'));
 $('newDoc').addEventListener('click',()=>generate(true));$('sameDoc').addEventListener('click',()=>generate(false));
+// Buttons are <div role="button"> (UXP ignores CSS on native buttons): support Enter/Space too.
+['load','reset','sameDoc','newDoc'].forEach(id=>$(id).addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();$(id).click();}
+}));
 root.querySelectorAll('.guide').forEach(el=>el.addEventListener('pointerdown',e=>{
   if(!source)return;drag=el.dataset.guide;el.setPointerCapture(e.pointerId);e.preventDefault();
 }));
