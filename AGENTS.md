@@ -32,7 +32,7 @@
 |---|---|---|---|
 | 九宫格拉伸 | `nine-slice.js` | `nine-slice.css`（`#nineSliceView` 作用域，图标 `icons/ns-link-*.png`） | `index.html` 的 `#nineSliceView` |
 | 图片数字排版 | `sprite-font.js` | `sprite-font.css`（`#spriteFontView` 作用域；`menu.js` 为其切换 `#bodyArea.sprite-active`） | `index.html` 的 `#spriteFontView` |
-| 透明对象拆分 | `remove-bg.js` | `extra-features.css` | `index.html` 的 `#removeBgView` |
+| 透明对象拆分 | `remove-bg.js` | `remove-bg.css`（`tsp-` 前缀；`menu.js` 为其切换 `#bodyArea.split-active`；用 `#bodyArea #removeBgView` 覆盖 `extra-features.css` 中的旧 `!important` 规则） | `index.html` 的 `#removeBgView` |
 | 文字批量切图 | `text-cutter.js` | `extra-features.css`、`text-cutter-ui.css` | `index.html` 的 `#textCutterView` |
 | 智能排列 | `smart-arrange.js` | `smart-arrange.css` | `index.html` 的 `#smartArrangeView` |
 | 批量尺寸统一 | `visible-resize.js` | `visible-resize.css` | `index.html` 的 `#visibleResizeView` |
@@ -149,7 +149,7 @@ module.exports = function initExampleTool(root) {
 - **批量尺寸统一**：`visible-resize.js` 的可见像素测量、临时文档流程和独立缩放逻辑与智能排列不同。不要把两套逻辑合并，也不要擅自复用导致两个工具耦合。
 - **九宫格拉伸**：原有控件 ID 和预览/分割线/输出区域需要保留。按钮使用 `div[role=button]`（UXP 会忽略原生 `<button>` 的字体样式），输入框保留上下内边距，避免原生文字框盖住边框。
 - **图片数字排版**：原有数字素材读取、排列与输出逻辑需要保留。字形像素在首次读取字库后缓存；预览与合并输出共用 `computeLayout` / `composeRGBA`，预览以插件内 PNG 编码显示；生成须保持一步撤销。
-- **透明对象拆分**：保留透明背景处理、可见像素识别与导出流程。
+- **透明对象拆分**：保留透明背景处理、可见像素识别与导出流程。输出只复制本对象拥有的像素（`labels` 归属图）及无归属的柔边像素；拆分前须核对识别结果未变化；保持一步撤销与失败回滚。`extra-features.css` 仍被文字批量切图使用，修改时不要删除其中 `#textCutterView` 规则。
 - **文字批量切图**：保留文字提取、预览和导出流程。
 - **边界框**：保留可编辑矢量矩形、颜色选择、统一宽高及边界检查；尺寸为偶数整数，坐标为整数，不得擅自改为栅格图层或改变尺寸规范。
 - **文字图层管理**：保留选中/全部/可见文字图层筛选（包含隐藏父组判断）、统一替换、手动换行和实时预览、可选长文字缩小、高级查找替换、原图层名称与文字样式保护及失败回滚。不得随意重置字体、字号、颜色或段落样式；仅在用户启用相关功能时改变相应属性。
