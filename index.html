@@ -36,6 +36,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 <link rel="stylesheet" href="text-layer-manager.css">
 <link rel="stylesheet" href="nine-slice.css">
 <link rel="stylesheet" href="sprite-font.css">
+<link rel="stylesheet" href="remove-bg.css">
 </head>
 <body>
 <div id="app">
@@ -151,45 +152,58 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   </div>
   </div><div class="sf-footer"><div id="btnGenerate" class="sf-btn sf-btn-primary" role="button" tabindex="0">生成</div><div id="status" class="status sf-status">选择字库，输入内容后即可生成。</div></div>
 </div></div>
-    <div id="removeBgView" class="extra-tool" style="display:none"><main class="panel">
-  <header class="header">
-    <div><div class="title">透明对象拆分</div><div class="subtitle">识别独立元素，保留原始图层</div></div>
-  </header>
-  <div class="ts-layer-bar">
-    <div class="ts-layer-details"><div class="ts-caption">当前选中图层</div><div id="layerStatus" class="status muted">等待选择透明图层</div></div>
-    <button id="refreshLayerBtn" class="button secondary small">重新识别</button>
+    <div id="removeBgView" class="extra-tool" style="display:none"><div class="tsp-root"><div class="tsp-scroll">
+  <div class="tsp-layer">
+    <div class="tsp-layer-text"><div id="tspLayerName" class="tsp-layer-name">未选择图层</div><div id="layerStatus" class="tsp-layer-meta">选择一个已去好背景的透明图层</div></div>
+    <div id="refreshLayerBtn" class="tsp-btn tsp-btn-small" role="button" tabindex="0">重新识别</div>
   </div>
-  <section class="ts-preview-section">
-    <div class="ts-section-heading"><span>识别预览</span><span id="detectedCount" class="ts-count">未识别</span></div>
-    <div id="splitPreview" class="ts-preview">
-      <div id="splitPreviewStage" class="ts-preview-stage"><img id="splitPreviewImage" alt="当前图层预览"><div id="splitPreviewMarkers" class="ts-preview-markers"></div></div>
-      <div id="splitPreviewPlaceholder" class="ts-preview-placeholder">选择已去背景的透明图层，自动显示识别结果</div>
+  <div class="tsp-preview-head"><span>识别预览 · 点击框可选中</span><span id="detectedCount" class="tsp-muted">未识别</span></div>
+  <div id="splitPreview" class="tsp-preview">
+    <div id="splitPreviewStage" class="tsp-preview-stage" style="display:none"><img id="splitPreviewImage" alt="当前图层预览"><div id="splitPreviewMarkers" class="tsp-markers"></div></div>
+    <div id="splitPreviewPlaceholder" class="tsp-placeholder">选择已去背景的透明图层，自动显示识别结果</div>
+  </div>
+  <div id="tspSelBar" class="tsp-selbar" style="display:none">
+    <span id="tspSelCount" class="tsp-selcount">未选中</span>
+    <div id="tspMerge" class="tsp-btn tsp-btn-small" role="button" tabindex="0">合并</div>
+    <div id="tspExclude" class="tsp-btn tsp-btn-small tsp-gap" role="button" tabindex="0">排除</div>
+    <div id="tspRestore" class="tsp-btn tsp-btn-small tsp-btn-ghost tsp-gap" role="button" tabindex="0">全部恢复</div>
+  </div>
+  <div id="splitPreviewInfo" class="tsp-note">只读识别，不修改原图层</div>
+  <div class="tsp-section">
+    <div class="tsp-section-title">识别</div>
+    <div class="tsp-row">
+      <div class="tsp-field"><div class="tsp-label">合并间距 px</div><input id="tspMergeGap" type="text" inputmode="numeric" value="0"></div>
+      <div class="tsp-field tsp-gap"><div class="tsp-label">最小面积 %</div><input id="minAreaPercent" type="text" inputmode="decimal" value="0.002"></div>
+      <div class="tsp-field tsp-gap"><div class="tsp-label">柔边保留 px</div><input id="padding" type="text" inputmode="numeric" value="8"></div>
     </div>
-    <div id="splitPreviewInfo" class="ts-preview-info">仅预览识别区域，尚未修改图层</div>
-  </section>
-  <section class="ts-output-section">
-    <div class="ts-section-heading"><span>输出方式</span></div>
-    <div class="ts-output-options" role="group" aria-label="输出方式">
-      <label class="ts-output-option ts-selected" data-output="smart" tabindex="0"><input type="radio" name="splitOutput" value="smart" checked><span>智能对象</span></label>
-      <label class="ts-output-option" data-output="pixel" tabindex="0"><input type="radio" name="splitOutput" value="pixel"><span>像素图层</span></label>
+    <div class="tsp-note">合并间距：比这个距离更近的几块算同一个对象（0 = 只合并连在一起的像素）。最小面积用来忽略小碎片。</div>
+  </div>
+  <div class="tsp-section">
+    <div class="tsp-section-title">输出</div>
+    <div class="tsp-segment" role="group" aria-label="输出方式">
+      <div class="tsp-output-option" data-output="smart" role="radio" tabindex="0">智能对象</div>
+      <div class="tsp-output-option tsp-seg-next" data-output="pixel" role="radio" tabindex="0">像素图层</div>
     </div>
-  </section>
-  <div class="ts-advanced-section">
-    <button id="advancedToggle" class="ts-advanced-toggle" aria-expanded="false">高级设置 <span id="advancedArrow">▾</span></button>
-    <div id="advancedPanel" class="ts-advanced-panel" style="display:none">
-      <div class="field"><label class="label" for="groupName">结果组名称</label><input id="groupName" type="text" value="Split_Objects" spellcheck="false"></div>
-      <div class="field"><label class="label" for="layerPrefix">图层名称前缀</label><input id="layerPrefix" type="text" value="Object" spellcheck="false"></div>
-      <div class="ts-two-fields">
-        <div class="field"><label class="label" for="minAreaPercent">最小面积 (%)</label><input id="minAreaPercent" type="number" value="0.002" min="0" max="10" step="0.001"></div>
-        <div class="field"><label class="label" for="padding">识别边距 (px)</label><input id="padding" type="number" value="8" min="0" max="200" step="1"></div>
+    <div class="tsp-row tsp-sort-row">
+      <span class="tsp-inline-label">排序</span>
+      <div class="tsp-segment tsp-grow" role="group" aria-label="排序方式">
+        <div class="tsp-sort-option" data-sort="reading" role="radio" tabindex="0">阅读顺序</div>
+        <div class="tsp-sort-option tsp-seg-next" data-sort="ltr" role="radio" tabindex="0">从左到右</div>
+        <div class="tsp-sort-option tsp-seg-next" data-sort="ttb" role="radio" tabindex="0">从上到下</div>
+        <div class="tsp-sort-option tsp-seg-next" data-sort="size" role="radio" tabindex="0">按大小</div>
       </div>
-      <div class="hint">最小面积用于忽略小碎片；边距用于保留柔边和低透明像素。修改后自动重新分析。</div>
     </div>
+    <div class="tsp-row tsp-name-row">
+      <div class="tsp-field"><div class="tsp-label">组名称</div><input id="groupName" type="text" value="Split_Objects" spellcheck="false"></div>
+      <div class="tsp-field tsp-gap"><div class="tsp-label">图层前缀</div><input id="layerPrefix" type="text" value="Object" spellcheck="false"></div>
+    </div>
+    <div class="tsp-label tsp-list-label">名称列表（可选，用逗号分隔）</div>
+    <input id="tspNameList" type="text" placeholder="例如：coin,diamond,heart" spellcheck="false">
+    <div class="tsp-note">按排序依次命名；名称不够时用「前缀_序号」。</div>
+    <div id="tspHideSource" class="tsp-check-row" role="checkbox" tabindex="0" aria-checked="false"><span class="tsp-check-box"></span><span>拆分后隐藏原图层</span></div>
   </div>
-  <button id="runBtn" class="button primary full run-button" disabled>请先选择透明图层</button>
-  <div id="message" class="message muted">只在点击拆分时创建新图层</div>
-  <div class="ts-safe-note">原始图层保持不变 · 拆分结果自动成组</div>
-</main></div>
+  </div><div class="tsp-footer"><div id="runBtn" class="tsp-btn tsp-btn-primary tsp-off" role="button" tabindex="0">请先选择透明图层</div><div id="message" class="message tsp-status">结果自动成组 · 原图层像素不会被修改 · 一次 Ctrl+Z 可撤销</div></div>
+</div></div>
     <div id="textCutterView" class="extra-tool" style="display:none"><main class="panel">
   <header class="header">
     <div><div class="title">文字批量切图</div><div class="subtitle">使用 Photoshop 文字样式生成透明 PNG</div></div>

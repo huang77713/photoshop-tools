@@ -75,6 +75,9 @@
       // Image-number layout uses its own fixed footer, like Nine Slice.
       if (showSprite) area.classList.add("sprite-active");
       else area.classList.remove("sprite-active");
+      // Transparent split also uses its own fixed footer.
+      if (showRemoveBg) area.classList.add("split-active");
+      else area.classList.remove("split-active");
       setMenuOpen(false);
 
       if (showNine && !loadedNineSlice) {
@@ -115,6 +118,7 @@
         } catch (error) {
           console.error("[Photoshop Tools] Transparent Split failed:", error);
           removeView.style.display = "none";
+          area.classList.remove("split-active");
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "透明对象拆分工具启动失败";

@@ -1,0 +1,89 @@
+/* Transparent Split (透明对象拆分) — scoped styles, v2 layout.
+   Loaded after extra-features.css, which still holds the old shared #removeBgView rules
+   (left untouched because Text Cutter shares that file). All new classes use the tsp-
+   prefix so the old rules do not apply. Same visual language as nine-slice.css. */
+
+#bodyArea.split-active{padding:0;overflow:hidden}
+
+#removeBgView{height:100%;width:100%;min-height:0;min-width:0;margin:0;overflow:hidden;background:#2b2b2b;color:#e6e6e6;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
+#removeBgView .tsp-root{height:100%;width:100%;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+#removeBgView .tsp-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 12px 12px}
+
+/* Shared */
+#removeBgView .tsp-muted{color:#8f8f8f;font-size:11px}
+#removeBgView .tsp-row{display:flex;flex-direction:row;align-items:center;width:100%}
+#removeBgView .tsp-grow{flex:1 1 0;min-width:0}
+#removeBgView .tsp-gap{margin-left:8px}
+#removeBgView .tsp-label{margin:0 0 4px;color:#a8a8a8;font-size:11px}
+#removeBgView .tsp-note{margin-top:6px;color:#8f8f8f;font-size:11px;line-height:1.45}
+#removeBgView .tsp-warn{color:#e5b567}
+#removeBgView .tsp-err{color:#ff9d94}
+
+/* Buttons (div role=button) */
+#removeBgView .tsp-btn{display:flex;align-items:center;justify-content:center;flex:none;min-height:30px;padding:0 12px;margin:0;border:1px solid #555555;border-radius:4px;background:#3a3a3a;color:#e6e6e6;font-size:12px;white-space:nowrap;cursor:pointer;user-select:none}
+#removeBgView .tsp-btn:hover{background:#454545;border-color:#666666}
+#removeBgView .tsp-btn-small{min-height:28px;padding:0 9px;font-size:11px}
+#removeBgView .tsp-btn-ghost{background:transparent;color:#bdbdbd}
+#removeBgView .tsp-btn-primary{width:100%;min-height:34px;background:#1473e6;border-color:#1473e6;color:#ffffff;font-size:13px}
+#removeBgView .tsp-btn-primary:hover{background:#0d66d0;border-color:#0d66d0}
+#removeBgView .tsp-btn.tsp-gap{margin-left:6px}
+#removeBgView .tsp-btn.tsp-off{opacity:.45;cursor:default}
+#removeBgView .tsp-btn-primary.tsp-off:hover{background:#1473e6;border-color:#1473e6}
+
+/* Inputs: override the old shared rule; keep vertical padding for UXP native fields */
+#removeBgView input[type="text"]{display:block!important;width:100%!important;height:32px!important;min-width:0!important;margin:0!important;padding:6px 8px!important;line-height:normal!important;background:#1e1e1e!important;color:#ffffff!important;border:1px solid #4a4a4a!important;border-radius:3px!important;font-size:13px!important;outline:none!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
+#removeBgView input[type="text"]:focus{border-color:#3ea6ff!important}
+#removeBgView .tsp-field{flex:1 1 0;min-width:0}
+
+/* Layer bar */
+#removeBgView .tsp-layer{display:flex;flex-direction:row;align-items:center;padding:6px 6px 6px 9px;background:#262626;border:1px solid #3d3d3d;border-radius:4px}
+#removeBgView .tsp-layer-text{flex:1;min-width:0;margin-right:8px}
+#removeBgView .tsp-layer-name{font-size:12px;color:#ededed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#removeBgView .tsp-layer-meta{margin-top:2px;font-size:11px;color:#8f8f8f;line-height:1.4;word-break:break-word}
+
+/* Preview */
+#removeBgView .tsp-preview-head{display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin:10px 0 4px;color:#b5b5b5;font-size:11px}
+#removeBgView .tsp-preview{display:flex;align-items:center;justify-content:center;height:180px;padding:6px;background:#232323;border:1px solid #3d3d3d;border-radius:4px;overflow:hidden}
+#removeBgView .tsp-preview-stage{position:relative;flex:none}
+#removeBgView #splitPreviewImage{display:block}
+#removeBgView .tsp-markers{position:absolute;left:0;top:0;width:100%;height:100%}
+#removeBgView .tsp-placeholder{padding:0 16px;color:#8f8f8f;font-size:11px;line-height:1.5;text-align:center}
+#removeBgView .tsp-box{position:absolute;border:1px solid #a0a0a0;cursor:pointer}
+#removeBgView .tsp-box:hover{border-color:#ffffff}
+#removeBgView .tsp-box.tsp-box-selected{border:2px solid #3ea6ff;background:rgba(62,166,255,.18)}
+#removeBgView .tsp-box.tsp-box-excluded{border:1px dashed #6f6f6f;background:rgba(0,0,0,.35)}
+#removeBgView .tsp-box-num{position:absolute;left:0;top:0;padding:0 3px;background:#555555;color:#ffffff;font-size:10px;line-height:13px;pointer-events:none}
+#removeBgView .tsp-box-num.tsp-num-out{top:-14px}
+#removeBgView .tsp-box-selected .tsp-box-num{background:#1473e6}
+#removeBgView .tsp-box-excluded .tsp-box-num{background:transparent;color:#9a9a9a}
+
+/* Selection toolbar */
+#removeBgView .tsp-selbar{display:flex;flex-direction:row;align-items:center;margin-top:6px}
+#removeBgView .tsp-selcount{flex:1;min-width:0;color:#8fc8ff;font-size:11px}
+
+/* Sections */
+#removeBgView .tsp-section{margin-top:12px;padding-top:10px;border-top:1px solid #3d3d3d}
+#removeBgView .tsp-section-title{margin-bottom:7px;font-size:12px;font-weight:bold;color:#ededed}
+#removeBgView .tsp-sort-row,#removeBgView .tsp-name-row{margin-top:8px}
+#removeBgView .tsp-name-row{align-items:flex-end}
+#removeBgView .tsp-list-label{margin-top:8px}
+#removeBgView .tsp-inline-label{flex:none;width:36px;color:#9a9a9a;font-size:11px}
+
+/* Segmented controls */
+#removeBgView .tsp-segment{display:flex;flex-direction:row;width:100%;border:1px solid #4a4a4a;border-radius:4px;overflow:hidden}
+#removeBgView .tsp-output-option,#removeBgView .tsp-sort-option{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-width:0;min-height:28px;color:#bdbdbd;font-size:12px;white-space:nowrap;cursor:pointer;user-select:none}
+#removeBgView .tsp-sort-option{font-size:11px}
+#removeBgView .tsp-seg-next{border-left:1px solid #4a4a4a}
+#removeBgView .tsp-output-option:hover,#removeBgView .tsp-sort-option:hover{background:#353535;color:#e6e6e6}
+#removeBgView .tsp-selected{background:#4a4a4a;color:#ffffff}
+
+/* Custom checkbox row */
+#removeBgView .tsp-check-row{display:flex;flex-direction:row;align-items:center;min-height:28px;margin-top:8px;cursor:pointer;user-select:none;color:#e6e6e6}
+#removeBgView .tsp-check-box{flex:none;width:14px;height:14px;margin-right:7px;border:1px solid #777777;border-radius:3px;background:#1e1e1e}
+#removeBgView .tsp-check-row[aria-checked="true"] .tsp-check-box{background:#1473e6;border-color:#1473e6}
+
+/* Footer */
+#removeBgView .tsp-footer{flex:none;padding:10px 12px;background:#262626;border-top:1px solid #1f1f1f}
+#removeBgView .tsp-status{margin-top:7px;max-height:64px;overflow-y:auto;color:#a5a5a5;font-size:11px;line-height:1.45;word-break:break-word;user-select:text}
+#removeBgView .tsp-status.success{color:#8fd19e}
+#removeBgView .tsp-status.error{color:#ff9d94}
