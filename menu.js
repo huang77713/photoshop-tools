@@ -78,6 +78,9 @@
       // Transparent split also uses its own fixed footer.
       if (showRemoveBg) area.classList.add("split-active");
       else area.classList.remove("split-active");
+      // Bounds frame also uses its own fixed footer.
+      if (showBoundsFrame) area.classList.add("frame-active");
+      else area.classList.remove("frame-active");
       setMenuOpen(false);
 
       if (showNine && !loadedNineSlice) {
@@ -166,6 +169,7 @@
         } catch (error) {
           console.error("[Photoshop Tools] Bounds Frame failed:", error);
           frameView.style.display = "none";
+          area.classList.remove("frame-active");
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "边界框工具启动失败";
