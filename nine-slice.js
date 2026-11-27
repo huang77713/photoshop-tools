@@ -1,6 +1,8 @@
 /* Nine Slice Resize: functional code from original repository.
-   Only change: DOM operations are restricted to the selected panel view.
-   Processing algorithms and Photoshop actions are unchanged. */
+   DOM operations are restricted to the selected panel view.
+   v3: symmetric margins, arrow-key nudging, checkerboard previews, centre-zone
+   highlight, output placed at the source layer position, one-step undo,
+   remembered mode/symmetry. The nine-slice sampling algorithm is unchanged. */
 module.exports = function mountNineSlice(root) {
 /* Nine Slice Resize - UXP Photoshop. No external dependencies. */
 const ps = require('photoshop');
@@ -15,6 +17,35 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const status = (s, mode='') => { $('status').textContent=s; $('status').className='hint '+mode; $('status').title=s; };
 let lastFailure='';
 const set = (id, n) => { $(id).value = Math.round(n); };
+const STORE={mode:'nineSlice.v3.mode',symmetric:'nineSlice.v3.symmetric'};
+function readStore(key,fallback){try{const v=localStorage.getItem(key);return v===null?fallback:v;}catch(_){return fallback;}}
+function writeStore(key,value){try{localStorage.setItem(key,String(value));}catch(_){}}
+const OPPOSITE={left:'right',right:'left',top:'bottom',bottom:'top'};
+let symmetric=readStore(STORE.symmetric,'false')==='true';
+function setSymmetric(on){
+  symmetric=!!on;
+  writeStore(STORE.symmetric,symmetric);
+  const el=$('nsSymmetric');
+  el.setAttribute('aria-pressed',symmetric?'true':'false');
+  el.title=symmetric?'已开启：左右、上下自动保持一致（点击关闭）':'开启后左右、上下自动保持一致';
+}
+function marginEdited(id){
+  if(symmetric){
+    const value=Number($(id).value);
+    if(Number.isFinite(value)&&value>=0&&Number.isInteger(value))set(OPPOSITE[id],value);
+  }
+  queueRender();
+}
+function nudge(id,e){
+  if(e.key!=='ArrowUp'&&e.key!=='ArrowDown')return;
+  e.preventDefault();
+  const step=(e.shiftKey?10:1)*(e.key==='ArrowUp'?1:-1);
+  const current=Number($(id).value);
+  const isSize=id==='width'||id==='height';
+  set(id,Math.max(isSize?1:0,(Number.isFinite(current)?Math.round(current):0)+step));
+  if(isSize)sizeEdited(id);else marginEdited(id);
+}
+const KIND_LABEL={pixel:'像素图层',smartObject:'智能对象',text:'文字图层',solidColor:'纯色填充',gradientFill:'渐变填充',patternFill:'图案填充',group:'图层组'};
 function setAspectLock(locked){
   aspectLocked=!!locked;
   $('aspectLock').setAttribute('aria-pressed',aspectLocked?'true':'false');
@@ -90,9 +121,11 @@ function ninePixels(w,h,p){
   return output;
 }
 function checkerboardComposite(raw,w,h){
+  // Checkerboard behind transparent pixels so transparency is visible in the preview.
   const out=new Uint8Array(w*h*3);
+  const tile=Math.max(4,Math.round(Math.max(w,h)/24));
   for(let y=0;y<h;y++)for(let x=0;x<w;x++){
-    const j=(y*w+x),i=j*4,a=raw[i+3]/255,bg=79;
+    const j=(y*w+x),i=j*4,a=raw[i+3]/255,bg=((Math.floor(x/tile)+Math.floor(y/tile))%2)?58:74;
     out[j*3]=Math.round(raw[i]*a+bg*(1-a));
     out[j*3+1]=Math.round(raw[i+1]*a+bg*(1-a));
     out[j*3+2]=Math.round(raw[i+2]*a+bg*(1-a));
@@ -108,8 +141,17 @@ async function showPreview(img,rgba,w,h){
     const jpeg=await imaging.encodeImageData({imageData:im,base64:true});
     img.src='data:image/jpeg;base64,'+jpeg;
     img.dataset.width=String(w);img.dataset.height=String(h);
-    img.style.width=w+'px';img.style.height=h+'px';
+    fitImage(img,img===sourceCanvas?sw:$('resultWrap'));
   }finally {if(im)im.dispose();}
+}
+// Fit a preview image inside its frame, keeping proportions (small images may enlarge up to 4x).
+function fitImage(img,wrap){
+  const w=Number(img.dataset.width),h=Number(img.dataset.height);
+  if(!w||!h)return;
+  const maxW=Math.max(1,wrap.clientWidth-14),maxH=Math.max(1,wrap.clientHeight-14);
+  const k=Math.min(maxW/w,maxH/h,4);
+  img.style.width=Math.max(1,Math.round(w*k))+'px';
+  img.style.height=Math.max(1,Math.round(h*k))+'px';
 }
 let renderSerial=0, previewTimer=null;
 function queueRender(){
@@ -119,12 +161,20 @@ function queueRender(){
 }
 function updateGuides(){
   if(!source)return;
+  fitImage(sourceCanvas,sw);
   const rect=sourceCanvas.getBoundingClientRect(), wrap=sw.getBoundingClientRect();
   guides.style.left=(rect.left-wrap.left)+'px';guides.style.top=(rect.top-wrap.top)+'px';
   guides.style.width=rect.width+'px';guides.style.height=rect.height+'px';
   const setGuide=(name,val,total,axis)=>{const el=root.querySelector('[data-guide='+name+']');el.style[axis]=(val/total*100)+'%';};
   setGuide('left',int('left'),source.width,'left');setGuide('right',source.width-int('right'),source.width,'left');
   setGuide('top',int('top'),source.height,'top');setGuide('bottom',source.height-int('bottom'),source.height,'top');
+  const zone=$('nsCenterZone'),l=int('left'),r=int('right'),t=int('top'),b=int('bottom');
+  if([l,r,t,b].every(Number.isFinite)){
+    zone.style.left=(l/source.width*100)+'%';
+    zone.style.width=Math.max(0,(source.width-l-r)/source.width*100)+'%';
+    zone.style.top=(t/source.height*100)+'%';
+    zone.style.height=Math.max(0,(source.height-t-b)/source.height*100)+'%';
+  }
 }
 async function render(){
   const serial=++renderSerial;
@@ -172,7 +222,8 @@ async function loadLayer(){
   let stage='检查文档',px=null;
   try{
     status('正在读取图层…');
-    $('sourceInfo').textContent='正在读取图层…';
+    $('nsLayerName').textContent='正在读取图层…';
+    $('sourceInfo').textContent='';
     const doc=app.activeDocument;
     if(!doc)throw new Error('未打开 Photoshop 文档');
     const layer=(doc.activeLayers||[])[0];
@@ -212,7 +263,8 @@ async function loadLayer(){
       autoPending=true;
       return;
     }
-    $('sourceInfo').textContent=layer.name+' · '+w+' × '+h+' px · '+kind;
+    $('nsLayerName').textContent=layer.name;
+    $('sourceInfo').textContent=w+' × '+h+' px · '+(KIND_LABEL[kind]||kind);
     const x=Math.max(1,Math.floor(w*.22)),y=Math.max(1,Math.floor(h*.22));
     set('left',x);set('right',x);set('top',y);set('bottom',y);
     set('width',w);set('height',h);
@@ -224,6 +276,7 @@ async function loadLayer(){
     source=null;updateOriginalSize();sourceCanvas.removeAttribute('src');resultCanvas.removeAttribute('src');guides.style.width='0px';guides.style.height='0px';
     lastFailure='读取失败【'+stage+'】：'+(e&&e.message?e.message:String(e));
     console.error('[Nine Slice Resize] '+lastFailure,e);
+    $('nsLayerName').textContent='未能读取图层';
     $('sourceInfo').textContent=lastFailure;
     $('destLabel').textContent='';
     status(lastFailure,'error');
@@ -239,9 +292,13 @@ async function loadLayer(){
 async function generate(newDocument){
   if(busy)return;
   let p;try{p=params();}catch(e){status(e.message,'error');return;}
+  // Same document: place the result at the source layer's top-left corner.
+  // The result may extend beyond the canvas; Photoshop keeps off-canvas pixels on the layer.
+  let target={left:0,top:0},outside=false;
   if(!newDocument){const cur=app.activeDocument;
-    if(!cur||cur.id!==source.docID){status('请切回原文档，或选择生成到新文档','error');return;}
-    if(p.w>cur.width||p.h>cur.height){status('新图层不能超出当前画布。请改用“生成到新文档”。','error');return;}
+    if(!cur||cur.id!==source.docID){status('请切回原文档，或选择新建文档','error');return;}
+    target={left:source.bounds.left,top:source.bounds.top};
+    outside=target.left<0||target.top<0||target.left+p.w>cur.width||target.top+p.h>cur.height;
   }
   busy=true;
   let buffer;
@@ -253,16 +310,27 @@ async function generate(newDocument){
       width:p.w,height:p.h,components:4,chunky:true,colorSpace:'RGB',colorProfile:'sRGB IEC61966-2.1'
     });
     try{
-      await core.executeAsModal(async()=>{
-        let doc;
+      await core.executeAsModal(async(ctx)=>{
+        let doc,token=null,committed=false;
         if(newDocument){
           doc=await app.documents.add({name:'Nine Slice '+p.w+'x'+p.h,width:p.w,height:p.h,resolution:72,mode:'RGBColorMode',fill:'transparent'});
-        }else doc=app.activeDocument;
-        const newLayer=await doc.createPixelLayer({name:'Nine Slice · '+p.w+'x'+p.h+' · '+source.layerName});
-        await imaging.putPixels({documentID:doc.id,layerID:newLayer.id,imageData:blob,
-          targetBounds:{left:0,top:0},replace:true,commandName:'Nine Slice Resize'});
-      },{commandName:'Nine Slice Resize'});
-      status('生成成功：'+p.w+' × '+p.h+' px','ok');
+        }else{
+          doc=app.activeDocument;
+          // One history step: a single Ctrl+Z removes the generated layer.
+          token=await ctx.hostControl.suspendHistory({documentID:doc.id,name:'九宫格拉伸'});
+        }
+        try{
+          const newLayer=await doc.createPixelLayer({name:'Nine Slice · '+p.w+'x'+p.h+' · '+source.layerName});
+          await imaging.putPixels({documentID:doc.id,layerID:newLayer.id,imageData:blob,
+            targetBounds:target,replace:true,commandName:'Nine Slice Resize'});
+          committed=true;
+        }finally{
+          if(token!==null)await ctx.hostControl.resumeHistory(token,committed);
+        }
+      },{commandName:'九宫格拉伸'});
+      status(newDocument
+        ?'已生成到新文档：'+p.w+' × '+p.h+' px'
+        :'已生成：'+p.w+' × '+p.h+' px，放在原图层位置'+(outside?'（部分超出画布）':'')+'。可按 Ctrl+Z 撤销。','ok');
     }finally{blob.dispose();}
   }catch(e){status('生成失败：'+(e.message||String(e)),'error');console.error(e);}
   finally{
@@ -272,9 +340,29 @@ async function generate(newDocument){
 }
 $('load').textContent='重新读取';
 $('load').addEventListener('click',()=>{if(autoTimer!==null){clearTimeout(autoTimer);autoTimer=null;}loadLayer();});
-$('reset').addEventListener('click',()=>{if(!source)return;let a=Math.max(1,Math.floor(source.width*.22)),b=Math.max(1,Math.floor(source.height*.22));set('left',a);set('right',a);set('top',b);set('bottom',b);render();});
-['left','right','top','bottom'].forEach(id=>$(id).addEventListener('input',queueRender));
-['width','height'].forEach(id=>$(id).addEventListener('input',()=>sizeEdited(id)));
+$('reset').addEventListener('click',()=>{if(!source)return;let a=Math.max(1,Math.floor(source.width*.22)),b=Math.max(1,Math.floor(source.height*.22));set('left',a);set('right',a);set('top',b);set('bottom',b);queueRender();});
+['left','right','top','bottom'].forEach(id=>{
+  $(id).addEventListener('input',()=>marginEdited(id));
+  $(id).addEventListener('keydown',e=>nudge(id,e));
+});
+['width','height'].forEach(id=>{
+  $(id).addEventListener('input',()=>sizeEdited(id));
+  $(id).addEventListener('keydown',e=>nudge(id,e));
+});
+function toggleSymmetric(){
+  setSymmetric(!symmetric);
+  if(symmetric){
+    // Mirror left→right and top→bottom, keeping at least 1 px in the middle.
+    const l=int('left'),t=int('top');
+    if(Number.isFinite(l))set('right',source?Math.min(l,Math.max(0,Math.floor((source.width-1)/2))):l);
+    if(Number.isFinite(t))set('bottom',source?Math.min(t,Math.max(0,Math.floor((source.height-1)/2))):t);
+    if(source){set('left',int('right'));set('top',int('bottom'));}
+    status('已开启对称：左右、上下保持一致');
+  }
+  queueRender();
+}
+$('nsSymmetric').addEventListener('click',toggleSymmetric);
+$('nsSymmetric').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleSymmetric();}});
 $('aspectLock').addEventListener('click',()=>{
   setAspectLock(!aspectLocked);
   if(aspectLocked && source)sizeEdited('width');
@@ -286,7 +374,11 @@ $('aspectLock').addEventListener('keydown',e=>{
     $('aspectLock').click();
   }
 });
+const MODE_NOTE={stretch:'中间区域整体拉伸到目标尺寸，四个角保持不变。',tile:'中间和四条边按原图重复平铺，四个角保持不变。'};
 function selectMode(value){
+  if(value!=='stretch'&&value!=='tile')value='stretch';
+  writeStore(STORE.mode,value);
+  $('nsModeNote').textContent=MODE_NOTE[value];
   root.querySelectorAll('.ns-mode-item').forEach(item=>{
     const selected=item.dataset.mode===value;
     item.classList.toggle('ns-selected',selected);
@@ -309,7 +401,7 @@ root.querySelectorAll('.ns-mode-item').forEach(item=>{
     }
   });
 });
-selectMode('stretch');
+selectMode(readStore(STORE.mode,'stretch'));
 $('newDoc').addEventListener('click',()=>generate(true));$('sameDoc').addEventListener('click',()=>generate(false));
 root.querySelectorAll('.guide').forEach(el=>el.addEventListener('pointerdown',e=>{
   if(!source)return;drag=el.dataset.guide;el.setPointerCapture(e.pointerId);e.preventDefault();
@@ -321,9 +413,16 @@ root.querySelectorAll('.guide').forEach(el=>el.addEventListener('pointermove',e=
   const dim=horizontal?source.width:source.height;
   let offset=Math.round(fraction*dim);
   if(drag==='right'||drag==='bottom')offset=dim-offset;
-  const opposite=({left:'right',right:'left',top:'bottom',bottom:'top'})[drag];
-  offset=clamp(offset,0,dim-int(opposite)-1);
-  set(drag,offset);queueRender();
+  const opposite=OPPOSITE[drag];
+  if(symmetric){
+    // Both sides move together; keep at least 1 px in the middle.
+    offset=clamp(offset,0,Math.max(0,Math.floor((dim-1)/2)));
+    set(drag,offset);set(opposite,offset);
+  }else{
+    offset=clamp(offset,0,dim-int(opposite)-1);
+    set(drag,offset);
+  }
+  queueRender();
 }));
 root.querySelectorAll('.guide').forEach(el=>{el.addEventListener('pointerup',()=>drag=null);el.addEventListener('pointercancel',()=>drag=null);});
 sourceCanvas.addEventListener('load',updateGuides);
@@ -332,8 +431,8 @@ if(typeof ResizeObserver!=='undefined'){
   resizeObserver.observe(sw);
   resizeObserver.observe($('resultWrap'));
 }
-setAspectLock(false);updateOriginalSize();
-status('选择 Photoshop 图层后将自动读取');
+setAspectLock(false);setSymmetric(symmetric);updateOriginalSize();
+status('选择 Photoshop 图层后会自动读取');
 root.__nineSliceActivate=function(){scheduleAutoRead(false);};
 const onSelectionChange=(eventName,descriptor)=>{
   if(!activePanel())return;

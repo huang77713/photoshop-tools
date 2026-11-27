@@ -1,0 +1,101 @@
+/* Nine Slice Resize — scoped styles (moved from index.html, v3 layout).
+   UXP notes: flex rows with explicit margins (flex gap is unreliable in UXP),
+   no CSS Grid, no gradients. Every rule is prefixed with #nineSliceView. */
+
+#bodyArea.nine-active{padding:0;overflow:hidden}
+
+#nineSliceView{height:100%;width:100%;min-height:0;min-width:0;margin:0;overflow:hidden;background:#2b2b2b;color:#e6e6e6;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
+#nineSliceView *{box-sizing:border-box}
+#nineSliceView .root{height:100%;width:100%;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+#nineSliceView .scroll-area{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 12px 12px}
+
+/* Shared text */
+#nineSliceView .ns-muted{color:#8f8f8f;font-size:11px;font-weight:normal}
+#nineSliceView .ns-hidden{display:none}
+#nineSliceView .error{color:#ff9d94!important}
+#nineSliceView .ok{color:#8fd19e!important}
+
+/* Buttons */
+#nineSliceView .ns-btn{display:block;min-height:30px;padding:0 12px;margin:0;border:1px solid #555555;border-radius:4px;background:#3a3a3a;color:#e6e6e6;font-size:12px;cursor:pointer}
+#nineSliceView .ns-btn:hover{background:#454545;border-color:#666666}
+#nineSliceView .ns-btn-small{min-height:26px;padding:0 9px;font-size:11px}
+#nineSliceView .ns-btn-primary{background:#1473e6;border-color:#1473e6;color:#ffffff}
+#nineSliceView .ns-btn-primary:hover{background:#0d66d0;border-color:#0d66d0}
+#nineSliceView .ns-btn:disabled{opacity:.5;cursor:default}
+
+/* Current layer bar */
+#nineSliceView .ns-layer{display:flex;flex-direction:row;align-items:center;padding:6px 6px 6px 9px;background:#262626;border:1px solid #3d3d3d;border-radius:4px}
+#nineSliceView .ns-layer-text{flex:1;min-width:0;margin-right:8px}
+#nineSliceView .ns-layer-name{font-size:12px;color:#ededed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nineSliceView .ns-layer-meta{margin-top:2px;font-size:11px;color:#8f8f8f;line-height:1.4;word-break:break-word;user-select:text}
+#nineSliceView .ns-layer .ns-btn{flex:none}
+
+/* Side-by-side previews */
+#nineSliceView .ns-compare{display:flex;flex-direction:row;width:100%;margin-top:10px}
+#nineSliceView .ns-preview-column{flex:1 1 0;width:50%;min-width:0}
+#nineSliceView .ns-preview-right{margin-left:8px}
+#nineSliceView .ns-preview-title{display:flex;flex-direction:row;justify-content:space-between;align-items:center;height:18px;margin-bottom:4px;font-size:11px;color:#b5b5b5;white-space:nowrap;overflow:hidden}
+#nineSliceView .preview-wrap,#nineSliceView .output-wrap{position:relative;display:flex;align-items:center;justify-content:center;height:170px;padding:6px;background:#232323;border:1px solid #3d3d3d;border-radius:4px;overflow:hidden}
+#nineSliceView #sourceCanvas,#nineSliceView #outputCanvas{display:block;flex:none}
+
+/* Guides drawn over the source preview */
+#nineSliceView #guides{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
+#nineSliceView .ns-center-zone{position:absolute;background:rgba(62,166,255,.16);pointer-events:none}
+#nineSliceView .guide{position:absolute;z-index:3;pointer-events:auto;touch-action:none;background:transparent;border:0}
+#nineSliceView .guide.v{top:0;height:100%;width:14px;margin-left:-7px;cursor:ew-resize}
+#nineSliceView .guide.h{left:0;width:100%;height:14px;margin-top:-7px;cursor:ns-resize}
+#nineSliceView .guide.v::after{content:"";position:absolute;left:6px;top:0;width:1px;height:100%;background:#3ea6ff;pointer-events:none}
+#nineSliceView .guide.h::after{content:"";position:absolute;left:0;top:6px;width:100%;height:1px;background:#3ea6ff;pointer-events:none}
+#nineSliceView .guide:hover::after,#nineSliceView .guide:active::after{background:#ffffff}
+
+/* Sections */
+#nineSliceView .ns-section{margin-top:12px;padding-top:10px;border-top:1px solid #3d3d3d}
+#nineSliceView .ns-section-head{display:flex;flex-direction:row;justify-content:space-between;align-items:center;min-height:26px;margin-bottom:8px}
+#nineSliceView .ns-section-title{font-size:12px;font-weight:bold;color:#ededed}
+#nineSliceView .ns-head-actions{display:flex;flex-direction:row;align-items:center}
+#nineSliceView .ns-head-actions .ns-btn{margin-left:6px}
+
+/* Toggle chip (symmetric margins) */
+#nineSliceView .ns-toggle{display:flex;align-items:center;min-height:26px;padding:0 9px;border:1px solid #555555;border-radius:4px;color:#bdbdbd;font-size:11px;cursor:pointer;user-select:none}
+#nineSliceView .ns-toggle:hover{border-color:#666666;color:#e6e6e6}
+#nineSliceView .ns-toggle[aria-pressed="true"]{background:#1f3a5c;border-color:#3ea6ff;color:#ffffff}
+
+/* Inputs (UXP native inputs need firm overrides) */
+#nineSliceView input[type="text"]{display:block!important;height:28px!important;min-width:0!important;margin:0!important;padding:0 7px!important;background:#1e1e1e!important;color:#ffffff!important;border:1px solid #4a4a4a!important;border-radius:3px!important;font-size:13px!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
+#nineSliceView input[type="text"]:focus{border-color:#3ea6ff!important}
+
+/* Margin inputs laid out as a cross: top / left · centre · right / bottom */
+#nineSliceView .ns-cross{display:flex;flex-direction:column;align-items:center}
+#nineSliceView .ns-cross-row{display:flex;flex-direction:row;align-items:center;justify-content:center}
+#nineSliceView .ns-cross-middle{margin:6px 0}
+#nineSliceView .ns-cross-field{display:flex;flex-direction:row;align-items:center}
+#nineSliceView .ns-cross-field label{flex:none;width:16px;color:#9a9a9a;font-size:11px;text-align:center}
+#nineSliceView .ns-cross-field input[type="text"]{width:64px!important}
+#nineSliceView .ns-cross-field.ns-label-first label{margin-right:4px}
+#nineSliceView .ns-cross-field.ns-label-last label{margin-left:4px}
+#nineSliceView .ns-cross-spacer{flex:none;width:20px}
+#nineSliceView .ns-cross-center{flex:none;width:46px;height:32px;margin:0 8px;display:flex;align-items:center;justify-content:center;border:1px dashed #575757;border-radius:3px;color:#7a7a7a;font-size:11px}
+
+/* Output size row */
+#nineSliceView .ns-size-row{display:flex;flex-direction:row;align-items:center;width:100%}
+#nineSliceView .ns-inline-label{flex:none;margin-right:5px;color:#9a9a9a;font-size:11px}
+#nineSliceView .ns-size-row input[type="text"]{flex:1 1 0;width:0!important}
+#nineSliceView .ns-aspect-lock{display:block;flex:none;width:28px;height:28px;margin:0 6px;background-image:url("icons/aspect-unlocked.png");background-repeat:no-repeat;background-size:20px 20px;background-position:center center;opacity:.7;cursor:pointer;border-radius:3px}
+#nineSliceView .ns-aspect-lock:hover{opacity:1;background-color:#3a3a3a}
+#nineSliceView .ns-aspect-lock[aria-pressed="true"]{background-image:url("icons/aspect-locked.png");opacity:1}
+
+/* Stretch / tile segmented control (whole segment clickable) */
+#nineSliceView .ns-segment{display:flex;flex-direction:row;width:100%;margin-top:10px;border:1px solid #4a4a4a;border-radius:4px;overflow:hidden}
+#nineSliceView .ns-segment .ns-mode-item{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-height:28px;color:#bdbdbd;font-size:12px;cursor:pointer;user-select:none}
+#nineSliceView .ns-segment .ns-mode-second{border-left:1px solid #4a4a4a}
+#nineSliceView .ns-segment .ns-mode-item:hover{background:#353535;color:#e6e6e6}
+#nineSliceView .ns-segment .ns-mode-item.ns-selected{background:#4a4a4a;color:#ffffff}
+#nineSliceView .ns-segment .ns-mode-item input{display:none}
+#nineSliceView .ns-mode-note{margin-top:6px;color:#8f8f8f;font-size:11px;line-height:1.45}
+
+/* Footer */
+#nineSliceView .footer{flex:none;padding:10px 12px;background:#262626;border-top:1px solid #1f1f1f}
+#nineSliceView .ns-actions{display:flex;flex-direction:row;width:100%}
+#nineSliceView .ns-actions .ns-btn{flex:1 1 0;min-width:0;min-height:32px}
+#nineSliceView .ns-actions #sameDoc{flex:1.4 1 0;margin-right:8px}
+#nineSliceView .footer #status{margin-top:7px;max-height:64px;overflow-y:auto;color:#a5a5a5;font-size:11px;line-height:1.45;word-break:break-word;user-select:text}

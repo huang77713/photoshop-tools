@@ -25,57 +25,6 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 .spacer {height:640px;border-top:1px solid #4a4a4a;margin-top:20px;padding-top:16px;color:#999;}
 #bottomText {padding:10px 0;}
 
-/* Original nine-slice styles, isolated inside its view */
-#nineSliceView *{box-sizing:border-box}
-#nineSliceView, #nineSliceView{margin:0;width:100%;height:100%;overflow:hidden;background:#25242c;color:#eeeaf6;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
-#nineSliceView .root{height:100vh;width:100%;display:flex;flex-direction:column;overflow:hidden;min-width:255px}
-#nineSliceView .scroll-area{min-height:0;overflow-y:scroll;overflow-x:hidden;flex:1;padding:12px 14px 8px}
-#nineSliceView header{display:flex;align-items:center;gap:10px;border-bottom:1px solid #444150;padding:4px 2px 14px;margin-bottom:12px}
-#nineSliceView header img{width:37px;height:37px}
-#nineSliceView header strong{font-size:17px;display:block}
-#nineSliceView header small{font-size:11px;color:#ada7c0;display:block;margin-top:4px}
-#nineSliceView section{border:1px solid #484453;border-radius:9px;background:#302e38;padding:12px;margin-bottom:11px;display:block}
-#nineSliceView .section-title{display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;gap:8px;font-size:13px;font-weight:bold;margin-bottom:10px}
-#nineSliceView .field-title{margin:12px 0 8px;font-size:12px;color:#d6d0e5}
-#nineSliceView .hint{color:#bbb5ca;font-size:11px;line-height:1.55;word-break:break-word}
-#nineSliceView button{border:1px solid #6c657d;background:#443f4f;color:#f9f7fc;border-radius:5px;padding:8px 12px;min-height:34px;font-size:12px;cursor:pointer}
-#nineSliceView button:hover{background:#62566e}
-#nineSliceView .primary{background:#8141e6;border-color:#b58bff;font-weight:bold}
-#nineSliceView .secondary{background:#464251}
-#nineSliceView .preview-wrap, #nineSliceView .output-wrap{position:relative;background:#494651;border:1px solid #5e5a6a;display:flex;align-items:center;justify-content:center;border-radius:7px;overflow:hidden;min-height:170px;margin:8px 0 12px}
-#nineSliceView .output-wrap{min-height:140px;max-height:260px}
-#nineSliceView #sourceCanvas{display:block;max-width:100%;max-height:290px;object-fit:contain}
-#nineSliceView #outputCanvas{max-width:100%;max-height:240px;object-fit:contain}
-#nineSliceView #guides{position:absolute;left:0;top:0;width:0;height:0;pointer-events:none}
-#nineSliceView .guide{position:absolute;pointer-events:auto;z-index:3}
-#nineSliceView .guide.v{top:0;height:100%;width:12px;margin-left:-6px;border-left:1px dashed #33dfff;cursor:ew-resize}
-#nineSliceView .guide.h{left:0;width:100%;height:12px;margin-top:-6px;border-top:1px dashed #33dfff;cursor:ns-resize}
-#nineSliceView .four, #nineSliceView .two{width:100%;display:flex;flex-wrap:wrap;gap:10px}
-#nineSliceView .four .field, #nineSliceView .two .field{display:block;flex:1 1 42%;min-width:85px}
-#nineSliceView .field label{display:block;color:#e3dff0;font-size:12px;margin-bottom:5px}
-#nineSliceView .field input{display:block!important;width:100%!important;height:37px!important;padding:7px 9px!important;color:#fff!important;background:#1e1d27!important;border:1px solid #767082!important;border-radius:5px!important;font-size:15px!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
-#nineSliceView .actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:12px}
-#nineSliceView .actions .hint{flex:1;min-width:145px}
-#nineSliceView .mode{display:flex;flex-wrap:wrap;gap:14px;padding-top:15px}
-#nineSliceView .mode label{display:flex;align-items:center;gap:5px}
-#nineSliceView .footer{flex:none;border-top:1px solid #4f475c;background:#2a2833;padding:11px 14px 12px;display:flex;flex-wrap:wrap;gap:8px}
-#nineSliceView .footer button{flex:1;min-width:125px}
-#nineSliceView .footer #status{width:100%;max-height:90px;overflow-y:auto}
-#nineSliceView .error{color:#ffaca5!important}
-#nineSliceView .ok{color:#a1efb7!important}
-#nineSliceView .diagnostic{padding:3px 0 5px;color:#d4cde3;user-select:text}
-#nineSliceView #destLabel{font-weight:normal}
-#bodyArea.nine-active{padding:0;overflow:hidden}
-#nineSliceView{height:100%;width:100%;min-height:0;min-width:0;overflow:hidden;background:#25242c;color:#eeeaf6}
-#nineSliceView .root{height:100%;min-width:0}
-/* UXP-compatible layout: original flex rows instead of unsupported CSS Grid. */
-/* UXP Flex does not consistently implement gap: use explicit column widths and margins. */
-#nineSliceView .four, #nineSliceView .two{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;gap:0!important;width:100%}
-#nineSliceView .four .field, #nineSliceView .two .field{display:block!important;flex:0 0 48%!important;width:48%!important;max-width:48%!important;min-width:0!important;margin:0 0 14px 0!important}
-#nineSliceView .four .field:nth-child(odd), #nineSliceView .two .field:nth-child(odd){margin-right:4%!important}
-#nineSliceView .four .field label, #nineSliceView .two .field label{display:block!important;margin:0 0 7px!important}
-#nineSliceView .four .field input, #nineSliceView .two .field input{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;height:37px!important;box-sizing:border-box!important;margin:0!important;opacity:1!important;visibility:visible!important}
-#nineSliceView .four .field:nth-last-child(-n+2), #nineSliceView .two .field:nth-last-child(-n+2){margin-bottom:0!important}
 
 
 /* Sprite Font Composer original scoped rules */
@@ -152,48 +101,6 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 #spriteFontView .glyph-preview{max-height:180px;overflow-y:auto;}
 
 
-/* Nine Slice UX v2: compact side-by-side comparison and clean single-stroke guides */
-#nineSliceView header{padding:0 2px 8px;margin-bottom:8px}
-#nineSliceView section{padding:10px;margin-bottom:9px}
-#nineSliceView .ns-source-section{padding-bottom:9px}
-#nineSliceView .ns-compare{display:flex;flex-direction:row;gap:8px;width:100%;align-items:stretch}
-#nineSliceView .ns-preview-column{flex:1 1 0;min-width:0;width:50%}
-#nineSliceView .ns-preview-title{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:bold;min-height:19px}
-#nineSliceView .ns-preview-title .hint{font-size:10px;font-weight:normal}
-#nineSliceView .preview-wrap,#nineSliceView .output-wrap{height:165px;min-height:165px;max-height:165px;margin:3px 0 7px;padding:5px;background:#3a3743}
-#nineSliceView #sourceCanvas,#nineSliceView #outputCanvas{max-width:100%;max-height:150px;object-fit:contain}
-#nineSliceView .ns-compare-note{margin-top:1px;font-size:10px}
-#nineSliceView .guide{background:transparent!important;border:0!important;touch-action:none}
-#nineSliceView .guide.v{width:12px;margin-left:-6px}
-#nineSliceView .guide.h{height:12px;margin-top:-6px}
-#nineSliceView .guide.v::after{content:"";position:absolute;left:5px;top:0;width:1px;height:100%;background:#50dbea;pointer-events:none}
-#nineSliceView .guide.h::after{content:"";position:absolute;left:0;top:5px;width:100%;height:1px;background:#50dbea;pointer-events:none}
-#nineSliceView .guide:active::after{background:#fff}
-#nineSliceView .mode{padding-top:6px}
-#nineSliceView .footer{padding:9px 12px}
-#nineSliceView .four .field,#nineSliceView .two .field{margin-bottom:8px!important}
-#nineSliceView .field label{margin-bottom:5px!important}
-#nineSliceView .field input{height:34px!important}
-
-/* Output dimensions: source references and unobtrusive ratio toggle */
-#nineSliceView .ns-original-size{font-size:11px;font-weight:normal}
-#nineSliceView .ns-size-row{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;width:100%!important;gap:12px!important}
-#nineSliceView .ns-size-field{display:block!important;flex:1 1 0!important;min-width:0!important;width:0!important;max-width:none!important;margin:0!important}
-#nineSliceView .ns-size-field label{display:block!important;margin:0 0 7px!important}
-#nineSliceView .ns-size-field input{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;margin:0!important}
-#nineSliceView .ns-original-field{display:block;margin-top:7px;font-size:10px;color:#aaa5b8}
-#nineSliceView .ns-aspect-lock{display:block!important;box-sizing:border-box!important;flex:0 0 28px!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:36px!important;min-height:36px!important;max-height:36px!important;margin:0!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important;background-color:transparent!important;background-image:url("icons/aspect-unlocked.png")!important;background-repeat:no-repeat!important;background-size:24px 24px!important;background-position:center center!important;cursor:pointer!important;opacity:.9!important;align-self:center!important}
-#nineSliceView .ns-aspect-lock[aria-pressed="true"]{background-image:url("icons/aspect-locked.png")!important;opacity:1!important}
-#nineSliceView .ns-aspect-lock:hover{opacity:1!important}
-/* UXP reliable full-area mode switch: label controls radio state, including the circle */
-#nineSliceView .mode{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;gap:6px!important;padding-top:8px!important}
-#nineSliceView .mode .ns-mode-item{display:flex!important;align-items:center!important;gap:7px!important;padding:7px 10px!important;min-height:34px!important;border-radius:5px!important;cursor:pointer!important;user-select:none!important;background:transparent!important}
-#nineSliceView .mode .ns-mode-item.ns-selected{background:#3b3746!important}
-#nineSliceView .mode .ns-mode-item input{display:none!important}
-#nineSliceView .ns-mode-dot{width:17px!important;height:17px!important;min-width:17px!important;display:flex!important;align-items:center!important;justify-content:center!important;border:2px solid #9791a4!important;border-radius:50%!important;pointer-events:none!important}
-#nineSliceView .ns-selected .ns-mode-dot{border-color:#c8bbeb!important}
-#nineSliceView .ns-mode-inner{width:7px!important;height:7px!important;border-radius:50%!important;background:transparent!important;pointer-events:none!important}
-#nineSliceView .ns-selected .ns-mode-inner{background:#c8bbeb!important}
 
 /* Sprite font composer v2 — compact layout for Photoshop UXP */
 #spriteFontView .panel{padding:12px!important}
@@ -279,6 +186,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 <link rel="stylesheet" href="visible-resize.css">
 <link rel="stylesheet" href="bounds-frame.css">
 <link rel="stylesheet" href="text-layer-manager.css">
+<link rel="stylesheet" href="nine-slice.css">
 </head>
 <body>
 <div id="app">
@@ -301,39 +209,44 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   </div>
   <div id="bodyArea">
     <div id="nineSliceView" style="display:none"><div class="root"><div class="scroll-area">
-  <header><div><strong>九宫格拉伸</strong><small>保持四角形状 · 直观调整尺寸</small></div></header>
-  <section class="ns-source-section">
-    <div class="section-title"><span>当前图层</span><button id="load" class="secondary">读取选中图层</button></div>
-    <div id="sourceInfo" class="hint diagnostic">在 Photoshop 中选中一个图层，然后点击读取</div>
-    <div class="ns-compare">
-      <div class="ns-preview-column">
-        <div class="ns-preview-title">原图 <span class="hint">拖动分割线</span></div>
-        <div class="preview-wrap" id="sourceWrap"><img id="sourceCanvas" alt="源图预览"><div id="guides"><div class="guide v" data-guide="left"></div><div class="guide v" data-guide="right"></div><div class="guide h" data-guide="top"></div><div class="guide h" data-guide="bottom"></div></div></div>
-      </div>
-      <div class="ns-preview-column">
-        <div class="ns-preview-title">拉伸效果 <span id="destLabel" class="hint"></span></div>
-        <div class="output-wrap" id="resultWrap"><img id="outputCanvas" alt="九宫格效果预览"></div>
-      </div>
+  <div class="ns-layer">
+    <div class="ns-layer-text"><div id="nsLayerName" class="ns-layer-name">未读取图层</div><div id="sourceInfo" class="ns-layer-meta">在 Photoshop 中选中一个图层</div></div>
+    <button id="load" class="ns-btn ns-btn-small">重新读取</button>
+  </div>
+  <div class="ns-compare">
+    <div class="ns-preview-column">
+      <div class="ns-preview-title"><span>原图</span><span class="ns-muted">拖动蓝线</span></div>
+      <div class="preview-wrap" id="sourceWrap"><img id="sourceCanvas" alt="源图预览"><div id="guides"><div id="nsCenterZone" class="ns-center-zone"></div><div class="guide v" data-guide="left"></div><div class="guide v" data-guide="right"></div><div class="guide h" data-guide="top"></div><div class="guide h" data-guide="bottom"></div></div></div>
     </div>
-    <div class="hint ns-compare-note">左侧拖动任意分割线，右侧自动更新预览。每条线只代表一个固定边距。</div>
-  </section>
-  <section><div class="section-title">固定边距 <button id="reset" class="secondary">重置</button></div>
-    <div class="four">
-      <div class="field"><label>左 (px)</label><input id="left" type="text" inputmode="numeric" value="20"></div>
-      <div class="field"><label>右 (px)</label><input id="right" type="text" inputmode="numeric" value="20"></div>
-      <div class="field"><label>上 (px)</label><input id="top" type="text" inputmode="numeric" value="20"></div>
-      <div class="field"><label>下 (px)</label><input id="bottom" type="text" inputmode="numeric" value="20"></div>
+    <div class="ns-preview-column ns-preview-right">
+      <div class="ns-preview-title"><span>效果</span><span id="destLabel" class="ns-muted"></span></div>
+      <div class="output-wrap" id="resultWrap"><img id="outputCanvas" alt="九宫格效果预览"></div>
     </div>
-  </section>
-  <section class="ns-size-section"><div class="section-title"><span>输出尺寸</span><span id="originalSize" class="hint ns-original-size">原图：读取后显示</span></div>
+  </div>
+  <div class="ns-section">
+    <div class="ns-section-head"><span class="ns-section-title">固定边距 (px)</span><span class="ns-head-actions"><span id="nsSymmetric" class="ns-toggle" role="button" tabindex="0" aria-pressed="false" title="开启后左右、上下自动保持一致">对称</span><button id="reset" class="ns-btn ns-btn-small">重置</button></span></div>
+    <div class="ns-cross">
+      <div class="ns-cross-row"><div class="ns-cross-field ns-label-first"><label for="top">上</label><input id="top" type="text" inputmode="numeric" value="20"></div><span class="ns-cross-spacer"></span></div>
+      <div class="ns-cross-row ns-cross-middle">
+        <div class="ns-cross-field ns-label-first"><label for="left">左</label><input id="left" type="text" inputmode="numeric" value="20"></div>
+        <div class="ns-cross-center">中间</div>
+        <div class="ns-cross-field ns-label-last"><input id="right" type="text" inputmode="numeric" value="20"><label for="right">右</label></div>
+      </div>
+      <div class="ns-cross-row"><div class="ns-cross-field ns-label-first"><label for="bottom">下</label><input id="bottom" type="text" inputmode="numeric" value="20"></div><span class="ns-cross-spacer"></span></div>
+    </div>
+  </div>
+  <div class="ns-section">
+    <div class="ns-section-head"><span class="ns-section-title">输出尺寸 (px)</span><span id="originalSize" class="ns-muted">原图：读取后显示</span></div>
     <div class="ns-size-row">
-      <div class="field ns-size-field"><label>宽度 (px)</label><input id="width" type="text" inputmode="numeric" value="1000"><span id="originalWidth" class="hint ns-original-field">原图：—</span></div>
+      <label for="width" class="ns-inline-label">宽</label><input id="width" type="text" inputmode="numeric" value="1000">
       <span id="aspectLock" class="ns-aspect-lock" role="button" tabindex="0" aria-label="锁定原图宽高比例" aria-pressed="false" title="点击锁定原图宽高比例"></span>
-      <div class="field ns-size-field"><label>高度 (px)</label><input id="height" type="text" inputmode="numeric" value="650"><span id="originalHeight" class="hint ns-original-field">原图：—</span></div>
+      <label for="height" class="ns-inline-label">高</label><input id="height" type="text" inputmode="numeric" value="650">
     </div>
-    <div class="mode"><label class="ns-mode-item" data-mode="stretch" tabindex="0"><input type="radio" name="mode" value="stretch" checked><span class="ns-mode-dot"><span class="ns-mode-inner"></span></span><span>拉伸</span></label><label class="ns-mode-item" data-mode="tile" tabindex="0"><input type="radio" name="mode" value="tile"><span class="ns-mode-dot"><span class="ns-mode-inner"></span></span><span>平铺</span></label></div>
-  </section>
-  </div><div class="footer"><button id="sameDoc" class="primary">生成到新图层</button><button id="newDoc" class="secondary">新文档</button><div id="status" class="hint">请先选中图层，然后点击读取</div></div>
+    <span id="originalWidth" class="ns-hidden"></span><span id="originalHeight" class="ns-hidden"></span>
+    <div class="ns-segment mode"><label class="ns-mode-item" data-mode="stretch" tabindex="0"><input type="radio" name="mode" value="stretch" checked><span>拉伸</span></label><label class="ns-mode-item ns-mode-second" data-mode="tile" tabindex="0"><input type="radio" name="mode" value="tile"><span>平铺</span></label></div>
+    <div id="nsModeNote" class="ns-mode-note">中间区域整体拉伸到目标尺寸。</div>
+  </div>
+  </div><div class="footer"><div class="ns-actions"><button id="sameDoc" class="ns-btn ns-btn-primary">生成到当前文档</button><button id="newDoc" class="ns-btn">新建文档</button></div><div id="status" class="hint">请先选中图层</div></div>
 </div></div>
      <div id="spriteFontView" style="display:none"><main class="panel">
   <header class="header">
