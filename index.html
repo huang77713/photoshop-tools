@@ -176,7 +176,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div class="tsp-field tsp-gap"><div class="tsp-label">最小面积 %</div><input id="minAreaPercent" type="text" inputmode="decimal" value="0.002"></div>
       <div class="tsp-field tsp-gap"><div class="tsp-label">柔边保留 px</div><input id="padding" type="text" inputmode="numeric" value="8"></div>
     </div>
-    <div class="tsp-note">合并间距：比这个距离更近的几块算同一个对象（0 = 只合并连在一起的像素）。最小面积用来忽略小碎片。</div>
+    <div class="tsp-note">合并间距：更近的几块算一个对象（0 = 只合并相连的像素）。</div>
   </div>
   <div class="tsp-section">
     <div class="tsp-section-title">输出</div>
@@ -198,8 +198,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
       <div class="tsp-field tsp-gap"><div class="tsp-label">图层前缀</div><input id="layerPrefix" type="text" value="Object" spellcheck="false"></div>
     </div>
     <div class="tsp-label tsp-list-label">名称列表（可选，用逗号分隔）</div>
-    <input id="tspNameList" type="text" placeholder="例如：coin,diamond,heart" spellcheck="false">
-    <div class="tsp-note">按排序依次命名；名称不够时用「前缀_序号」。</div>
+    <input id="tspNameList" type="text" placeholder="按排序命名，不够时用 前缀_序号" spellcheck="false">
     <div id="tspHideSource" class="tsp-check-row" role="checkbox" tabindex="0" aria-checked="false"><span class="tsp-check-box"></span><span>拆分后隐藏原图层</span></div>
   </div>
   </div><div class="tsp-footer"><div id="runBtn" class="tsp-btn tsp-btn-primary tsp-off" role="button" tabindex="0">请先选择透明图层</div><div id="message" class="message tsp-status">结果自动成组 · 原图层像素不会被修改 · 一次 Ctrl+Z 可撤销</div></div>
