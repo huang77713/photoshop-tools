@@ -82,9 +82,9 @@
 #nineSliceView .ns-size-row{display:flex;flex-direction:row;align-items:center;width:100%}
 #nineSliceView .ns-inline-label{flex:none;margin-right:5px;color:#9a9a9a;font-size:11px}
 #nineSliceView .ns-size-row input[type="text"]{flex:1 1 0;width:0!important}
-#nineSliceView .ns-aspect-lock{display:block;flex:none;width:28px;height:32px;margin:0 6px;background-image:url("icons/aspect-unlocked.png");background-repeat:no-repeat;background-size:20px 20px;background-position:center center;opacity:.7;cursor:pointer;border-radius:3px}
+#nineSliceView .ns-aspect-lock{display:block;flex:none;width:28px;height:32px;margin:0 6px;background-image:url("icons/ns-link-off@2x.png");background-repeat:no-repeat;background-size:20px 20px;background-position:center center;opacity:.7;cursor:pointer;border-radius:3px}
 #nineSliceView .ns-aspect-lock:hover{opacity:1;background-color:#3a3a3a}
-#nineSliceView .ns-aspect-lock[aria-pressed="true"]{background-image:url("icons/aspect-locked.png");opacity:1}
+#nineSliceView .ns-aspect-lock[aria-pressed="true"]{background-image:url("icons/ns-link-on@2x.png");opacity:1}
 
 /* Stretch / tile segmented control (whole segment clickable) */
 #nineSliceView .ns-segment{display:flex;flex-direction:row;width:100%;margin-top:10px;border:1px solid #4a4a4a;border-radius:4px;overflow:hidden}
