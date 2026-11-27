@@ -72,6 +72,9 @@
       var area = document.getElementById("bodyArea");
       if (showNine) area.classList.add("nine-active");
       else area.classList.remove("nine-active");
+      // Image-number layout uses its own fixed footer, like Nine Slice.
+      if (showSprite) area.classList.add("sprite-active");
+      else area.classList.remove("sprite-active");
       setMenuOpen(false);
 
       if (showNine && !loadedNineSlice) {
@@ -98,6 +101,7 @@
         } catch (error) {
           console.error("[Photoshop Tools] Sprite Font failed:", error);
           spriteView.style.display = "none";
+          area.classList.remove("sprite-active");
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "图片数字排版工具启动失败";

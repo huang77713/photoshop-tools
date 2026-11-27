@@ -27,158 +27,6 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 
 
 
-/* Sprite Font Composer original scoped rules */
-#spriteFontView{--bg: #1f1f1f;
-  --card: #292929;
-  --card-2: #242424;
-  --border: #3a3a3a;
-  --text: #eeeeee;
-  --muted: #a6a6a6;
-  --field: #1b1b1b;
-  --accent: #5b8cff;
-  --accent-hover: #6f9aff;
-  --danger: #c85d5d;
-  --success: #7dc992;
-  --warning: #e5b567;}
-#spriteFontView *{box-sizing: border-box;}
-#spriteFontView, #spriteFontView{margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: Arial, "Microsoft YaHei", sans-serif; font-size: 12px;}
-#spriteFontView{min-width: 270px;}
-#spriteFontView .panel{padding: 12px; display: flex; flex-direction: column; gap: 10px;}
-#spriteFontView .header{display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 2px 0 4px;}
-#spriteFontView .title{font-size: 16px; font-weight: 700; line-height: 1.2;}
-#spriteFontView .subtitle{color: var(--muted); margin-top: 2px; font-size: 10px;}
-#spriteFontView .card{background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 10px; display: flex; flex-direction: column; gap: 9px;}
-#spriteFontView .label{display: flex; flex-direction: column; gap: 5px; color: #d8d8d8;}
-#spriteFontView .field{width: 100%; min-height: 30px; border: 1px solid #444; border-radius: 5px; background: var(--field); color: var(--text); padding: 6px 8px; outline: none;}
-#spriteFontView .field:focus{border-color: var(--accent);}
-#spriteFontView .text-input{font-size: 16px; letter-spacing: 0.4px;}
-#spriteFontView .mono{font-family: Consolas, "SFMono-Regular", monospace;}
-#spriteFontView .row{display: flex; align-items: flex-end;}
-#spriteFontView .between{justify-content: space-between;}
-#spriteFontView .gap8{gap: 8px;}
-#spriteFontView .grow{flex: 1;}
-#spriteFontView .two-col{display: grid; grid-template-columns: 1fr 1fr; gap: 8px;}
-#spriteFontView .meta-row{align-items: center;}
-#spriteFontView .button{border: 1px solid #4b4b4b; border-radius: 5px; min-height: 30px; padding: 6px 10px; background: #353535; color: var(--text); cursor: pointer;}
-#spriteFontView .button:hover{background: #404040;}
-#spriteFontView .button:disabled{opacity: .45; cursor: default;}
-#spriteFontView .button.primary{background: var(--accent); border-color: var(--accent); color: #fff;}
-#spriteFontView .button.primary:hover{background: var(--accent-hover);}
-#spriteFontView .button.danger{color: #f4c1c1; border-color: #704747;}
-#spriteFontView .button.small{min-height: 28px; padding: 5px 9px;}
-#spriteFontView .button.wide{width: 100%; margin-top: 2px;}
-#spriteFontView .checkbox-row{display: flex; align-items: center; gap: 7px; color: #d8d8d8;}
-#spriteFontView .checkbox-row input{margin: 0;}
-#spriteFontView .glyph-preview{min-height: 72px; max-height: 180px; overflow-y: auto; background: var(--card-2); border: 1px solid #363636; border-radius: 6px; padding: 7px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 5px;}
-#spriteFontView .glyph-preview.empty{display: block; color: var(--muted); line-height: 1.6;}
-#spriteFontView .glyph-chip{min-width: 42px; border: 1px solid #454545; background: #1f1f1f; border-radius: 5px; padding: 5px 6px; display: flex; flex-direction: column; gap: 2px;}
-#spriteFontView .glyph-char{font-size: 15px; font-weight: 700; line-height: 1.1;}
-#spriteFontView .glyph-index{color: var(--muted); font-size: 9px;}
-#spriteFontView .glyph-size{color: #858585; font-size: 9px;}
-#spriteFontView .muted{color: var(--muted);}
-#spriteFontView .status{min-height: 16px; line-height: 1.45;}
-#spriteFontView .status.success{color: var(--success);}
-#spriteFontView .status.error{color: #f08b8b;}
-#spriteFontView .status.warning{color: var(--warning);}
-#spriteFontView .tips{color: #c7c7c7; line-height: 1.55; padding: 0 2px 4px;}
-#spriteFontView .tips-title{font-weight: 700; margin-bottom: 2px;}
-
-/* Compatibility with the single UXP panel and existing Nine Slice. */
-#spriteFontView{width:100%;min-height:100%;background:#1f1f1f;color:#eee;overflow:visible;}
-#spriteFontView .panel{padding:14px;display:flex;flex-direction:column;width:100%;min-width:0;}
-#spriteFontView .panel>.card,#spriteFontView .panel>.header,#spriteFontView .panel>.tips{margin-bottom:12px;}
-#spriteFontView .card>*{margin-bottom:9px;}
-#spriteFontView .card>*:last-child{margin-bottom:0;}
-#spriteFontView .label{display:flex;flex-direction:column;margin-bottom:8px;}
-#spriteFontView .label .field{display:block;width:100%;margin-top:6px;min-width:0;}
-#spriteFontView .two-col{display:flex;flex-direction:row;flex-wrap:wrap;gap:0;width:100%;}
-#spriteFontView .two-col>.label{display:block;flex:0 0 48%;width:48%;min-width:0;}
-#spriteFontView .two-col>.label:first-child{margin-right:4%;}
-#spriteFontView .two-col .field{display:block;margin-top:6px;width:100%;}
-#spriteFontView .row{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;}
-#spriteFontView .grow{flex:1;min-width:100px;}
-#spriteFontView .button{flex:none;}
-#spriteFontView .glyph-preview{max-height:180px;overflow-y:auto;}
-
-
-
-/* Sprite font composer v2 — compact layout for Photoshop UXP */
-#spriteFontView .panel{padding:12px!important}
-#spriteFontView .panel>.card{margin-bottom:10px!important}
-#spriteFontView .panel .card{padding:12px!important}
-#spriteFontView .header{margin-bottom:10px!important}
-#spriteFontView .sf-library-row{align-items:flex-end!important;flex-wrap:nowrap!important}
-#spriteFontView .sf-library-row .label{min-width:0!important}
-#spriteFontView .sf-library-row .button{margin-left:8px!important;flex:none}
-#spriteFontView .sf-manager{margin-top:12px!important;padding-top:10px!important;border-top:1px solid #45404d}
-#spriteFontView .sf-manager .row{align-items:flex-end!important}
-#spriteFontView .sf-manager #btnDelete{margin-left:8px!important}
-#spriteFontView .glyph-preview{max-height:155px!important;margin-top:8px!important;overflow-y:auto!important}
-#spriteFontView .glyph-chip{min-width:56px!important;width:56px!important;align-items:center!important;padding:5px!important}
-#spriteFontView .sf-glyph-image{display:block!important;max-width:44px!important;max-height:45px!important;object-fit:contain!important;margin:0 auto 3px!important}
-#spriteFontView .sf-glyph-missing{height:38px!important;line-height:38px!important;color:#a8a3b4}
-#spriteFontView .sf-preview-head{display:flex!important;justify-content:space-between!important;align-items:center!important;margin-bottom:5px!important;font-weight:600}
-#spriteFontView .sf-preview-head .muted{font-size:10px!important;font-weight:normal!important}
-#spriteFontView .sf-composed-preview{height:130px!important;min-height:130px!important;max-height:130px!important;overflow:hidden!important;display:flex!important;align-items:center!important;justify-content:center!important;background:#23212a!important;border:1px solid #44414d!important;border-radius:6px!important;padding:8px!important}
-#spriteFontView .sf-composed-row{display:flex!important;align-items:flex-start!important;flex-wrap:nowrap!important;max-width:100%!important}
-#spriteFontView .sf-composed-glyph{display:block!important;flex:none!important;object-fit:fill!important}
-#spriteFontView .sf-composed-space{display:block!important;flex:none!important}
-#spriteFontView .sf-preview-message{font-size:10px!important;min-height:14px!important;margin-top:3px!important}
-#spriteFontView .sf-align-title{font-size:11px!important;color:#c5bfd0!important;margin-bottom:6px!important}
-#spriteFontView .sf-align-options{display:flex!important;flex-direction:row!important;gap:5px!important}
-#spriteFontView .sf-align-option{display:flex!important;justify-content:center!important;align-items:center!important;flex:1 1 0!important;min-height:31px!important;padding:6px!important;border:1px solid #484552!important;border-radius:5px!important;background:#292730!important;cursor:pointer!important}
-#spriteFontView .sf-align-option.selected{border-color:#8a77bc!important;background:#40394e!important}
-#spriteFontView .sf-align-option input{display:none!important}
-#spriteFontView .checkbox-row{margin-top:3px!important}
-
-/* Sprite Font v3 visual polish. Presentation only; all ids and UXP behavior unchanged. */
-#spriteFontView{--bg:#27272b;--card:#27272b;--card-2:#222226;--border:#45454c;--text:#ededf0;--muted:#a6a6af;--field:#1e1e23;--accent:#7960b6;--accent-hover:#8a73c7;background:#27272b!important;color:#ededf0!important}
-#spriteFontView .panel{background:#27272b!important;padding:16px 15px 24px!important;display:flex!important;flex-direction:column!important;gap:0!important}
-#spriteFontView .header{display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:47px!important;padding:0 0 13px!important;margin:0 0 14px!important;border-bottom:1px solid #3b3b41!important}
-#spriteFontView .title{font-size:16px!important;font-weight:600!important;letter-spacing:0!important;line-height:1.4!important}
-#spriteFontView .subtitle{margin-top:3px!important;font-size:10px!important;line-height:1.3!important;color:#92929b!important}
-#spriteFontView .button{min-height:33px!important;padding:7px 11px!important;font-size:12px!important;font-weight:500!important;border:1px solid #55535c!important;border-radius:5px!important;color:#dedde6!important;background:#37363c!important;box-shadow:none!important}
-#spriteFontView .button:hover{background:#45434c!important}
-#spriteFontView .button.primary{background:#7357b0!important;color:#fff!important;border-color:#7357b0!important}
-#spriteFontView .button.primary:hover{background:#8264c2!important}
-#spriteFontView .button.small{min-height:30px!important;padding:5px 10px!important;font-size:11px!important}
-#spriteFontView .button.danger{background:transparent!important;border-color:#514249!important;color:#dfaaaa!important}
-#spriteFontView .panel>.card{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;margin:0!important}
-#spriteFontView .panel>.sf-main{border-bottom:1px solid #393940!important;padding:0 0 16px!important;margin-bottom:17px!important}
-#spriteFontView .sf-main .sf-library-row{margin:0!important;align-items:flex-end!important}
-#spriteFontView .sf-library-row .label{margin:0!important;flex:1 1 0!important;min-width:0!important}
-#spriteFontView .sf-library-row #btnManage{margin-left:9px!important;min-width:72px!important}
-#spriteFontView .label{color:#cfcdd5!important;font-size:12px!important;line-height:1.45!important;margin:0 0 14px!important}
-#spriteFontView .field{display:block!important;box-sizing:border-box!important;background:#1f1e23!important;color:#f2f1f5!important;border:1px solid #52515b!important;border-radius:6px!important;box-shadow:none!important;min-height:38px!important;height:38px!important;padding:7px 11px!important;font-size:13px!important}
-#spriteFontView .field:focus{border-color:#8e78bd!important}
-#spriteFontView .label .field{margin-top:7px!important}
-#spriteFontView #librarySelect{width:100%!important;max-width:100%!important}
-#spriteFontView .sf-manager{margin-top:14px!important;padding:14px 0 0!important;border-top:1px solid #3b3b42!important}
-#spriteFontView .sf-manager .row{margin-bottom:11px!important}
-#spriteFontView .sf-manager .label{margin-bottom:10px!important}
-#spriteFontView .sf-manager .meta-row{margin-bottom:7px!important}
-#spriteFontView .glyph-preview{background:#202025!important;border-color:#3e3e45!important;border-radius:6px!important;max-height:155px!important;padding:8px!important}
-#spriteFontView .glyph-chip{background:#2b2a30!important;border:1px solid #45444c!important;border-radius:5px!important}
-#spriteFontView .sf-compose{display:flex!important;flex-direction:column!important}
-#spriteFontView #textInput{height:44px!important;min-height:44px!important;font-size:17px!important;font-weight:500!important;letter-spacing:.2px!important}
-#spriteFontView .sf-preview-head{display:flex!important;justify-content:space-between!important;align-items:center!important;margin:3px 0 8px!important;font-size:12px!important;color:#dcd9e4!important}
-#spriteFontView .sf-composed-preview{height:165px!important;min-height:165px!important;max-height:165px!important;background:#1f1e23!important;border:1px solid #3b3a42!important;border-radius:7px!important;margin:0!important;padding:12px!important}
-#spriteFontView .sf-preview-message{display:block!important;min-height:16px!important;margin:5px 0 12px!important;color:#93919d!important;font-size:10px!important;line-height:1.4!important}
-#spriteFontView .two-col{display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;width:100%!important;gap:0!important;margin:0 0 15px!important}
-#spriteFontView .two-col>.label{flex:0 0 48%!important;width:48%!important;min-width:0!important;margin:0!important}
-#spriteFontView .two-col>.label:first-child{margin-right:4%!important}
-#spriteFontView .two-col .field{height:38px!important;min-height:38px!important}
-#spriteFontView .sf-align-title{margin:0 0 8px!important;font-size:12px!important;color:#cfcdd5!important}
-#spriteFontView .sf-align-options{display:flex!important;flex-direction:row!important;gap:0!important;width:100%!important;margin:0 0 15px!important}
-#spriteFontView .sf-align-option{flex:1 1 0!important;min-width:0!important;min-height:35px!important;padding:7px 4px!important;border:1px solid #484750!important;border-radius:0!important;background:#302f35!important;color:#c9c7d1!important;font-size:12px!important;cursor:pointer!important}
-#spriteFontView .sf-align-option:first-child{border-radius:5px 0 0 5px!important}
-#spriteFontView .sf-align-option:last-child{border-radius:0 5px 5px 0!important}
-#spriteFontView .sf-align-option.selected{background:#514466!important;color:#f0e9ff!important;border-color:#806bad!important}
-#spriteFontView .checkbox-row{margin:0 0 15px!important;min-height:23px!important;color:#c3c1cc!important;font-size:11px!important}
-#spriteFontView .checkbox-row input{margin-right:7px!important}
-#spriteFontView #btnGenerate{width:100%!important;height:42px!important;min-height:42px!important;font-size:14px!important;font-weight:600!important;margin:0 0 8px!important;border-radius:6px!important}
-#spriteFontView #status{margin:0!important;padding:1px 2px 0!important;font-size:11px!important;line-height:1.5!important;min-height:16px!important}
-#spriteFontView .sf-manager .muted,#spriteFontView #glyphCount{font-size:11px!important}
 </style>
 <link rel="stylesheet" href="extra-features.css">
 <link rel="stylesheet" href="text-cutter-ui.css">
@@ -187,6 +35,7 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
 <link rel="stylesheet" href="bounds-frame.css">
 <link rel="stylesheet" href="text-layer-manager.css">
 <link rel="stylesheet" href="nine-slice.css">
+<link rel="stylesheet" href="sprite-font.css">
 </head>
 <body>
 <div id="app">
@@ -248,59 +97,60 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   </div>
   </div><div class="footer"><div class="ns-actions"><div id="sameDoc" class="ns-btn ns-btn-primary" role="button" tabindex="0">生成到当前文档</div><div id="newDoc" class="ns-btn" role="button" tabindex="0">新建文档</div></div><div id="status" class="hint">请先选中图层</div></div>
 </div></div>
-     <div id="spriteFontView" style="display:none"><main class="panel">
-  <header class="header">
-    <div><div class="title">图片数字排版</div><div class="subtitle">导入图片字库 · 实时查看排版</div></div>
-    <button id="btnImport" class="button primary">导入字库</button>
-  </header>
-  <section class="card sf-main">
-    <div class="row between sf-library-row">
-      <label class="label grow">当前字库
-        <select id="librarySelect" class="field"></select>
-      </label>
-      <button id="btnManage" class="button small">字库设置</button>
+     <div id="spriteFontView" style="display:none"><div class="sf-root"><div class="sf-scroll">
+  <div class="sf-library-row">
+    <select id="librarySelect" class="sf-select" aria-label="当前字库"></select>
+    <div id="btnManage" class="sf-btn sf-btn-small" role="button" tabindex="0">设置</div>
+    <div id="btnImport" class="sf-btn sf-btn-small" role="button" tabindex="0">导入</div>
+  </div>
+  <div id="sfLibraryMeta" class="sf-muted sf-library-meta">尚未导入字库</div>
+  <div id="sfManager" class="sf-manager" style="display:none">
+    <div class="sf-field-label">字库名称</div>
+    <div class="sf-row"><input id="libraryName" class="sf-input sf-grow" type="text" placeholder="例如：金色金币数字"><div id="btnDelete" class="sf-btn sf-btn-small sf-btn-danger" role="button" tabindex="0">删除</div></div>
+    <div class="sf-field-label">字符映射（按图片里的排列顺序）</div>
+    <input id="mappingInput" class="sf-input sf-mono" type="text" placeholder="例如：0123456789,.">
+    <div class="sf-row sf-meta-row"><span id="glyphCount" class="sf-muted sf-grow">尚未导入字库</span><div id="btnSaveLibrary" class="sf-btn sf-btn-small" role="button" tabindex="0">完成</div></div>
+    <div id="glyphPreview" class="glyph-preview empty">导入一张透明 PNG 字库后，这里会显示自动拆分结果。</div>
+  </div>
+  <div class="sf-field-label sf-content-label">内容</div>
+  <input id="textInput" class="sf-input sf-text-input sf-mono" type="text" value="300" placeholder="例如：1250">
+  <div class="sf-preview-head"><span>预览</span><span id="previewDimensions" class="sf-muted"></span></div>
+  <div id="composedPreview" class="sf-composed-preview"><img id="sfPreviewImage" class="sf-preview-image" alt="排版预览" style="display:none"><span id="sfPreviewPlaceholder" class="sf-muted">选择字库后显示真实图片字</span></div>
+  <div id="previewMessage" class="sf-preview-message sf-muted"></div>
+  <div class="sf-row sf-adjust-row">
+    <div class="sf-adjust"><div class="sf-field-label">字间距 (px)</div><input id="spacingInput" class="sf-input" type="text" inputmode="numeric" value="0"></div>
+    <div class="sf-adjust sf-adjust-second"><div class="sf-field-label">缩放 (%)</div><input id="scaleInput" class="sf-input" type="text" inputmode="numeric" value="100"></div>
+    <div id="sfMono" class="sf-toggle" role="button" tabindex="0" aria-pressed="false" title="0–9 每个数字占同样宽度，跳动的数字不会左右晃">数字等宽</div>
+  </div>
+  <div class="sf-section">
+    <div class="sf-section-title">放置位置</div>
+    <div class="sf-segment" role="group" aria-label="放置位置">
+      <div class="sf-place-option" data-place="canvas" role="radio" tabindex="0">画布</div>
+      <div class="sf-place-option sf-seg-next" data-place="selection" role="radio" tabindex="0">选区</div>
+      <div class="sf-place-option sf-seg-next" data-place="layer" role="radio" tabindex="0">选中图层</div>
     </div>
-    <div id="sfManager" class="sf-manager" style="display:none">
-      <div class="row between gap8">
-        <label class="label grow">字库名称<input id="libraryName" class="field" type="text" placeholder="例如：金色金币数字"></label>
-        <button id="btnDelete" class="button danger small">删除</button>
+    <div class="sf-row sf-align-row">
+      <span class="sf-inline-label">水平对齐</span>
+      <div class="sf-segment sf-align-options sf-grow" role="group" aria-label="水平对齐">
+        <label class="sf-align-option"><input type="radio" name="sfAlign" value="left"><span>左</span></label>
+        <label class="sf-align-option sf-seg-next"><input type="radio" name="sfAlign" value="center" checked><span>居中</span></label>
+        <label class="sf-align-option sf-seg-next"><input type="radio" name="sfAlign" value="right"><span>右</span></label>
       </div>
-      <label class="label">字符映射（按图片排列顺序）
-        <input id="mappingInput" class="field mono" type="text" placeholder="例如：₹,.0123456789">
-      </label>
-      <div class="row between meta-row">
-        <span id="glyphCount" class="muted">尚未导入字库</span>
-        <button id="btnSaveLibrary" class="button small">保存设置</button>
-      </div>
-      <div id="glyphPreview" class="glyph-preview empty">导入图片字库后显示每个字符的真实切图。</div>
     </div>
-  </section>
-  <section class="card sf-compose">
-    <label class="label">输入内容
-      <input id="textInput" class="field text-input mono" type="text" value="300" placeholder="例如：300 / ₹12,500">
-    </label>
-    <div class="sf-preview-head"><span>实时预览</span><span id="previewDimensions" class="muted"></span></div>
-    <div id="composedPreview" class="sf-composed-preview"><span class="muted">选择字库后显示真实图片字</span></div>
-    <div id="previewMessage" class="sf-preview-message muted"></div>
-    <div class="two-col">
-      <label class="label">字间距 (px)
-        <input id="spacingInput" class="field" type="number" value="0" step="1">
-      </label>
-      <label class="label">缩放 (%)
-        <input id="scaleInput" class="field" type="number" value="100" min="10" max="500" step="5">
-      </label>
+    <div id="sfPlaceNote" class="sf-note">放在当前画布上，上下居中。</div>
+    <div id="sfReplaceRow" class="sf-check-row" style="display:none" role="checkbox" tabindex="0" aria-checked="false"><span class="sf-check-box"></span><span>替换选中的图层</span></div>
+  </div>
+  <div class="sf-section">
+    <div class="sf-section-title">输出方式</div>
+    <div class="sf-segment" role="group" aria-label="输出方式">
+      <div class="sf-output-option" data-output="layers" role="radio" tabindex="0">独立图层</div>
+      <div class="sf-output-option sf-seg-next" data-output="merged" role="radio" tabindex="0">合并图层</div>
+      <div class="sf-output-option sf-seg-next" data-output="smart" role="radio" tabindex="0">智能对象</div>
     </div>
-    <div class="sf-align-title">画布水平对齐</div>
-    <div class="sf-align-options" role="group" aria-label="画布水平对齐">
-      <label class="sf-align-option"><input type="radio" name="sfAlign" value="left"><span>左</span></label>
-      <label class="sf-align-option"><input type="radio" name="sfAlign" value="center" checked><span>居中</span></label>
-      <label class="sf-align-option"><input type="radio" name="sfAlign" value="right"><span>右</span></label>
-    </div>
-    <label class="checkbox-row"><input id="groupCheck" type="checkbox" checked><span>生成后自动成组</span></label>
-    <button id="btnGenerate" class="button primary wide">生成到 Photoshop 当前文档</button>
-    <div id="status" class="status muted">选择字库，输入内容后即可生成。</div>
-  </section>
-</main></div>
+    <div id="sfOutputNote" class="sf-note">每个字符一个图层，自动放进一个组。</div>
+  </div>
+  </div><div class="sf-footer"><div id="btnGenerate" class="sf-btn sf-btn-primary" role="button" tabindex="0">生成</div><div id="status" class="status sf-status">选择字库，输入内容后即可生成。</div></div>
+</div></div>
     <div id="removeBgView" class="extra-tool" style="display:none"><main class="panel">
   <header class="header">
     <div><div class="title">透明对象拆分</div><div class="subtitle">识别独立元素，保留原始图层</div></div>

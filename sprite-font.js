@@ -1,18 +1,45 @@
-/* Original Sprite Font Composer Photoshop algorithms unchanged.
- * Scoped DOM references and standalone UXP panel registration removed. */
+/* Sprite Font Composer (图片数字排版) - Photoshop UXP.
+ * Glyph detection, library import and atlas reading are the original algorithms.
+ * v4: glyph pixels cached after the first atlas read (no atlas reopen per generate),
+ * single composed checkerboard preview (no 60-glyph limit), one-step undo,
+ * placement on canvas / selection / selected layer with optional replace,
+ * output as separate layers / merged layer / smart object, monospaced digits,
+ * auto-saved mapping and a two-step delete confirmation. */
 module.exports = function mountSpriteFont(root) {
-const { app, core, imaging, constants } = require("photoshop");
+const { app, core, imaging, constants, action } = require("photoshop");
 const { storage } = require("uxp");
 
 const fs = storage.localFileSystem;
 const STORAGE_KEY = "spriteFontComposer.libraries.v1";
 const SELECTED_KEY = "spriteFontComposer.selectedLibrary.v1";
+const PREF = { place: "spriteFontComposer.v4.place", output: "spriteFontComposer.v4.output", replace: "spriteFontComposer.v4.replace" };
+const PLACES = ["canvas", "selection", "layer"];
+const OUTPUTS = ["layers", "merged", "smart"];
+const PLACE_NOTE = {
+  canvas: "放在当前画布上，上下居中。",
+  selection: "放进当前选区里，上下居中。请先用选框工具画一个选区。",
+  layer: "对齐到选中的图层，上下居中。"
+};
+const OUTPUT_NOTE = {
+  layers: "每个字符一个图层，自动放进一个组。",
+  merged: "所有字符合成一个像素图层。",
+  smart: "合成一个图层后转成智能对象，以后缩放不损失画质。"
+};
+
+function readPref(key, fallback) { try { const v = localStorage.getItem(key); return v === null ? fallback : v; } catch (_) { return fallback; } }
+function writePref(key, value) { try { localStorage.setItem(key, String(value)); } catch (_) {} }
 
 let libraries = loadLibraries();
 let selectedLibraryId = localStorage.getItem(SELECTED_KEY) || (libraries[0] ? libraries[0].id : "");
-const previewCache = new Map();
+const glyphCache = new Map();   // library id -> { token, glyphs:[{rgba,width,height,shiftX,shiftY,colorProfile,url}] }
+const glyphLoading = new Map(); // library id -> Promise
+let placeMode = PLACES.includes(readPref(PREF.place, "canvas")) ? readPref(PREF.place, "canvas") : "canvas";
+let outputMode = OUTPUTS.includes(readPref(PREF.output, "layers")) ? readPref(PREF.output, "layers") : "layers";
+let replaceTarget = readPref(PREF.replace, "false") === "true";
+let generating = false;
 let previewSerial = 0;
-let busyPreview = false;
+let previewTimer = null;
+let deleteArmed = null;
 
 function $(id) {
   return root.querySelector("#" + id);
@@ -44,7 +71,11 @@ function currentLibrary() {
 function setStatus(message, type = "muted") {
   const el = $("status");
   el.textContent = message;
-  el.className = "status " + type;
+  el.className = "status sf-status " + type;
+}
+
+function errorText(e) {
+  return (e && e.message) || String(e);
 }
 
 function stripExtension(name) {
@@ -60,6 +91,8 @@ function guessMapping(count) {
 function getMappingChars(lib) {
   return Array.from((lib && lib.mapping) || "");
 }
+
+/* ---------- Library list and settings ---------- */
 
 function renderLibraries() {
   const select = $("librarySelect");
@@ -89,49 +122,32 @@ function renderLibraries() {
   localStorage.setItem(SELECTED_KEY, selectedLibraryId || "");
   renderLibraryEditor();
   readPreviewPreferences(currentLibrary());
-  queueLibraryPreview();
+  schedulePreview();
 }
-function refreshMappedGlyphLabels() {
-  const lib=currentLibrary(),chars=getMappingChars(lib);
-  const chips=$("glyphPreview").querySelectorAll(".glyph-char");
-  for(let i=0;i<chips.length;i++)chips[i].textContent=chars[i]||"?";
+
+function renderLibraryMeta() {
+  const lib = currentLibrary(), meta = $("sfLibraryMeta");
+  if (!lib) { meta.textContent = "尚未导入字库，点击「导入」选择一张透明 PNG 字库图。"; meta.className = "sf-muted sf-library-meta"; return; }
+  const chars = getMappingChars(lib);
+  if (chars.length !== lib.boxes.length) {
+    meta.textContent = "识别 " + lib.boxes.length + " 个字符，映射填了 " + chars.length + " 个，请在「设置」里核对";
+    meta.className = "sf-library-meta sf-status warning";
+  } else {
+    meta.textContent = lib.boxes.length + " 个字符 · " + chars.join("");
+    meta.className = "sf-muted sf-library-meta";
+  }
 }
+
 function setManagerOpen(open) {
-  $("sfManager").style.display=open?"block":"none";
-  $("btnManage").textContent=open?"收起设置":"字库设置";
-  if(open)queueLibraryPreview();
+  $("sfManager").style.display = open ? "block" : "none";
+  $("btnManage").textContent = open ? "收起" : "设置";
 }
-function updateAlignButtons() {
-  const selected=root.querySelector('input[name="sfAlign"]:checked');
-  const value=selected?selected.value:"center";
-  root.querySelectorAll(".sf-align-option").forEach(item=>{
-    const control=item.querySelector("input");
-    item.classList.toggle("selected",!!control&&control.value===value);
-  });
-}
-function queueLibraryPreview(){
-  const lib=currentLibrary();
-  const serial=++previewSerial;
-  renderComposedPreview();
-  if(!lib)return;
-  const cache=previewCache.get(lib.id);
-  if(cache){renderGlyphImageChips();return;}
-  if(busyPreview){return;}
-  busyPreview=true;
-  setTimeout(async()=>{
-    try{await loadGlyphPreviews(lib,serial);}
-    catch(e){console.warn("[Sprite Font] Preview failed:",e);
-      if(serial===previewSerial)$("previewMessage").textContent="预览图片读取失败，仍可尝试生成："+(e.message||String(e));}
-    finally{
-      busyPreview=false;
-      const current=currentLibrary();
-      if(current && current.id!==lib.id)queueLibraryPreview();
-    }
-  },70);
-}
+
 function renderLibraryEditor() {
   const lib = currentLibrary();
   const preview = $("glyphPreview");
+  renderLibraryMeta();
+  $("sfMono").setAttribute("aria-pressed", lib && lib.mono ? "true" : "false");
 
   if (!lib) {
     $("libraryName").value = "";
@@ -139,16 +155,11 @@ function renderLibraryEditor() {
     $("glyphCount").textContent = "尚未导入字库";
     preview.className = "glyph-preview empty";
     preview.textContent = "导入一张透明 PNG 字库后，这里会显示自动拆分结果。";
-    $("btnDelete").disabled = true;
-    $("btnSaveLibrary").disabled = true;
-    $("composedPreview").textContent="请先导入字库";
-    $("previewDimensions").textContent="";
-    $("previewMessage").textContent="";
+    $("btnDelete").classList.add("sf-off");
     return;
   }
 
-  $("btnDelete").disabled = false;
-  $("btnSaveLibrary").disabled = false;
+  $("btnDelete").classList.remove("sf-off");
   $("libraryName").value = lib.name || "";
   $("mappingInput").value = lib.mapping || "";
   $("glyphCount").textContent = `${lib.boxes.length} 个字符 · ${lib.sourceWidth}×${lib.sourceHeight}px`;
@@ -160,50 +171,81 @@ function renderLibraryEditor() {
   lib.boxes.forEach((box, index) => {
     const chip = document.createElement("div");
     chip.className = "glyph-chip";
-
-    const image=document.createElement("img");
-    image.className="sf-glyph-image";
-    image.setAttribute("alt","字形 "+(index+1));
-    image.style.display="none";
+    const image = document.createElement("img");
+    image.className = "sf-glyph-image";
+    image.setAttribute("alt", "字形 " + (index + 1));
+    image.style.display = "none";
     chip.appendChild(image);
     const charEl = document.createElement("div");
     charEl.className = "glyph-char";
     charEl.textContent = chars[index] || "?";
-
     const indexEl = document.createElement("div");
     indexEl.className = "glyph-index";
     indexEl.textContent = `#${index + 1}`;
-
     const sizeEl = document.createElement("div");
     sizeEl.className = "glyph-size";
     sizeEl.textContent = `${box.right - box.left}×${box.bottom - box.top}`;
-
     chip.appendChild(charEl);
     chip.appendChild(indexEl);
     chip.appendChild(sizeEl);
     preview.appendChild(chip);
   });
   renderGlyphImageChips();
-  renderComposedPreview();
 }
 
-function saveCurrentLibraryEdits() {
-  const lib = currentLibrary();
-  if (!lib) return;
+function refreshMappedGlyphLabels() {
+  const chars = getMappingChars(currentLibrary());
+  const chips = $("glyphPreview").querySelectorAll(".glyph-char");
+  for (let i = 0; i < chips.length; i++) chips[i].textContent = chars[i] || "?";
+}
 
-  lib.name = $("libraryName").value.trim() || stripExtension(lib.fileName);
-  lib.mapping = $("mappingInput").value;
-  savePreviewSettings(lib);
-  saveLibraries();
-  renderLibraries();
-
-  const count = getMappingChars(lib).length;
-  if (count !== lib.boxes.length) {
-    setStatus(`已保存，但映射有 ${count} 个字符，图片识别出 ${lib.boxes.length} 个，请保持数量一致。`, "warning");
-  } else {
-    setStatus("字库设置已保存。", "success");
+function renderGlyphImageChips() {
+  const lib = currentLibrary(); if (!lib) return;
+  const cache = glyphCache.get(lib.id);
+  if (!cache) return;
+  const images = $("glyphPreview").querySelectorAll(".sf-glyph-image");
+  for (let i = 0; i < images.length; i++) {
+    const entry = cache.glyphs[i];
+    if (entry && entry.url) { images[i].src = entry.url; images[i].style.display = "block"; }
   }
 }
+
+function readPreviewPreferences(lib) {
+  if (!lib) return;
+  $("spacingInput").value = Number.isFinite(Number(lib.spacing)) ? String(lib.spacing) : "0";
+  $("scaleInput").value = Number.isFinite(Number(lib.previewScale)) ? String(lib.previewScale) : "100";
+  const align = lib.align === "left" || lib.align === "right" ? lib.align : "center";
+  const radio = root.querySelector('input[name="sfAlign"][value="' + align + '"]');
+  if (radio) radio.checked = true;
+  updateAlignButtons();
+}
+
+function savePreviewSettings(lib) {
+  if (!lib) return;
+  const spacing = Number($("spacingInput").value);
+  const scale = Number($("scaleInput").value);
+  lib.spacing = Number.isFinite(spacing) ? spacing : 0;
+  lib.previewScale = Number.isFinite(scale) ? scale : 100;
+  const radio = root.querySelector('input[name="sfAlign"]:checked');
+  lib.align = radio ? radio.value : "center";
+  saveLibraries();
+}
+
+function updateAlignButtons() {
+  const selected = root.querySelector('input[name="sfAlign"]:checked');
+  const value = selected ? selected.value : "center";
+  root.querySelectorAll(".sf-align-option").forEach(item => {
+    const control = item.querySelector("input");
+    item.classList.toggle("selected", !!control && control.value === value);
+  });
+}
+
+function currentAlign() {
+  const el = root.querySelector('input[name="sfAlign"]:checked');
+  return el ? el.value : "center";
+}
+
+/* ---------- Original detection / import / atlas reading ---------- */
 
 function sampleBackground(data, width, height, components) {
   const points = [
@@ -406,7 +448,7 @@ async function importLibrary() {
     renderLibraries();
     setManagerOpen(true);
     if (mapping) {
-      setStatus(`已识别 ${analysis.boxes.length} 个字符，并自动填写了一个映射草稿。请确认后保存。`, "success");
+      setStatus(`已识别 ${analysis.boxes.length} 个字符，并自动填写了字符映射，请核对是否正确。`, "success");
     } else {
       setStatus(`已识别 ${analysis.boxes.length} 个字符。请在“字符映射”里按顺序填入对应字符。`, "warning");
     }
@@ -422,7 +464,7 @@ async function deleteLibrary() {
   libraries = libraries.filter((item) => item.id !== lib.id);
   selectedLibraryId = libraries[0] ? libraries[0].id : "";
   saveLibraries();
-  previewCache.delete(lib.id);
+  glyphCache.delete(lib.id);
   renderLibraries();
   setStatus("字库已从插件列表中删除（不会删除你的原图片）。", "success");
 }
@@ -480,333 +522,493 @@ async function readGlyphFromAtlas(documentID, box) {
 }
 
 
-function readPreviewPreferences(lib) {
-  if(!lib)return;
-  $("spacingInput").value=Number.isFinite(Number(lib.spacing))?String(lib.spacing):"0";
-  $("scaleInput").value=Number.isFinite(Number(lib.previewScale))?String(lib.previewScale):"100";
-  const align=lib.align==="left"||lib.align==="right"?lib.align:"center";
-  const radio=root.querySelector('input[name="sfAlign"][value="'+align+'"]');
-  if(radio)radio.checked=true;
-  updateAlignButtons();
-}
-function savePreviewSettings(lib) {
-  if(!lib)return;
-  const spacing=Number($("spacingInput").value);
-  const scale=Number($("scaleInput").value);
-  lib.spacing=Number.isFinite(spacing)?spacing:0;
-  lib.previewScale=Number.isFinite(scale)?scale:100;
-  const radio=root.querySelector('input[name="sfAlign"]:checked');
-  lib.align=radio?radio.value:"center";
-  saveLibraries();
-}
-function renderGlyphImageChips(){
-  const lib=currentLibrary();if(!lib)return;
-  const cache=previewCache.get(lib.id);
-  const images=$("glyphPreview").querySelectorAll(".sf-glyph-image");
-  if(!cache)return;
-  for(let i=0;i<images.length;i++){
-    const entry=cache[i];
-    if(entry){images[i].src=entry.url;images[i].style.display="block";}
-  }
-}
-function getPreviewLayout(lib,text) {
-  const chars=Array.from(text),mapping=getMappingChars(lib);
-  const boxes=new Map();
-  mapping.forEach((ch,i)=>{if(!boxes.has(ch))boxes.set(ch,lib.boxes[i]);});
-  const unsupported=Array.from(new Set(chars.filter(ch=>ch!==" "&&!boxes.has(ch))));
-  const defined=chars.filter(ch=>ch!==" ").map(ch=>boxes.get(ch)).filter(Boolean);
-  const average=defined.length?defined.reduce((a,b)=>a+(b.right-b.left),0)/defined.length:20;
-  const spaceWidth=Math.max(1,Math.round(average*0.5));
-  const spacing=Number($("spacingInput").value);
-  const scale=Number($("scaleInput").value);
-  const gap=Number.isFinite(spacing)?spacing:0;
-  const zoom=Number.isFinite(scale)?Math.max(10,Math.min(500,scale))/100:1;
-  let total=0;
-  const pieces=chars.map((ch,i)=>{
-    const box=ch===" "?null:boxes.get(ch);
-    const width=box?box.right-box.left:spaceWidth;
-    const record={ch,box,width,offset:total};
-    total+=width;
-    if(i<chars.length-1)total+=gap;
-    return record;
-  });
-  const rowHeight=Math.max(1,...defined.map(box=>box.rowBottom-box.rowTop));
-  return {pieces,total,rowHeight,zoom,unsupported};
-}
-function renderComposedPreview(){
-  const holder=$("composedPreview"),details=$("previewDimensions"),msg=$("previewMessage");
-  holder.innerHTML="";
-  details.textContent="";
-  const lib=currentLibrary(),text=$("textInput").value;
-  if(!lib){holder.textContent="请先导入字库";msg.textContent="";return;}
-  if(!text){holder.textContent="输入内容后预览";msg.textContent="";return;}
-  const mapping=getMappingChars(lib);
-  if(mapping.length!==lib.boxes.length){
-    holder.textContent="请先核对字库字符映射";
-    msg.textContent="识别了 "+lib.boxes.length+" 个字符，映射有 "+mapping.length+" 个";
-    return;
-  }
-  const layout=getPreviewLayout(lib,text);
-  if(layout.unsupported.length){
-    holder.textContent="当前字库缺少字符";
-    msg.textContent="缺少："+layout.unsupported.join(" ");
-    return;
-  }
-  const cache=previewCache.get(lib.id);
-  if(!cache){holder.textContent="正在加载真实字符预览…";msg.textContent="";return;}
-  const predictedW=Math.max(1,Math.round(layout.total*layout.zoom));
-  const predictedH=Math.max(1,Math.round(layout.rowHeight*layout.zoom));
-  details.textContent=predictedW+" × "+predictedH+" px";
-  const areaWidth=Math.max(90,holder.clientWidth-20),areaHeight=Math.max(70,holder.clientHeight-20);
-  const fit=Math.min(1,areaWidth/Math.max(1,predictedW),areaHeight/Math.max(1,predictedH));
-  const rasterScale=layout.zoom*fit;
-  const row=document.createElement("div");
-  row.className="sf-composed-row";
-  row.style.width=Math.max(1,Math.round(layout.total*rasterScale))+"px";
-  row.style.height=Math.max(1,Math.round(layout.rowHeight*rasterScale))+"px";
-  row.style.position="relative";
-  const charIndex=new Map();
-  mapping.forEach((ch,i)=>charIndex.set(ch,i));
-  for(const piece of layout.pieces){
-    if(piece.ch===" ")continue;
-    const imgData=cache[charIndex.get(piece.ch)];
-    if(!imgData)continue;
-    const img=document.createElement("img");
-    img.src=imgData.url;
-    img.className="sf-composed-glyph";
-    img.style.position="absolute";
-    img.style.left=Math.round(piece.offset*rasterScale)+"px";
-    img.style.top=Math.round((piece.box.top-piece.box.rowTop)*rasterScale)+"px";
-    img.style.width=Math.max(1,Math.round(piece.width*rasterScale))+"px";
-    img.style.height=Math.max(1,Math.round((piece.box.bottom-piece.box.top)*rasterScale))+"px";
-    row.appendChild(img);
-  }
-  holder.appendChild(row);
-  msg.textContent=fit<1?"预览已缩小适配面板；生成尺寸不受影响":"";
-}
-async function loadGlyphPreviews(lib,serial){
-  let entry;
-  try{entry=await fs.getEntryForPersistentToken(lib.token);}
-  catch(e){throw new Error("原字库已移动或权限失效，请重新导入");}
-  const images=[];
-  await core.executeAsModal(async()=>{
-    const atlas=await app.open(entry);
-    try{
-      const max=Math.min(60,lib.boxes.length);
-      for(let i=0;i<max;i++){
-        const box=lib.boxes[i];
-        const glyph=await readGlyphFromAtlas(atlas.id,box);
-        const n=glyph.width*glyph.height;
-        const rgb=new Uint8Array(n*3);
-        for(let j=0;j<n;j++){
-          const p=j*glyph.components,o=j*3;
-          const a=glyph.components===4?glyph.data[p+3]/255:1;
-          rgb[o]=Math.round((glyph.data[p]||0)*a+35*(1-a));
-          rgb[o+1]=Math.round((glyph.data[p+1]||0)*a+33*(1-a));
-          rgb[o+2]=Math.round((glyph.data[p+2]||0)*a+42*(1-a));
-        }
-        let data=null;
-        try{
-          data=await imaging.createImageDataFromBuffer(rgb,{width:glyph.width,height:glyph.height,components:3,chunky:true,colorSpace:"RGB",colorProfile:"sRGB IEC61966-2.1"});
-          const jpeg=await imaging.encodeImageData({imageData:data,base64:true});
-          images.push({url:"data:image/jpeg;base64,"+jpeg,width:glyph.width,height:glyph.height});
-        }finally{if(data)data.dispose();}
-      }
-    }finally{atlas.closeWithoutSaving();}
-  },{commandName:"读取图片字预览"});
-  previewCache.set(lib.id,images);
-  if(currentLibrary()&&currentLibrary().id===lib.id){
-    renderGlyphImageChips();
-    renderComposedPreview();
-  }
-}
-async function placeGlyph(targetDoc, glyph, layerName, left, top) {
-  const layer = await targetDoc.createPixelLayer({ name: layerName });
-  const options = {
-    width: glyph.width,
-    height: glyph.height,
-    components: glyph.components,
-    chunky: true,
-    colorSpace: glyph.colorSpace || "RGB"
-  };
-  if (glyph.colorProfile) options.colorProfile = glyph.colorProfile;
+/* ---------- Glyph cache (read the atlas once per library) ---------- */
 
-  const imageData = await imaging.createImageDataFromBuffer(glyph.data, options);
+function toRGBA(glyph) {
+  if (glyph.components === 4) return glyph.data;
+  const n = glyph.width * glyph.height, out = new Uint8Array(n * 4), c = glyph.components;
+  for (let i = 0; i < n; i++) {
+    out[i * 4] = glyph.data[i * c] || 0;
+    out[i * 4 + 1] = glyph.data[i * c + 1] || 0;
+    out[i * 4 + 2] = glyph.data[i * c + 2] || 0;
+    out[i * 4 + 3] = 255;
+  }
+  return out;
+}
+
+// RGBA -> JPEG data URL. tile>0 draws a checkerboard behind transparency, 0 uses a flat panel colour.
+async function rgbaToJpegUrl(rgba, w, h, tile) {
+  const rgb = new Uint8Array(w * h * 3);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const j = y * w + x, i = j * 4, a = rgba[i + 3] / 255;
+      const bg = tile > 0 ? (((Math.floor(x / tile) + Math.floor(y / tile)) % 2) ? 58 : 74) : 43;
+      rgb[j * 3] = Math.round(rgba[i] * a + bg * (1 - a));
+      rgb[j * 3 + 1] = Math.round(rgba[i + 1] * a + bg * (1 - a));
+      rgb[j * 3 + 2] = Math.round(rgba[i + 2] * a + bg * (1 - a));
+    }
+  }
+  let data = null;
   try {
-    await imaging.putPixels({
-      documentID: targetDoc.id,
-      layerID: layer.id,
-      imageData,
-      replace: true,
-      targetBounds: { left: Math.round(left), top: Math.round(top) },
-      commandName: "放置图片字"
+    data = await imaging.createImageDataFromBuffer(rgb, { width: w, height: h, components: 3, chunky: true, colorSpace: "RGB", colorProfile: "sRGB IEC61966-2.1" });
+    return "data:image/jpeg;base64," + await imaging.encodeImageData({ imageData: data, base64: true });
+  } finally {
+    if (data) data.dispose();
+  }
+}
+
+function ensureGlyphs(lib) {
+  const cached = glyphCache.get(lib.id);
+  if (cached && cached.token === lib.token) return Promise.resolve(cached);
+  if (glyphLoading.has(lib.id)) return glyphLoading.get(lib.id);
+  const job = (async () => {
+    let entry;
+    try { entry = await fs.getEntryForPersistentToken(lib.token); }
+    catch (e) { throw new Error("原字库图片已移动、删除或权限失效，请重新导入这张字库图片。"); }
+    const raw = [];
+    await core.executeAsModal(async () => {
+      const atlas = await app.open(entry);
+      try {
+        for (const box of lib.boxes) raw.push(await readGlyphFromAtlas(atlas.id, box));
+      } finally {
+        atlas.closeWithoutSaving();
+      }
+    }, { commandName: "读取图片字库" });
+    const glyphs = [];
+    for (const g of raw) {
+      const rgba = toRGBA(g);
+      let url = "";
+      try { url = await rgbaToJpegUrl(rgba, g.width, g.height, 0); } catch (_) {}
+      glyphs.push({ rgba, width: g.width, height: g.height, shiftX: g.shiftX, shiftY: g.shiftY, colorProfile: g.colorProfile, url });
+    }
+    const result = { token: lib.token, glyphs };
+    glyphCache.set(lib.id, result);
+    return result;
+  })();
+  glyphLoading.set(lib.id, job);
+  job.then(() => {
+    glyphLoading.delete(lib.id);
+    const current = currentLibrary();
+    if (current && current.id === lib.id) { renderGlyphImageChips(); schedulePreview(); }
+  }, () => glyphLoading.delete(lib.id));
+  return job;
+}
+
+/* ---------- Layout (shared by preview and generation) ---------- */
+
+function numberInput(id, fallback) {
+  const v = Number($(id).value);
+  return Number.isFinite(v) ? v : fallback;
+}
+function currentSpacing() { return Math.round(numberInput("spacingInput", 0)); }
+function currentScale() { return Math.max(10, Math.min(500, numberInput("scaleInput", 100))); }
+const isDigit = ch => /^[0-9]$/.test(ch);
+
+// Returns pieces positioned in an unscaled layout box. The box height follows the atlas
+// rows (as in the original generator), so different numbers keep the same baseline.
+function computeLayout(lib, text, glyphs) {
+  const chars = Array.from(text);
+  const indexOf = new Map();
+  getMappingChars(lib).forEach((ch, i) => { if (!indexOf.has(ch)) indexOf.set(ch, i); });
+  const unsupported = Array.from(new Set(chars.filter(ch => ch !== " " && !indexOf.has(ch))));
+  if (unsupported.length) return { unsupported, pieces: [] };
+  const used = chars.filter(ch => ch !== " ").map(ch => indexOf.get(ch));
+  if (!used.length) return { unsupported: [], pieces: [], empty: true };
+
+  const widthOf = i => lib.boxes[i].right - lib.boxes[i].left;
+  let digitCell = 0;
+  if (lib.mono) indexOf.forEach((i, ch) => { if (isDigit(ch)) digitCell = Math.max(digitCell, widthOf(i)); });
+  const average = used.reduce((sum, i) => sum + widthOf(i), 0) / used.length;
+  const spaceWidth = Math.max(1, Math.round((digitCell || average) * 0.5));
+  const gap = currentSpacing();
+
+  let cursor = 0;
+  const pieces = [];
+  chars.forEach((ch, k) => {
+    if (ch === " ") cursor += spaceWidth;
+    else {
+      const i = indexOf.get(ch), box = lib.boxes[i], w = widthOf(i);
+      const cell = digitCell && isDigit(ch) ? digitCell : w;
+      const g = glyphs && glyphs[i];
+      pieces.push({
+        ch, index: i,
+        x: cursor + Math.round((cell - w) / 2) + (g ? g.shiftX : 0),
+        y: (box.top - box.rowTop) + (g ? g.shiftY : 0),
+        w: g ? g.width : w,
+        h: g ? g.height : box.bottom - box.top
+      });
+      cursor += cell;
+    }
+    if (k < chars.length - 1) cursor += gap;
+  });
+  const rowHeight = Math.max(1, ...used.map(i => lib.boxes[i].rowBottom - lib.boxes[i].rowTop));
+  let minX = 0, maxX = Math.max(1, cursor), minY = 0, maxY = rowHeight;
+  pieces.forEach(p => { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x + p.w); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y + p.h); });
+  pieces.forEach(p => { p.x -= minX; p.y -= minY; });
+  return { unsupported: [], pieces, width: Math.max(1, Math.round(maxX - minX)), height: Math.max(1, Math.round(maxY - minY)) };
+}
+
+// Alpha-composite all pieces into one RGBA buffer (used by the preview and the merged output).
+function composeRGBA(layout, glyphs) {
+  const W = layout.width, H = layout.height, out = new Uint8Array(W * H * 4);
+  for (const p of layout.pieces) {
+    const g = glyphs[p.index], src = g.rgba;
+    for (let y = 0; y < g.height; y++) {
+      const ty = p.y + y; if (ty < 0 || ty >= H) continue;
+      for (let x = 0; x < g.width; x++) {
+        const tx = p.x + x; if (tx < 0 || tx >= W) continue;
+        const si = (y * g.width + x) * 4, sa = src[si + 3] / 255;
+        if (sa <= 0) continue;
+        const di = (ty * W + tx) * 4, da = out[di + 3] / 255, oa = sa + da * (1 - sa);
+        for (let c = 0; c < 3; c++) out[di + c] = Math.round((src[si + c] * sa + out[di + c] * da * (1 - sa)) / oa);
+        out[di + 3] = Math.round(oa * 255);
+      }
+    }
+  }
+  return out;
+}
+
+/* ---------- Preview ---------- */
+
+function schedulePreview() {
+  if (previewTimer !== null) clearTimeout(previewTimer);
+  previewTimer = setTimeout(() => { previewTimer = null; renderPreview(); }, 60);
+}
+
+async function renderPreview() {
+  const serial = ++previewSerial;
+  const img = $("sfPreviewImage"), placeholder = $("sfPreviewPlaceholder"), dims = $("previewDimensions"), msg = $("previewMessage");
+  const show = text => { img.style.display = "none"; placeholder.style.display = "block"; placeholder.textContent = text; };
+  dims.textContent = "";
+  updateGenerateLabel();
+  const lib = currentLibrary(), text = $("textInput").value;
+  if (!lib) { show("请先导入字库"); msg.textContent = ""; return; }
+  if (!text) { show("输入内容后预览"); msg.textContent = ""; return; }
+  const mapping = getMappingChars(lib);
+  if (mapping.length !== lib.boxes.length) {
+    show("请先核对字库字符映射");
+    msg.textContent = "识别了 " + lib.boxes.length + " 个字符，映射有 " + mapping.length + " 个";
+    return;
+  }
+  const cache = glyphCache.get(lib.id);
+  if (!cache || cache.token !== lib.token) {
+    show("正在读取字库图片…"); msg.textContent = "";
+    ensureGlyphs(lib).catch(e => {
+      const current = currentLibrary();
+      if (current && current.id === lib.id) { show("字库图片读取失败"); msg.textContent = errorText(e); }
     });
+    return;
+  }
+  const layout = computeLayout(lib, text, cache.glyphs);
+  if (layout.unsupported.length) { show("当前字库缺少字符"); msg.textContent = "缺少：" + layout.unsupported.join(" "); return; }
+  if (layout.empty) { show("没有可显示的字符"); msg.textContent = ""; return; }
+  const zoom = currentScale() / 100;
+  dims.textContent = Math.max(1, Math.round(layout.width * zoom)) + " × " + Math.max(1, Math.round(layout.height * zoom)) + " px";
+  const holder = $("composedPreview");
+  const maxW = Math.max(60, holder.clientWidth - 14), maxH = Math.max(40, holder.clientHeight - 14);
+  const k = Math.min(maxW / layout.width, maxH / layout.height, zoom * 2);
+  try {
+    const url = await rgbaToJpegUrl(composeRGBA(layout, cache.glyphs), layout.width, layout.height, Math.max(2, Math.round(8 / k)));
+    if (serial !== previewSerial) return;
+    img.src = url;
+    img.style.width = Math.max(1, Math.round(layout.width * k)) + "px";
+    img.style.height = Math.max(1, Math.round(layout.height * k)) + "px";
+    img.style.display = "block";
+    placeholder.style.display = "none";
+    msg.textContent = k < zoom - 0.001 ? "预览已缩小以适配面板，生成尺寸不受影响" : (k > zoom + 0.001 ? "预览已放大显示，生成尺寸不受影响" : "");
+  } catch (e) {
+    if (serial === previewSerial) { show("预览暂不可用，仍可尝试生成"); msg.textContent = errorText(e); }
+  }
+}
+
+/* ---------- Placement, replace and output options ---------- */
+
+function setSegment(selector, attr, value) {
+  root.querySelectorAll(selector).forEach(el => {
+    const on = el.getAttribute(attr) === value;
+    el.classList.toggle("sf-selected", on);
+    el.setAttribute("aria-checked", on ? "true" : "false");
+  });
+}
+
+function setPlace(mode) {
+  placeMode = PLACES.includes(mode) ? mode : "canvas";
+  writePref(PREF.place, placeMode);
+  setSegment(".sf-place-option", "data-place", placeMode);
+  $("sfReplaceRow").style.display = placeMode === "layer" ? "flex" : "none";
+  refreshTargetInfo();
+}
+
+function setOutput(mode) {
+  outputMode = OUTPUTS.includes(mode) ? mode : "layers";
+  writePref(PREF.output, outputMode);
+  setSegment(".sf-output-option", "data-output", outputMode);
+  $("sfOutputNote").textContent = OUTPUT_NOTE[outputMode];
+}
+
+function setReplace(on) {
+  replaceTarget = !!on;
+  writePref(PREF.replace, replaceTarget);
+  $("sfReplaceRow").setAttribute("aria-checked", replaceTarget ? "true" : "false");
+  updateGenerateLabel();
+}
+
+function selectedLayerInfo() {
+  try {
+    if (!app.documents.length) return { error: "请先打开 Photoshop 文档" };
+    const layers = Array.from(app.activeDocument.activeLayers || []);
+    if (layers.length !== 1) return { error: layers.length ? "请只选中一个图层" : "请先选中一个图层" };
+    return { layer: layers[0], name: layers[0].name, group: !!layers[0].layers };
+  } catch (_) {
+    return { error: "无法读取选中的图层" };
+  }
+}
+
+function refreshTargetInfo() {
+  const note = $("sfPlaceNote");
+  if (placeMode !== "layer") { note.textContent = PLACE_NOTE[placeMode]; note.className = "sf-note"; updateGenerateLabel(); return; }
+  const info = selectedLayerInfo();
+  if (info.error) { note.textContent = "对齐到选中的图层 · " + info.error; note.className = "sf-note sf-status warning"; }
+  else { note.textContent = "对齐到「" + info.name + "」" + (info.group ? "（组）" : "") + "，上下居中。"; note.className = "sf-note"; }
+  updateGenerateLabel();
+}
+
+function updateGenerateLabel() {
+  const text = $("textInput").value;
+  const short = text.length > 12 ? text.slice(0, 12) + "…" : text;
+  $("btnGenerate").textContent = placeMode === "layer" && replaceTarget ? "替换为 " + (short || "…") : "生成";
+}
+
+function unitValue(v) {
+  return typeof v === "number" ? v : Number(v && (v._value !== undefined ? v._value : v.value));
+}
+
+function boundsOf(layer) {
+  const b = layer.boundsNoEffects || layer.bounds;
+  return { l: unitValue(b.left), t: unitValue(b.top), r: unitValue(b.right), b: unitValue(b.bottom) };
+}
+
+async function referenceRect(doc) {
+  if (placeMode === "canvas") return { l: 0, t: 0, r: unitValue(doc.width), b: unitValue(doc.height) };
+  if (placeMode === "selection") {
+    let b = null;
+    try { b = doc.selection && doc.selection.bounds; } catch (_) {}
+    if (!b) {
+      try {
+        const r = await action.batchPlay([{ _obj: "get", _target: [{ _property: "selection" }, { _ref: "document", _id: doc.id }] }], {});
+        const s = r && r[0] && r[0].selection;
+        if (s && s.left !== undefined) b = s;
+      } catch (_) {}
+    }
+    if (!b) throw new Error("当前没有选区。请先用选框工具画一个选区，或改用其他放置位置。");
+    const rect = { l: unitValue(b.left), t: unitValue(b.top), r: unitValue(b.right), b: unitValue(b.bottom) };
+    if (![rect.l, rect.t, rect.r, rect.b].every(Number.isFinite) || rect.r <= rect.l || rect.b <= rect.t) throw new Error("选区无效，请重新画一个选区。");
+    return rect;
+  }
+  const info = selectedLayerInfo();
+  if (info.error) throw new Error(info.error + "，或改用其他放置位置。");
+  const rect = boundsOf(info.layer);
+  if (![rect.l, rect.t, rect.r, rect.b].every(Number.isFinite) || rect.r <= rect.l || rect.b <= rect.t) throw new Error("选中的图层是空的，没有可以对齐的范围。");
+  rect.layer = info.layer;
+  return rect;
+}
+
+function findLayerById(layers, id) {
+  for (const layer of Array.from(layers || [])) {
+    if (layer.id === id) return layer;
+    if (layer.layers) { const inside = findLayerById(layer.layers, id); if (inside) return inside; }
+  }
+  return null;
+}
+
+async function selectLayerById(id) {
+  await action.batchPlay([{ _obj: "select", _target: [{ _ref: "layer", _id: id }], makeVisible: false, _options: { dialogOptions: "dontDisplay" } }], {});
+}
+
+async function placeRGBA(doc, rgba, width, height, colorProfile, name, left, top) {
+  const layer = await doc.createPixelLayer({ name });
+  const options = { width, height, components: 4, chunky: true, colorSpace: "RGB" };
+  if (colorProfile) options.colorProfile = colorProfile;
+  const imageData = await imaging.createImageDataFromBuffer(rgba, options);
+  try {
+    await imaging.putPixels({ documentID: doc.id, layerID: layer.id, imageData, replace: true, targetBounds: { left: Math.round(left), top: Math.round(top) }, commandName: "放置图片字" });
   } finally {
     imageData.dispose();
   }
   return layer;
 }
 
+/* ---------- Generate ---------- */
+
 async function generateText() {
+  if (generating) return;
   const lib = currentLibrary();
-  if (!lib) {
-    setStatus("请先导入一个字库。", "error");
-    return;
-  }
-
+  if (!lib) { setStatus("请先导入一个字库。", "error"); return; }
   const text = $("textInput").value;
-  if (!text) {
-    setStatus("请输入要生成的内容。", "error");
-    return;
+  if (!text) { setStatus("请输入要生成的内容。", "error"); return; }
+  try { buildCharMap(lib); } catch (e) { setStatus(e.message, "error"); return; }
+  if (!app.documents.length) { setStatus("请先打开一个 Photoshop 文档，再生成图片字。", "error"); return; }
+
+  const doc = app.activeDocument;
+  let ref;
+  try { ref = await referenceRect(doc); } catch (e) { setStatus(e.message, "error"); return; }
+  const replacing = placeMode === "layer" && replaceTarget;
+  if (replacing) {
+    if (ref.layer.isBackgroundLayer) { setStatus("背景图层不能被替换，请选择其他图层。", "error"); return; }
+    if (ref.layer.allLocked || ref.layer.locked) { setStatus("选中的图层已锁定，请先解锁再替换。", "error"); return; }
   }
 
-  let charMap;
+  generating = true;
+  $("btnGenerate").classList.add("sf-busy");
   try {
-    charMap = buildCharMap(lib);
-  } catch (e) {
-    setStatus(e.message, "error");
-    return;
-  }
+    setStatus("正在读取字库…");
+    const cache = await ensureGlyphs(lib);
+    const layout = computeLayout(lib, text, cache.glyphs);
+    if (layout.unsupported.length) throw new Error("当前字库不包含：" + layout.unsupported.join(" "));
+    if (layout.empty) throw new Error("没有可以生成的字符。");
 
-  const chars = Array.from(text);
-  const unsupported = Array.from(new Set(chars.filter((ch) => ch !== " " && !charMap.has(ch))));
-  if (unsupported.length) {
-    setStatus(`当前字库不包含：${unsupported.join(" ")}`, "error");
-    return;
-  }
+    const s = currentScale() / 100, align = currentAlign();
+    const finalW = layout.width * s, finalH = layout.height * s;
+    const X = Math.round(align === "left" ? ref.l : align === "right" ? ref.r - finalW : ref.l + (ref.r - ref.l - finalW) / 2);
+    const Y = Math.round(ref.t + (ref.b - ref.t - finalH) / 2);
+    // Unscaled origin: centred on the final box so scaling about the centre lands close to it.
+    const O = s === 1 ? { x: X, y: Y } : { x: Math.round(X + finalW / 2 - layout.width / 2), y: Math.round(Y + finalH / 2 - layout.height / 2) };
+    const targetId = replacing ? ref.layer.id : null, targetName = replacing ? ref.layer.name : "";
+    const profile = cache.glyphs[layout.pieces[0].index].colorProfile;
 
-  if (!app.documents.length) {
-    setStatus("请先打开一个 Photoshop 文档，再生成图片字。", "error");
-    return;
-  }
-
-  const targetDoc = app.activeDocument;
-  const targetDocId = targetDoc.id;
-  const spacing = Number($("spacingInput").value || 0);
-  const scale = Math.max(10, Math.min(500, Number($("scaleInput").value || 100)));
-  const autoGroup = $("groupCheck").checked;
-  const alignInput=root.querySelector('input[name="sfAlign"]:checked');
-  const horizontalAlign=alignInput?alignInput.value:"center";
-
-  let entry;
-  try {
-    entry = await fs.getEntryForPersistentToken(lib.token);
-  } catch (e) {
-    setStatus("原字库图片已经移动、删除或权限失效。请重新导入这张字库图片。", "error");
-    return;
-  }
-
-  setStatus("正在生成图片字图层…");
-
-  try {
-    await core.executeAsModal(async () => {
-      const atlasDoc = await app.open(entry);
-      const glyphCache = new Map();
-
+    setStatus(replacing ? "正在替换…" : "正在生成…");
+    await core.executeAsModal(async ctx => {
+      // One history step: a single Ctrl+Z undoes the new layers and restores a replaced layer.
+      const token = await ctx.hostControl.suspendHistory({ documentID: doc.id, name: "图片数字排版" });
+      let committed = false;
       try {
-        for (const ch of chars) {
-          if (ch === " " || glyphCache.has(ch)) continue;
-          glyphCache.set(ch, await readGlyphFromAtlas(atlasDoc.id, charMap.get(ch)));
+        if (app.activeDocument.id !== doc.id) app.activeDocument = doc;
+        let result;
+        if (outputMode === "layers") {
+          const created = [];
+          for (let k = 0; k < layout.pieces.length; k++) {
+            const p = layout.pieces[k], g = cache.glyphs[p.index];
+            created.push(await placeRGBA(doc, g.rgba, g.width, g.height, g.colorProfile, (k + 1) + "_" + p.ch, O.x + p.x, O.y + p.y));
+          }
+          result = await doc.createLayerGroup({ name: text, fromLayers: created });
+        } else {
+          result = await placeRGBA(doc, composeRGBA(layout, cache.glyphs), layout.width, layout.height, profile, text, O.x, O.y);
+          if (outputMode === "smart") {
+            await selectLayerById(result.id);
+            await action.batchPlay([{ _obj: "newPlacedLayer", _options: { dialogOptions: "dontDisplay" } }], {});
+            const active = Array.from(doc.activeLayers || []);
+            if (active.length !== 1) throw new Error("转换智能对象后无法取得结果图层。");
+            result = active[0];
+            result.name = text;
+          }
         }
+        if (s !== 1) {
+          const before = boundsOf(result);
+          await result.scale(s * 100, s * 100, constants.AnchorPosition.MIDDLECENTER, { interpolation: constants.InterpolationMethod.BICUBIC });
+          // Correct the small drift from scaling about the pixel centre instead of the layout box.
+          const after = boundsOf(result);
+          const dx = Math.round(X + (before.l - O.x) * s - after.l), dy = Math.round(Y + (before.t - O.y) * s - after.t);
+          if (dx || dy) await result.translate(dx, dy);
+        }
+        if (targetId !== null) {
+          const target = findLayerById(doc.layers, targetId);
+          if (target) await target.delete();
+        }
+        committed = true;
       } finally {
-        atlasDoc.closeWithoutSaving();
+        await ctx.hostControl.resumeHistory(token, committed);
       }
-
-      const doc = getOpenDocumentById(targetDocId);
-      if (!doc) throw new Error("目标 Photoshop 文档已经关闭。请重新打开后再试。");
-
-      const mappedBoxes = chars.filter((ch) => ch !== " ").map((ch) => charMap.get(ch));
-      const averageWidth = mappedBoxes.length
-        ? mappedBoxes.reduce((sum, b) => sum + (b.right - b.left), 0) / mappedBoxes.length
-        : 20;
-      const spaceWidth = Math.max(1, Math.round(averageWidth * 0.5));
-
-      let totalWidth = 0;
-      chars.forEach((ch, index) => {
-        if (ch === " ") totalWidth += spaceWidth;
-        else {
-          const box = charMap.get(ch);
-          totalWidth += box.right - box.left;
-        }
-        if (index < chars.length - 1) totalWidth += spacing;
-      });
-
-      let layoutHeight = 0;
-      mappedBoxes.forEach((box) => {
-        layoutHeight = Math.max(layoutHeight, box.rowBottom - box.rowTop);
-      });
-      layoutHeight = Math.max(layoutHeight, 1);
-
-      const scaledWidth=totalWidth*(scale/100);
-      const leftEdge=horizontalAlign==="left"?0:horizontalAlign==="right"?doc.width-scaledWidth:(doc.width-scaledWidth)/2;
-      let cursorX=Math.round(leftEdge+(scaledWidth-totalWidth)/2);
-      const startY = Math.round((doc.height - layoutHeight) / 2);
-      const createdLayers = [];
-
-      for (let index = 0; index < chars.length; index++) {
-        const ch = chars[index];
-        if (ch === " ") {
-          cursorX += spaceWidth + spacing;
-          continue;
-        }
-
-        const box = charMap.get(ch);
-        const glyph = glyphCache.get(ch);
-        const y = startY + (box.top - box.rowTop) + glyph.shiftY;
-        const x = cursorX + glyph.shiftX;
-        const layer = await placeGlyph(doc, glyph, `${index + 1}_${ch}`, x, y);
-        createdLayers.push(layer);
-        cursorX += (box.right - box.left) + spacing;
-      }
-
-      if (!createdLayers.length) throw new Error("没有可以生成的字符。");
-
-      let group = null;
-      if (autoGroup || scale !== 100) {
-        group = await doc.createLayerGroup({
-          name: text,
-          fromLayers: createdLayers
-        });
-      }
-
-      if (scale !== 100) {
-        const transformTarget = group || createdLayers[0];
-        await transformTarget.scale(
-          scale,
-          scale,
-          constants.AnchorPosition.MIDDLECENTER,
-          { interpolation: constants.InterpolationMethod.BICUBIC }
-        );
-      }
-    }, { commandName: `生成图片字 ${text}` });
+    }, { commandName: "图片数字排版" });
 
     savePreviewSettings(lib);
-    setStatus(`“${text}” 已生成：每个字符都是独立图层。`, "success");
+    const what = OUTPUT_NOTE[outputMode] ? { layers: "独立图层组", merged: "合并图层", smart: "智能对象" }[outputMode] : "";
+    setStatus((replacing ? "已把「" + targetName + "」替换为「" + text + "」" : "已生成「" + text + "」") + "（" + what + "）。可按 Ctrl+Z 撤销。", "success");
   } catch (e) {
     console.error(e);
-    setStatus("生成失败：" + (e.message || String(e)), "error");
+    setStatus((replacing ? "替换失败：" : "生成失败：") + errorText(e), "error");
+  } finally {
+    generating = false;
+    $("btnGenerate").classList.remove("sf-busy");
+    refreshTargetInfo();
   }
 }
 
+/* ---------- Events ---------- */
+
+function onActivate(el, handler) {
+  el.addEventListener("click", handler);
+  el.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handler(); } });
+}
+
+function deleteLibraryClick() {
+  const lib = currentLibrary();
+  if (!lib) return;
+  const btn = $("btnDelete");
+  if (deleteArmed === null) {
+    btn.textContent = "确认删除？";
+    btn.classList.add("sf-btn-confirm");
+    setStatus("再点一次「确认删除？」即可删除字库「" + (lib.name || lib.fileName) + "」。只从插件里移除，不会删除原图片。", "warning");
+    deleteArmed = setTimeout(() => { deleteArmed = null; btn.textContent = "删除"; btn.classList.remove("sf-btn-confirm"); }, 3000);
+    return;
+  }
+  clearTimeout(deleteArmed);
+  deleteArmed = null;
+  btn.textContent = "删除";
+  btn.classList.remove("sf-btn-confirm");
+  deleteLibrary();
+}
+
+function nudge(id, e) {
+  if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+  e.preventDefault();
+  const step = (e.shiftKey ? 10 : 1) * (e.key === "ArrowUp" ? 1 : -1);
+  const current = Number($(id).value);
+  let next = (Number.isFinite(current) ? Math.round(current) : 0) + step;
+  if (id === "scaleInput") next = Math.max(10, Math.min(500, next));
+  $(id).value = String(next);
+  savePreviewSettings(currentLibrary());
+  schedulePreview();
+}
+
 function wireEvents() {
-  $("btnImport").addEventListener("click", importLibrary);
-  $("btnDelete").addEventListener("click", deleteLibrary);
-  $("btnSaveLibrary").addEventListener("click", saveCurrentLibraryEdits);
-  $("btnGenerate").addEventListener("click", generateText);
-  $("btnManage").addEventListener("click",()=>setManagerOpen($("sfManager").style.display==="none"));
-  ["textInput","spacingInput","scaleInput"].forEach(id=>{
-    $(id).addEventListener("input",()=>{
-      renderComposedPreview();
-      if(id!=="textInput")savePreviewSettings(currentLibrary());
-    });
+  onActivate($("btnImport"), importLibrary);
+  onActivate($("btnDelete"), deleteLibraryClick);
+  onActivate($("btnGenerate"), generateText);
+  onActivate($("btnManage"), () => setManagerOpen($("sfManager").style.display === "none"));
+  onActivate($("btnSaveLibrary"), () => {
+    const lib = currentLibrary();
+    setManagerOpen(false);
+    if (!lib) return;
+    const count = getMappingChars(lib).length;
+    if (count !== lib.boxes.length) setStatus(`映射有 ${count} 个字符，图片识别出 ${lib.boxes.length} 个，请保持数量一致。`, "warning");
+    else setStatus("字库设置已保存。", "success");
   });
-  root.querySelectorAll(".sf-align-option").forEach(item=>{
-    item.addEventListener("click",()=>{
-      const radio=item.querySelector('input[name="sfAlign"]');
-      if(radio)radio.checked=true;
+
+  $("textInput").addEventListener("input", schedulePreview);
+  ["spacingInput", "scaleInput"].forEach(id => {
+    $(id).addEventListener("input", () => { savePreviewSettings(currentLibrary()); schedulePreview(); });
+    $(id).addEventListener("keydown", e => nudge(id, e));
+  });
+
+  root.querySelectorAll(".sf-align-option").forEach(item => {
+    item.addEventListener("click", e => {
+      e.preventDefault();
+      const radio = item.querySelector('input[name="sfAlign"]');
+      if (radio) radio.checked = true;
       updateAlignButtons();
       savePreviewSettings(currentLibrary());
     });
+  });
+  root.querySelectorAll(".sf-place-option").forEach(el => onActivate(el, () => setPlace(el.getAttribute("data-place"))));
+  root.querySelectorAll(".sf-output-option").forEach(el => onActivate(el, () => setOutput(el.getAttribute("data-output"))));
+  onActivate($("sfReplaceRow"), () => setReplace(!replaceTarget));
+  onActivate($("sfMono"), () => {
+    const lib = currentLibrary();
+    if (!lib) { setStatus("请先导入字库。", "error"); return; }
+    lib.mono = !lib.mono;
+    saveLibraries();
+    $("sfMono").setAttribute("aria-pressed", lib.mono ? "true" : "false");
+    schedulePreview();
   });
 
   $("librarySelect").addEventListener("change", (event) => {
@@ -814,24 +1016,41 @@ function wireEvents() {
     localStorage.setItem(SELECTED_KEY, selectedLibraryId || "");
     renderLibraryEditor();
     readPreviewPreferences(currentLibrary());
-    queueLibraryPreview();
+    schedulePreview();
   });
 
+  // Mapping and name are saved as you type, so preview, generation and the next session agree.
   $("mappingInput").addEventListener("input", () => {
     const lib = currentLibrary();
     if (!lib) return;
     lib.mapping = $("mappingInput").value;
-    const chars = getMappingChars(lib);
-    const chips = $("glyphPreview").querySelectorAll(".glyph-char");
-    for (let i = 0; i < chips.length; i++) {
-      chips[i].textContent = chars[i] || "?";
-    }
-    renderComposedPreview();
+    saveLibraries();
+    refreshMappedGlyphLabels();
+    renderLibraryMeta();
+    schedulePreview();
   });
+  $("libraryName").addEventListener("change", () => {
+    const lib = currentLibrary();
+    if (!lib) return;
+    lib.name = $("libraryName").value.trim() || stripExtension(lib.fileName);
+    saveLibraries();
+    const option = Array.from($("librarySelect").options).find(o => o.value === lib.id);
+    if (option) option.textContent = lib.name;
+  });
+
+  try {
+    action.addNotificationListener(["select", "open", "close"], () => {
+      if (root.style.display !== "none" && placeMode === "layer") refreshTargetInfo();
+    });
+  } catch (e) {
+    console.warn("[Sprite Font] selection listener unavailable", e);
+  }
 }
 
 wireEvents();
 renderLibraries();
-updateAlignButtons();
 setManagerOpen(false);
+setOutput(outputMode);
+setReplace(replaceTarget);
+setPlace(placeMode);
 };

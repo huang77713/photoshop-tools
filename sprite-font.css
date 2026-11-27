@@ -1,0 +1,99 @@
+/* Sprite Font Composer (图片数字排版) — scoped styles (moved from index.html, v4 layout).
+   Same visual language as nine-slice.css. UXP notes: flex rows with explicit margins
+   (flex gap is unreliable), no CSS Grid, no gradients, no native <button> styling
+   (UXP draws native buttons with its own font), inputs keep vertical padding. */
+
+#bodyArea.sprite-active{padding:0;overflow:hidden}
+
+#spriteFontView{height:100%;width:100%;min-height:0;min-width:0;margin:0;overflow:hidden;background:#2b2b2b;color:#e6e6e6;font-family:Arial,"Microsoft YaHei",sans-serif;font-size:12px}
+#spriteFontView *{box-sizing:border-box}
+#spriteFontView .sf-root{height:100%;width:100%;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+#spriteFontView .sf-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px 12px 12px}
+
+/* Shared */
+#spriteFontView .sf-muted{color:#8f8f8f;font-size:11px;font-weight:normal}
+#spriteFontView .sf-mono{font-family:Consolas,"SFMono-Regular",monospace}
+#spriteFontView .sf-row{display:flex;flex-direction:row;align-items:center;width:100%}
+#spriteFontView .sf-grow{flex:1 1 0;min-width:0}
+#spriteFontView .sf-field-label{margin:0 0 4px;color:#a8a8a8;font-size:11px}
+#spriteFontView .sf-note{margin-top:6px;color:#8f8f8f;font-size:11px;line-height:1.45}
+
+/* Buttons (div role=button) */
+#spriteFontView .sf-btn{display:flex;align-items:center;justify-content:center;flex:none;min-height:30px;padding:0 12px;margin:0;border:1px solid #555555;border-radius:4px;background:#3a3a3a;color:#e6e6e6;font-size:12px;white-space:nowrap;cursor:pointer;user-select:none}
+#spriteFontView .sf-btn:hover{background:#454545;border-color:#666666}
+#spriteFontView .sf-btn-small{min-height:30px;padding:0 10px;font-size:11px}
+#spriteFontView .sf-btn-primary{background:#1473e6;border-color:#1473e6;color:#ffffff;font-size:13px;min-height:34px}
+#spriteFontView .sf-btn-primary:hover{background:#0d66d0;border-color:#0d66d0}
+#spriteFontView .sf-btn-danger{color:#ffb4ac;border-color:#6b4a47;background:transparent}
+#spriteFontView .sf-btn-danger:hover{background:#4a2f2d;border-color:#8a5a55}
+#spriteFontView .sf-btn-confirm{background:#b3261e;border-color:#b3261e;color:#ffffff}
+#spriteFontView .sf-btn.sf-busy{opacity:.5;cursor:default}
+#spriteFontView .sf-btn.sf-off{opacity:.45}
+
+/* Inputs: keep vertical padding so the native text field fits inside the box */
+#spriteFontView input[type="text"]{display:block!important;width:100%;height:32px!important;min-width:0!important;margin:0!important;padding:6px 8px!important;line-height:normal!important;background:#1e1e1e!important;color:#ffffff!important;border:1px solid #4a4a4a!important;border-radius:3px!important;font-size:13px!important;opacity:1!important;visibility:visible!important;appearance:none!important;-webkit-appearance:none!important}
+#spriteFontView input[type="text"]:focus{border-color:#3ea6ff!important}
+#spriteFontView .sf-text-input{height:38px!important;padding:8px 9px!important;font-size:16px!important}
+/* Native select: let UXP draw it, only control the width */
+#spriteFontView .sf-select{display:block;flex:1 1 0;min-width:0;width:100%;margin:0}
+
+/* Library row */
+#spriteFontView .sf-library-row{display:flex;flex-direction:row;align-items:center;width:100%}
+#spriteFontView .sf-library-row .sf-btn{margin-left:6px}
+#spriteFontView .sf-library-meta{margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Library settings (collapsible) */
+#spriteFontView .sf-manager{margin-top:10px;padding:10px;background:#262626;border:1px solid #3d3d3d;border-radius:4px}
+#spriteFontView .sf-manager .sf-row{margin-bottom:10px}
+#spriteFontView .sf-manager .sf-row .sf-btn{margin-left:6px}
+#spriteFontView .sf-manager #mappingInput{margin-bottom:8px!important}
+#spriteFontView .sf-meta-row{margin-bottom:8px!important}
+#spriteFontView .glyph-preview{display:flex;flex-direction:row;flex-wrap:wrap;max-height:170px;overflow-y:auto;padding:6px;background:#1e1e1e;border:1px solid #3d3d3d;border-radius:4px}
+#spriteFontView .glyph-preview.empty{display:block;color:#8f8f8f;font-size:11px;line-height:1.6}
+#spriteFontView .glyph-chip{display:flex;flex-direction:column;align-items:center;width:56px;margin:0 6px 6px 0;padding:5px 4px;background:#2b2b2b;border:1px solid #444444;border-radius:4px}
+#spriteFontView .sf-glyph-image{display:block;max-width:44px;max-height:40px;margin:0 auto 3px}
+#spriteFontView .glyph-char{font-size:14px;font-weight:bold;line-height:1.2;color:#ededed}
+#spriteFontView .glyph-index{color:#8f8f8f;font-size:10px}
+#spriteFontView .glyph-size{color:#777777;font-size:10px}
+
+/* Content + preview */
+#spriteFontView .sf-content-label{margin-top:12px}
+#spriteFontView .sf-preview-head{display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin:10px 0 4px;color:#b5b5b5;font-size:11px}
+#spriteFontView .sf-composed-preview{display:flex;align-items:center;justify-content:center;height:110px;padding:6px;background:#232323;border:1px solid #3d3d3d;border-radius:4px;overflow:hidden}
+#spriteFontView .sf-preview-image{display:block;flex:none}
+#spriteFontView .sf-preview-message{min-height:15px;margin-top:4px;font-size:11px;line-height:1.4}
+
+/* Spacing / scale / mono */
+#spriteFontView .sf-adjust-row{align-items:flex-end;margin-top:6px}
+#spriteFontView .sf-adjust{flex:1 1 0;min-width:0}
+#spriteFontView .sf-adjust-second{margin-left:8px}
+#spriteFontView .sf-toggle{display:flex;align-items:center;flex:none;height:32px;margin-left:8px;padding:0 9px;border:1px solid #555555;border-radius:4px;color:#bdbdbd;font-size:11px;white-space:nowrap;cursor:pointer;user-select:none}
+#spriteFontView .sf-toggle:hover{border-color:#666666;color:#e6e6e6}
+#spriteFontView .sf-toggle[aria-pressed="true"]{background:#1f3a5c;border-color:#3ea6ff;color:#ffffff}
+
+/* Sections */
+#spriteFontView .sf-section{margin-top:12px;padding-top:10px;border-top:1px solid #3d3d3d}
+#spriteFontView .sf-section-title{margin-bottom:7px;font-size:12px;font-weight:bold;color:#ededed}
+
+/* Segmented controls: whole segment clickable */
+#spriteFontView .sf-segment{display:flex;flex-direction:row;width:100%;border:1px solid #4a4a4a;border-radius:4px;overflow:hidden}
+#spriteFontView .sf-place-option,#spriteFontView .sf-output-option,#spriteFontView .sf-align-option{flex:1 1 0;display:flex;align-items:center;justify-content:center;min-width:0;min-height:28px;color:#bdbdbd;font-size:12px;cursor:pointer;user-select:none}
+#spriteFontView .sf-seg-next{border-left:1px solid #4a4a4a}
+#spriteFontView .sf-place-option:hover,#spriteFontView .sf-output-option:hover,#spriteFontView .sf-align-option:hover{background:#353535;color:#e6e6e6}
+#spriteFontView .sf-selected,#spriteFontView .sf-align-option.selected{background:#4a4a4a;color:#ffffff}
+#spriteFontView .sf-align-option input{display:none}
+#spriteFontView .sf-align-row{margin-top:6px}
+#spriteFontView .sf-inline-label{flex:none;width:58px;color:#9a9a9a;font-size:11px}
+
+/* Custom checkbox row (whole row clickable) */
+#spriteFontView .sf-check-row{display:flex;flex-direction:row;align-items:center;min-height:28px;margin-top:6px;cursor:pointer;user-select:none;color:#e6e6e6}
+#spriteFontView .sf-check-box{flex:none;width:14px;height:14px;margin-right:7px;border:1px solid #777777;border-radius:3px;background:#1e1e1e}
+#spriteFontView .sf-check-row[aria-checked="true"] .sf-check-box{background:#1473e6;border-color:#1473e6}
+
+/* Footer */
+#spriteFontView .sf-footer{flex:none;padding:10px 12px;background:#262626;border-top:1px solid #1f1f1f}
+#spriteFontView .sf-footer #btnGenerate{width:100%}
+#spriteFontView .sf-status{margin-top:7px;max-height:64px;overflow-y:auto;color:#a5a5a5;font-size:11px;line-height:1.45;word-break:break-word;user-select:text}
+#spriteFontView .sf-status.success{color:#8fd19e}
+#spriteFontView .sf-status.error{color:#ff9d94}
+#spriteFontView .sf-status.warning{color:#e5b567}
