@@ -10,7 +10,7 @@ Photoshop UXP 增效工具箱。一个插件、一个面板，通过左上角菜
 
 | 工具 | 主要功能 |
 | --- | --- |
-| 九宫格拉伸（Nine Slice Resize） | 九宫格尺寸调整、预览与生成 |
+| 九宫格拉伸（Nine Slice Resize） | 九宫格尺寸调整、双预览、对称边距、原位生成及一步撤销 |
 | 图片数字排版（Sprite Font Composer） | 图片字库识别与拼接排版 |
 | 透明对象拆分 | 按透明区域分离独立对象 |
 | 文字批量切图 | 文字素材批量切图与导出 |
@@ -46,7 +46,7 @@ git pull --ff-only origin main
 | `manifest.json` | 插件清单、入口及权限 |
 | `index.html` | 统一面板及工具界面 |
 | `menu.js` | 工具切换与初始化 |
-| `nine-slice.js` | 九宫格拉伸 |
+| `nine-slice.js / .css` | 九宫格拉伸 |
 | `sprite-font.js` | 图片数字排版 |
 | `remove-bg.js` | 透明对象拆分 |
 | `text-cutter.js` | 文字批量切图 |
@@ -61,6 +61,7 @@ git pull --ff-only origin main
 
 ## 正式版更新记录
 
+- 2026-11-27：九宫格拉伸界面改版：样式迁移至独立 `nine-slice.css`，Photoshop 原生深灰风格；新增对称边距、方向键微调、透明格子预览、生成到原图层位置（可超出画布）、一步撤销，并记住拉伸/平铺与对称设置。
 - 2026-11-20：发布批量修改文字工具（[#4](https://github.com/huang77713/photoshop-tools/pull/4)），包含手动换行预览及长文字适配。
 - 2026-11-14：加入矩形框工具，优化工具选择菜单，矩形尺寸规范为偶数整数、坐标为整数。
 - 2026-11-13：发布智能排列与批量尺寸统一（[#1](https://github.com/huang77713/photoshop-tools/pull/1)），优化智能排列（[#2](https://github.com/huang77713/photoshop-tools/pull/2)）及文字批量切图界面（[#3](https://github.com/huang77713/photoshop-tools/pull/3)）。
