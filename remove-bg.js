@@ -220,6 +220,20 @@ function objectRect(obj, items) {
 
 function sortObjects(objects, items, mode) {
   const withRect = objects.map(o => ({ o, r: objectRect(o, items) }));
+  if (mode === "reading") {
+    // Group into visual rows first (an object joins a row when their vertical spans
+    // share the other's centre), then read each row left to right. Small pieces that
+    // sit inside a big glyph's height stay in that glyph's row.
+    const rows = [];
+    withRect.slice().sort((a, b) => a.r.minY - b.r.minY).forEach(item => {
+      const cy = (item.r.minY + item.r.maxY) / 2;
+      const row = rows.find(rw => (cy >= rw.minY && cy <= rw.maxY) || ((rw.minY + rw.maxY) / 2 >= item.r.minY && (rw.minY + rw.maxY) / 2 <= item.r.maxY));
+      if (row) { row.list.push(item); row.minY = Math.min(row.minY, item.r.minY); row.maxY = Math.max(row.maxY, item.r.maxY); }
+      else rows.push({ minY: item.r.minY, maxY: item.r.maxY, list: [item] });
+    });
+    rows.sort((a, b) => a.minY - b.minY);
+    return [].concat(...rows.map(rw => rw.list.sort((a, b) => a.r.minX - b.r.minX || a.r.minY - b.r.minY).map(x => x.o)));
+  }
   withRect.sort((a, b) => {
     const A = a.r, B = b.r;
     if (mode === "ltr") return A.minX - B.minX || A.minY - B.minY;

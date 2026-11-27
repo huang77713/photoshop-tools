@@ -88,3 +88,15 @@
 #removeBgView .tsp-status{margin-top:7px;max-height:64px;overflow-y:auto;color:#a5a5a5;font-size:11px;line-height:1.45;word-break:break-word;user-select:text}
 #removeBgView .tsp-status.success{color:#8fd19e}
 #removeBgView .tsp-status.error{color:#ff9d94}
+
+/* Overrides for old !important rules in the shared extra-features.css (kept untouched
+   for Text Cutter). "#bodyArea #removeBgView" has higher specificity, so these win. */
+#bodyArea #removeBgView{height:100%!important;min-height:0!important;max-height:none!important;overflow:hidden!important;background:#2b2b2b!important;color:#e6e6e6!important}
+#bodyArea #removeBgView #layerStatus{display:block!important;margin:2px 0 0!important;font-size:11px!important;line-height:1.4!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:break-word!important;color:#8f8f8f!important}
+#bodyArea #removeBgView #layerStatus.tsp-warn{color:#e5b567!important}
+/* The preview PNG is encoded at its on-screen size, so its natural size is correct. */
+#bodyArea #removeBgView #splitPreviewImage{display:block!important;width:auto!important;height:auto!important;object-fit:fill!important;max-width:none!important;max-height:none!important}
+#bodyArea #removeBgView #runBtn{display:flex!important;width:100%!important;min-height:34px!important;margin:0!important;font-size:13px!important;border-radius:4px!important}
+#bodyArea #removeBgView .message{text-align:left!important;margin:7px 0 0!important;min-height:0!important;color:#a5a5a5!important}
+#bodyArea #removeBgView .message.success{color:#8fd19e!important}
+#bodyArea #removeBgView .message.error{color:#ff9d94!important}
