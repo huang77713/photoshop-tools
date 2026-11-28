@@ -81,6 +81,9 @@
       // Bounds frame also uses its own fixed footer.
       if (showBoundsFrame) area.classList.add("frame-active");
       else area.classList.remove("frame-active");
+      // Text cutter also uses its own fixed footer.
+      if (showTextCutter) area.classList.add("cutter-active");
+      else area.classList.remove("cutter-active");
       setMenuOpen(false);
 
       if (showNine && !loadedNineSlice) {
@@ -138,6 +141,7 @@
         } catch (error) {
           console.error("[Photoshop Tools] Text Cutter failed:", error);
           textView.style.display = "none";
+          area.classList.remove("cutter-active");
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "文字批量切图工具启动失败";
