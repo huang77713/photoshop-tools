@@ -84,6 +84,9 @@
       // Text cutter also uses its own fixed footer.
       if (showTextCutter) area.classList.add("cutter-active");
       else area.classList.remove("cutter-active");
+      // Smart arrange also uses its own fixed footer.
+      if (showSmartArrange) area.classList.add("arrange-active");
+      else area.classList.remove("arrange-active");
       setMenuOpen(false);
 
       if (showNine && !loadedNineSlice) {
@@ -158,6 +161,7 @@
         } catch (error) {
           console.error("[Photoshop Tools] Smart Arrange failed:", error);
           smartView.style.display = "none";
+          area.classList.remove("arrange-active");
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "智能排列工具启动失败";
