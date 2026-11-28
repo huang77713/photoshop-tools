@@ -35,7 +35,7 @@
 | 透明对象拆分 | `remove-bg.js` | `remove-bg.css`（`tsp-` 前缀；`menu.js` 为其切换 `#bodyArea.split-active`；用 `#bodyArea #removeBgView` 覆盖 `extra-features.css` 中的旧 `!important` 规则） | `index.html` 的 `#removeBgView` |
 | 文字批量切图 | `text-cutter.js` | `text-cutter.css`（`tcp-` 前缀与 `tcp*` ID；`menu.js` 为其切换 `#bodyArea.cutter-active`；用 `#bodyArea #textCutterView` 覆盖 `extra-features.css`、`text-cutter-ui.css` 中的旧规则，两旧文件保留不删） | `index.html` 的 `#textCutterView` |
 | 智能排列 | `smart-arrange.js` | `smart-arrange.css` | `index.html` 的 `#smartArrangeView` |
-| 批量尺寸统一 | `visible-resize.js` | `visible-resize.css` | `index.html` 的 `#visibleResizeView` |
+| 批量尺寸统一 | `visible-resize.js` | `visible-resize.css`（`menu.js` 为其切换 `#bodyArea.resize-active`） | `index.html` 的 `#visibleResizeView` |
 | 边界框（矩形框工具） | `bounds-frame.js` | `bounds-frame.css`（`menu.js` 为其切换 `#bodyArea.frame-active`） | `index.html` 的 `#boundsFrameView` |
 | 文字图层管理（批量修改文字） | `text-layer-manager.js` | `text-layer-manager.css` | `index.html` 的 `#textLayerManagerView` |
 
@@ -148,6 +148,7 @@ module.exports = function initExampleTool(root) {
 - **智能排列**：`smart-arrange.js` 与 `smart-arrange.css` 含已经迭代过的组复制、嵌套组、对象顺序、间距和预览逻辑。**新增其他工具时，严禁更改这两个文件。**
   - v3（2026-11-28）：界面使用 div 按钮与 `data-value`，固定底部依赖 `menu.js` 给 `#bodyArea` 加 `arrange-active`。`getPlan()` 的间距基准（anchor/max/gap）、格内对齐（右/下起点会先翻转对齐再镜像）、复制品命名、可选建组（`createLayerGroup`，已是整组时跳过）、选择变化自动读取（仅图层边界模式）均已由用户在 Photoshop 中验证。`measureVisible`、`duplicateKeepingParent`、`translateById` 与选择恢复逻辑不要改动。
 - **批量尺寸统一**：`visible-resize.js` 的可见像素测量、临时文档流程和独立缩放逻辑与智能排列不同。不要把两套逻辑合并，也不要擅自复用导致两个工具耦合。
+  - v2（2026-11-28）：固定底部依赖 `menu.js` 给 `#bodyArea` 加 `resize-active`；按钮为 div 与 `data-value`。测量按原尺寸读取（超过 4096px 才缩小并标「约」）；图层组和超出画布的对象在临时副本中测量（超出时先 `revealAll`，再按图层位置差换算回原坐标）。缩放前须 `stashSelection` 暂存并取消选区、结束后恢复，并恢复原图层选择；失败时 `resumeHistory(…, false)` 自动还原。位置基准点按可见内容计算位移；「修正偏差」为单独一步历史记录。
 - **九宫格拉伸**：原有控件 ID 和预览/分割线/输出区域需要保留。按钮使用 `div[role=button]`（UXP 会忽略原生 `<button>` 的字体样式），输入框保留上下内边距，避免原生文字框盖住边框。
 - **图片数字排版**：原有数字素材读取、排列与输出逻辑需要保留。字形像素在首次读取字库后缓存；预览与合并输出共用 `computeLayout` / `composeRGBA`，预览以插件内 PNG 编码显示；生成须保持一步撤销。生成期间须先用 `stashSelection` 把选区暂存到临时通道并取消、结束后 `restoreSelection` 恢复：有选区时 Photoshop 的缩放/移动只作用于选区内像素，去掉这一步会导致缩放结果只缩小一部分。
 - **透明对象拆分**：保留透明背景处理、可见像素识别与导出流程。输出只复制本对象拥有的像素（`labels` 归属图）及无归属的柔边像素；拆分前须核对识别结果未变化；保持一步撤销与失败回滚。`extra-features.css` 仍被文字批量切图使用，修改时不要删除其中 `#textCutterView` 规则。
