@@ -899,6 +899,35 @@ async function placeRGBA(doc, rgba, width, height, colorProfile, name, left, top
   return layer;
 }
 
+const TEMP_SELECTION_CHANNEL = "__sprite_font_selection__";
+
+// Returns true when a selection existed and was saved to a temporary channel and cleared.
+async function stashSelection(doc) {
+  try {
+    const r = await action.batchPlay([{ _obj: "get", _target: [{ _property: "selection" }, { _ref: "document", _id: doc.id }] }], {});
+    if (!(r && r[0] && r[0].selection)) return false;
+    await action.batchPlay([
+      { _obj: "duplicate", _target: [{ _ref: "channel", _property: "selection" }], name: TEMP_SELECTION_CHANNEL, _options: { dialogOptions: "dontDisplay" } },
+      { _obj: "set", _target: [{ _ref: "channel", _property: "selection" }], to: { _enum: "ordinal", _value: "none" }, _options: { dialogOptions: "dontDisplay" } }
+    ], {});
+    return true;
+  } catch (e) {
+    console.warn("[Sprite Font] could not stash selection", e);
+    return false;
+  }
+}
+
+async function restoreSelection(doc) {
+  try {
+    await action.batchPlay([
+      { _obj: "set", _target: [{ _ref: "channel", _property: "selection" }], to: { _ref: "channel", _name: TEMP_SELECTION_CHANNEL }, _options: { dialogOptions: "dontDisplay" } },
+      { _obj: "delete", _target: [{ _ref: "channel", _name: TEMP_SELECTION_CHANNEL }], _options: { dialogOptions: "dontDisplay" } }
+    ], {});
+  } catch (e) {
+    console.warn("[Sprite Font] could not restore selection", e);
+  }
+}
+
 /* ---------- Generate ---------- */
 
 async function generateText() {
@@ -944,6 +973,11 @@ async function generateText() {
       let committed = false;
       try {
         if (app.activeDocument.id !== doc.id) app.activeDocument = doc;
+        // An active selection would limit the scale/move below to the selected pixels only
+        // (Photoshop transforms just the selected area). Park it in a temporary channel,
+        // work without a selection, then load it back.
+        const hadSelection = await stashSelection(doc);
+        try {
         let result;
         if (outputMode === "layers") {
           const created = [];
@@ -974,6 +1008,9 @@ async function generateText() {
         if (targetId !== null) {
           const target = findLayerById(doc.layers, targetId);
           if (target) await target.delete();
+        }
+        } finally {
+          if (hadSelection) await restoreSelection(doc);
         }
         committed = true;
       } finally {
