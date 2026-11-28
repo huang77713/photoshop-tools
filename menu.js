@@ -87,6 +87,9 @@
       // Smart arrange also uses its own fixed footer.
       if (showSmartArrange) area.classList.add("arrange-active");
       else area.classList.remove("arrange-active");
+      // Batch resize also uses its own fixed footer.
+      if (showVisibleResize) area.classList.add("resize-active");
+      else area.classList.remove("resize-active");
       setMenuOpen(false);
 
       if (showNine && !loadedNineSlice) {
@@ -208,6 +211,7 @@
         } catch (error) {
           console.error("[Photoshop Tools] Batch Visible Resize failed:", error);
           resizeView.style.display = "none";
+          area.classList.remove("resize-active");
           heading.style.display = "block";
           message.style.display = "block";
           heading.textContent = "批量尺寸统一启动失败";

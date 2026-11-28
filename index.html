@@ -261,25 +261,42 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
   </div>
   </div><div class="tcp-footer"><div id="tcpRun" class="tcp-btn tcp-btn-primary" role="button" tabindex="0">导出 PNG</div><div id="tcpMessage" class="tcp-status">原始 PSD 保持不变</div></div>
 </div></div>
-    <div id="visibleResizeView" style="display:none">
- <div class="vr-header"><div><div class="vr-title">批量尺寸统一 <span class="vr-tag">TEST</span></div><div class="vr-subtitle">以可见像素为基准 · 独立处理</div></div></div>
- <div class="vr-source"><div class="vr-source-info"><div id="vrSource">选中图层后点击读取</div></div><button id="vrRead" class="vr-button">读取</button></div>
- <div class="vr-section vr-compact-section">
-  <div class="vr-label">目标尺寸 <span class="vr-unit">px</span></div>
-  <div class="vr-fields"><label>宽度<input id="vrWidth" type="number" value="300" min="1" max="30000"></label><label>高度<input id="vrHeight" type="number" value="300" min="1" max="30000"></label></div>
+    <div id="visibleResizeView" style="display:none"><div class="vr-root"><div class="vr-scroll">
+ <div class="vr-source"><div class="vr-source-info"><div id="vrSource" class="vr-source-name">未选择图层</div><div id="vrSourceMeta" class="vr-source-meta">在 Photoshop 中选中图层或组</div></div><div id="vrRead" class="vr-btn vr-btn-small" role="button" tabindex="0">重新读取</div></div>
+ <div class="vr-section vr-section-first">
+  <div class="vr-section-title">统一依据</div>
+  <div id="vrBasis" class="vr-segment" role="group" aria-label="统一依据"><div class="vr-seg" data-value="size" role="radio" tabindex="0">指定尺寸</div><div class="vr-seg vr-seg-next" data-value="ref" role="radio" tabindex="0">参考对象</div><div class="vr-seg vr-seg-next" data-value="percent" role="radio" tabindex="0">百分比</div></div>
+  <div id="vrSizeFields" class="vr-row vr-mt8 vr-bottom"><div class="vr-field"><div class="vr-label">宽度 px</div><input id="vrWidth" type="text" inputmode="decimal" value="300"></div><div class="vr-field vr-gap"><div class="vr-label">高度 px</div><input id="vrHeight" type="text" inputmode="decimal" value="300"></div></div>
+  <div id="vrRefFields" class="vr-mt8"><div id="vrRef" class="vr-segment" role="group" aria-label="参考对象"><div class="vr-seg" data-value="first" role="radio" tabindex="0">1 号对象</div><div class="vr-seg vr-seg-next" data-value="max" role="radio" tabindex="0">最大的</div><div class="vr-seg vr-seg-next" data-value="min" role="radio" tabindex="0">最小的</div></div><div id="vrRefNote" class="vr-note">读取后显示参考对象的尺寸。</div></div>
+  <div id="vrPercentFields" class="vr-row vr-mt8 vr-bottom"><div class="vr-field"><div class="vr-label">缩放比例 %</div><input id="vrPercent" type="text" inputmode="decimal" value="50"></div><div class="vr-field vr-gap"></div></div>
  </div>
- <div class="vr-section vr-compact-section"><div class="vr-label">缩放方式</div>
-  <div class="vr-modes" id="vrModes"><button data-mode="contain" class="active">完整适应</button><button data-mode="width">按宽度</button><button data-mode="height">按高度</button><button data-mode="cover">填满尺寸</button><button data-mode="stretch">自由拉伸</button></div>
-  <div class="vr-hint" id="vrModeDesc">等比例缩放，完整保留图片；宽高不一定都达到目标值。</div>
+ <div id="vrModeSection" class="vr-section">
+  <div class="vr-section-title">缩放方式</div>
+  <div id="vrModes" class="vr-segment" role="group" aria-label="缩放方式"><div class="vr-seg" data-value="contain" role="radio" tabindex="0">完整适应</div><div class="vr-seg vr-seg-next" data-value="width" role="radio" tabindex="0">按宽度</div><div class="vr-seg vr-seg-next" data-value="height" role="radio" tabindex="0">按高度</div></div>
+  <div id="vrModes2" class="vr-segment vr-mt6" role="group" aria-label="缩放方式"><div class="vr-seg" data-value="cover" role="radio" tabindex="0">填满尺寸</div><div class="vr-seg vr-seg-next" data-value="stretch" role="radio" tabindex="0">自由拉伸</div></div>
+  <div id="vrModeDesc" class="vr-note"></div>
  </div>
- <label class="vr-check"><input id="vrCenter" type="checkbox" checked><span>保持可见内容中心位置</span></label>
- <div class="vr-result-bar"><span>可见像素尺寸</span><span id="vrCount"></span><button id="vrListToggle" class="vr-inline-toggle">展开详情 ▾</button></div>
- <div class="vr-result-details" id="vrResultDetails" style="display:none"><div id="vrResults" class="vr-list"></div><div id="vrStats" class="vr-stats">读取图层后显示尺寸</div></div>
- <details class="vr-advanced"><summary>高级设置</summary><label>Alpha 阈值 <input type="number" id="vrAlpha" min="0" max="254" value="8"></label><div class="vr-hint">只用透明像素计算实际内容；复杂图层组采用临时合成测量。</div></details>
- <button class="vr-button primary vr-apply" id="vrApply">批量调整尺寸</button>
- <div class="vr-reset-row"><div><strong>智能对象还原 100%</strong><span>仅智能对象图层，跳过普通像素层和图层组</span></div><div class="vr-reset-controls"><select id="vrResetScope"><option value="selected">当前选中</option><option value="all">文档全部</option></select><button id="vrReset100" class="vr-button vr-reset-button">一键还原</button></div></div>
- <div id="vrStatus" class="vr-status">请选择图层后点击读取。</div>
+ <div class="vr-section">
+  <div class="vr-row vr-top">
+   <div class="vr-anchor-wrap"><div class="vr-label">位置基准点</div><div id="vrAnchor" class="vr-anchor" role="group" aria-label="位置基准点"><div class="vr-anchor-row"><div class="vr-anchor-cell" data-value="0,0" role="radio" tabindex="0" title="左上"><span class="vr-anchor-dot"></span></div><div class="vr-anchor-cell vr-anchor-next" data-value="0.5,0" role="radio" tabindex="0" title="顶部居中"><span class="vr-anchor-dot"></span></div><div class="vr-anchor-cell vr-anchor-next" data-value="1,0" role="radio" tabindex="0" title="右上"><span class="vr-anchor-dot"></span></div></div><div class="vr-anchor-row vr-anchor-row-next"><div class="vr-anchor-cell" data-value="0,0.5" role="radio" tabindex="0" title="左侧居中"><span class="vr-anchor-dot"></span></div><div class="vr-anchor-cell vr-anchor-next" data-value="0.5,0.5" role="radio" tabindex="0" title="中心"><span class="vr-anchor-dot"></span></div><div class="vr-anchor-cell vr-anchor-next" data-value="1,0.5" role="radio" tabindex="0" title="右侧居中"><span class="vr-anchor-dot"></span></div></div><div class="vr-anchor-row vr-anchor-row-next"><div class="vr-anchor-cell" data-value="0,1" role="radio" tabindex="0" title="左下"><span class="vr-anchor-dot"></span></div><div class="vr-anchor-cell vr-anchor-next" data-value="0.5,1" role="radio" tabindex="0" title="底部居中"><span class="vr-anchor-dot"></span></div><div class="vr-anchor-cell vr-anchor-next" data-value="1,1" role="radio" tabindex="0" title="右下"><span class="vr-anchor-dot"></span></div></div></div></div>
+   <div class="vr-field vr-gap12"><div class="vr-label">缩放算法</div><div id="vrInterp" class="vr-segment" role="group" aria-label="缩放算法"><div class="vr-seg" data-value="smooth" role="radio" tabindex="0">平滑</div><div class="vr-seg vr-seg-next" data-value="nearest" role="radio" tabindex="0">邻近</div></div><div id="vrAnchorNote" class="vr-note"></div></div>
+  </div>
  </div>
+ <div class="vr-list-head"><span>对象清单</span><span id="vrCount" class="vr-muted"></span><div id="vrFix" class="vr-btn vr-btn-small vr-fix" role="button" tabindex="0" style="display:none">修正偏差</div></div>
+ <div id="vrList" class="vr-list"><div class="vr-empty">选中图层后自动读取</div></div>
+ <div id="vrStats" class="vr-note"></div>
+ <div class="vr-section">
+  <div class="vr-section-title">更多设置</div>
+  <div class="vr-row"><span class="vr-inline-label">Alpha 阈值</span><input id="vrAlpha" class="vr-small-input" type="text" inputmode="numeric" value="8"><span class="vr-note vr-inline-note">透明度高于此值才算可见像素</span></div>
+ </div>
+ <div class="vr-section">
+  <div class="vr-section-title">智能对象还原 100%</div>
+  <div class="vr-row"><div id="vrResetScope" class="vr-segment vr-grow" role="group" aria-label="还原范围"><div class="vr-seg" data-value="selected" role="radio" tabindex="0">当前选中</div><div class="vr-seg vr-seg-next" data-value="all" role="radio" tabindex="0">文档全部</div></div><div id="vrReset100" class="vr-btn vr-gap" role="button" tabindex="0">一键还原</div></div>
+  <div class="vr-note">只还原智能对象，普通图层和组不会改动。</div>
+ </div>
+ </div>
+ <div class="vr-footer"><div id="vrApply" class="vr-btn vr-btn-primary" role="button" tabindex="0">批量调整尺寸</div><div id="vrStatus" class="vr-status">选中图层后会自动读取。</div></div>
+ </div></div>
  <div id="smartArrangeView" style="display:none"><div class="sa-root"><div class="sa-scroll">
  <div class="sa-source"><div class="sa-source-info"><div id="saSelected" class="sa-source-name">未选择图层</div><div id="saDetail" class="sa-source-meta">在 Photoshop 中选中图层或组</div></div><div id="saRead" class="sa-btn sa-btn-small" role="button" tabindex="0">重新读取</div></div>
  <div id="saOp" class="sa-segment sa-mt10" role="group" aria-label="操作"><div class="sa-seg" data-value="copy" role="radio" tabindex="0">复制排列</div><div class="sa-seg sa-seg-next" data-value="organize" role="radio" tabindex="0">整理现有对象</div></div>
