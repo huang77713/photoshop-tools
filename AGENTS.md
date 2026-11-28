@@ -146,6 +146,7 @@ module.exports = function initExampleTool(root) {
 ## 4. 已有工具的特殊保护说明
 
 - **智能排列**：`smart-arrange.js` 与 `smart-arrange.css` 含已经迭代过的组复制、嵌套组、对象顺序、间距和预览逻辑。**新增其他工具时，严禁更改这两个文件。**
+  - v3（2026-11-28）：界面使用 div 按钮与 `data-value`，固定底部依赖 `menu.js` 给 `#bodyArea` 加 `arrange-active`。`getPlan()` 的间距基准（anchor/max/gap）、格内对齐（右/下起点会先翻转对齐再镜像）、复制品命名、可选建组（`createLayerGroup`，已是整组时跳过）、选择变化自动读取（仅图层边界模式）均已由用户在 Photoshop 中验证。`measureVisible`、`duplicateKeepingParent`、`translateById` 与选择恢复逻辑不要改动。
 - **批量尺寸统一**：`visible-resize.js` 的可见像素测量、临时文档流程和独立缩放逻辑与智能排列不同。不要把两套逻辑合并，也不要擅自复用导致两个工具耦合。
 - **九宫格拉伸**：原有控件 ID 和预览/分割线/输出区域需要保留。按钮使用 `div[role=button]`（UXP 会忽略原生 `<button>` 的字体样式），输入框保留上下内边距，避免原生文字框盖住边框。
 - **图片数字排版**：原有数字素材读取、排列与输出逻辑需要保留。字形像素在首次读取字库后缓存；预览与合并输出共用 `computeLayout` / `composeRGBA`，预览以插件内 PNG 编码显示；生成须保持一步撤销。
