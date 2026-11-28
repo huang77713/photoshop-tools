@@ -33,7 +33,7 @@
 | 九宫格拉伸 | `nine-slice.js` | `nine-slice.css`（`#nineSliceView` 作用域，图标 `icons/ns-link-*.png`） | `index.html` 的 `#nineSliceView` |
 | 图片数字排版 | `sprite-font.js` | `sprite-font.css`（`#spriteFontView` 作用域；`menu.js` 为其切换 `#bodyArea.sprite-active`） | `index.html` 的 `#spriteFontView` |
 | 透明对象拆分 | `remove-bg.js` | `remove-bg.css`（`tsp-` 前缀；`menu.js` 为其切换 `#bodyArea.split-active`；用 `#bodyArea #removeBgView` 覆盖 `extra-features.css` 中的旧 `!important` 规则） | `index.html` 的 `#removeBgView` |
-| 文字批量切图 | `text-cutter.js` | `extra-features.css`、`text-cutter-ui.css` | `index.html` 的 `#textCutterView` |
+| 文字批量切图 | `text-cutter.js` | `text-cutter.css`（`tcp-` 前缀与 `tcp*` ID；`menu.js` 为其切换 `#bodyArea.cutter-active`；用 `#bodyArea #textCutterView` 覆盖 `extra-features.css`、`text-cutter-ui.css` 中的旧规则，两旧文件保留不删） | `index.html` 的 `#textCutterView` |
 | 智能排列 | `smart-arrange.js` | `smart-arrange.css` | `index.html` 的 `#smartArrangeView` |
 | 批量尺寸统一 | `visible-resize.js` | `visible-resize.css` | `index.html` 的 `#visibleResizeView` |
 | 边界框（矩形框工具） | `bounds-frame.js` | `bounds-frame.css`（`menu.js` 为其切换 `#bodyArea.frame-active`） | `index.html` 的 `#boundsFrameView` |
@@ -150,7 +150,7 @@ module.exports = function initExampleTool(root) {
 - **九宫格拉伸**：原有控件 ID 和预览/分割线/输出区域需要保留。按钮使用 `div[role=button]`（UXP 会忽略原生 `<button>` 的字体样式），输入框保留上下内边距，避免原生文字框盖住边框。
 - **图片数字排版**：原有数字素材读取、排列与输出逻辑需要保留。字形像素在首次读取字库后缓存；预览与合并输出共用 `computeLayout` / `composeRGBA`，预览以插件内 PNG 编码显示；生成须保持一步撤销。
 - **透明对象拆分**：保留透明背景处理、可见像素识别与导出流程。输出只复制本对象拥有的像素（`labels` 归属图）及无归属的柔边像素；拆分前须核对识别结果未变化；保持一步撤销与失败回滚。`extra-features.css` 仍被文字批量切图使用，修改时不要删除其中 `#textCutterView` 规则。
-- **文字批量切图**：保留文字提取、预览和导出流程。
+- **文字批量切图**：保留文字提取、预览和导出流程。每次导出只复制一次 PSD，在同一干净文档、同一未移动的点文字图层上逐个换字读取像素（保证同一基线）；导出前后须做原 PSD 保护检查。字库图集须保持单行、字符间留透明间隔，以便图片数字排版识别。
 - **边界框**：保留可编辑矢量矩形、颜色选择、统一宽高及边界检查；尺寸为偶数整数，坐标为整数，不得擅自改为栅格图层或改变尺寸规范。精确测量须逐对象按原尺寸读取（超过 4096px 才缩小并标注）。切图按同层级「对象名 - 边界框」配对，底框命名规则不可随意更改；切图只在临时副本中进行，不修改原文档，同名文件自动编号不覆盖。
 - **文字图层管理**：保留选中/全部/可见文字图层筛选（包含隐藏父组判断）、统一替换、手动换行和实时预览、可选长文字缩小、高级查找替换、原图层名称与文字样式保护及失败回滚。不得随意重置字体、字号、颜色或段落样式；仅在用户启用相关功能时改变相应属性。
 - 不要以“统一风格”“优化架构”“提升性能”为理由同时改动多个工具，除非用户确实要求跨工具改造。
