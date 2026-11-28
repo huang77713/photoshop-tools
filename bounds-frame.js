@@ -4,12 +4,18 @@
    v3: exact visible-pixel measurement (each object read at full resolution around its own
    bounds instead of a 1400px downscaled canvas), remembered settings, live selection
    info and size list, colour chips with recent colours, solid / dashed stroke,
-   corner radius, "use largest object" for fixed size. */
+   corner radius, "use largest object" for fixed size.
+   Export: for each selected object, find "<name> - 边界框" in the same parent and save
+   a transparent PNG of only that object, cropped to the frame, named after the layer. */
 module.exports = function initBoundsFrame(root) {
   "use strict";
   const ps = require("photoshop"), app = ps.app, core = ps.core, imaging = ps.imaging;
   const $ = id => root.querySelector("#" + id);
   const SETTINGS_KEY = "boundsFrame.v3.settings";
+  const FOLDER_KEY = "boundsFrame.v3.exportFolder";
+  const FRAME_SUFFIX = " - 边界框", GROUP_SUFFIX = " - 边界框组";
+  const fs = require("uxp").storage.localFileSystem;
+  let exportFolder = null;
   const PRESET_COLORS = ["#20CF52", "#FF3B30", "#1473E6", "#FFCC00", "#AF52DE", "#FFFFFF"];
   const MAX_MEASURE_SIDE = 4096; // above this the read is downscaled (warned in the list)
   let busy = false, snapshot = null, liveTimer = null;
@@ -67,14 +73,18 @@ module.exports = function initBoundsFrame(root) {
 
   // Isolate the target in the scratch copy, then read only the area around it at full
   // resolution, so the measured edges are pixel-exact (unless the area exceeds 4096 px).
-  async function alphaBox(copyDoc, item) {
+  // Show only the layer at `path` (and its ancestors) in the scratch copy.
+  function isolate(copyDoc, path) {
     let siblings = Array.from(copyDoc.layers);
-    for (const index of item.path) {
+    for (const index of path) {
       const target = siblings[index];
       if (!target) throw Error("临时文档层级变化");
       for (const l of siblings) l.visible = l.id === target.id;
       siblings = Array.from(target.layers || []);
     }
+  }
+  async function alphaBox(copyDoc, item) {
+    isolate(copyDoc, item.path);
     const docW = Number(copyDoc.width), docH = Number(copyDoc.height);
     const pad = 2;
     const region = {
@@ -380,7 +390,150 @@ module.exports = function initBoundsFrame(root) {
 
   function setBusy(on) {
     busy = on;
-    ["bfGenerate", "bfRead", "bfUseMax"].forEach(id => $(id).classList.toggle("bf-busy", on));
+    ["bfGenerate", "bfRead", "bfUseMax", "bfExport", "bfFolder"].forEach(id => $(id).classList.toggle("bf-busy", on));
+  }
+
+  /* ---------- Export by frame ---------- */
+
+  function showFolder() {
+    const el = $("bfFolderPath");
+    if (exportFolder) { el.textContent = fs.getNativePath(exportFolder) || exportFolder.name; el.className = "bf-folder-path"; }
+    else { el.textContent = "尚未选择文件夹"; el.className = "bf-folder-path bf-empty"; }
+  }
+  async function restoreFolder() {
+    const token = localStorage.getItem(FOLDER_KEY);
+    if (!token) { showFolder(); return; }
+    try {
+      const entry = await fs.getEntryForPersistentToken(token);
+      exportFolder = entry && entry.isFolder ? entry : null;
+    } catch (_) { exportFolder = null; localStorage.removeItem(FOLDER_KEY); }
+    showFolder();
+  }
+  async function chooseFolder() {
+    const folder = await fs.getFolder();
+    if (!folder) return false;
+    exportFolder = folder;
+    try { localStorage.setItem(FOLDER_KEY, await fs.createPersistentToken(folder)); } catch (_) {}
+    showFolder();
+    return true;
+  }
+  const safeFileName = name => String(name || "未命名").replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+$/g, "").trim() || "未命名";
+
+  // Pair each selected object with "<name> - 边界框" in the same parent.
+  // Selecting a "<name> - 边界框组" group uses the object and frame inside it.
+  function exportPairs(doc) {
+    const picked = Array.from(doc.activeLayers || []);
+    if (!picked.length) throw Error("请先选中要切的对象（可多选）。");
+    const pairs = [], skipped = [], seen = new Set();
+    for (let layer of picked) {
+      if (layer.name.endsWith(FRAME_SUFFIX)) continue; // a frame itself is not an object
+      if (layer.layers && layer.name.endsWith(GROUP_SUFFIX)) {
+        const base = layer.name.slice(0, -GROUP_SUFFIX.length);
+        const inner = Array.from(layer.layers).find(l => l.name === base);
+        if (inner) layer = inner;
+      }
+      if (seen.has(layer.id)) continue;
+      seen.add(layer.id);
+      const parent = layer.parent;
+      const siblings = Array.from(parent && parent.id !== doc.id ? parent.layers : doc.layers);
+      const at = siblings.findIndex(l => l.id === layer.id);
+      const wanted = layer.name + FRAME_SUFFIX;
+      // Prefer the frame right below the object, then any match in the same parent.
+      const frame = (siblings[at + 1] && siblings[at + 1].name === wanted) ? siblings[at + 1] : siblings.find(l => l.name === wanted);
+      if (!frame) { skipped.push(layer.name); continue; }
+      const f = rect(frame, false);
+      const box = { l: Math.round(f.l), t: Math.round(f.t), r: Math.round(f.r), b: Math.round(f.b) };
+      let outer = null;
+      try { outer = rect(layer, true); } catch (_) {}
+      pairs.push({ layer, name: layer.name, path: pathOf(doc, layer), box, outer });
+    }
+    return { pairs, skipped };
+  }
+
+  async function exportByFrames() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const doc = app.activeDocument;
+      if (!doc) throw Error("请先打开 Photoshop 文档。");
+      const { pairs, skipped } = exportPairs(doc);
+      if (!pairs.length) throw Error(skipped.length ? "选中的对象都没有找到对应的「对象名 - 边界框」：" + skipped.join("、") : "没有可切图的对象。");
+      if (!exportFolder && !(await chooseFolder())) { say("已取消：没有选择保存文件夹。"); return; }
+      const existing = new Set((await exportFolder.getEntries()).map(e => e.name.toLowerCase()));
+      const uniqueName = base => {
+        let name = base + ".png", n = 2;
+        while (existing.has(name.toLowerCase())) name = base + "_" + (n++) + ".png";
+        existing.add(name.toLowerCase());
+        return name;
+      };
+      const clipped = [], saved = [];
+      say("正在切图 " + pairs.length + " 个对象…");
+      await core.executeAsModal(async ctx => {
+        let copy;
+        try {
+          copy = await doc.duplicate("边界框_临时切图", false);
+          const docW = Number(copy.width), docH = Number(copy.height), resolution = Number(doc.resolution) || 72;
+          const all = descendants(copy.layers);
+          const original = new Map(all.map(l => [l.id, l.visible]));
+          for (let k = 0; k < pairs.length; k++) {
+            const item = pairs[k], box = item.box, w = box.r - box.l, h = box.b - box.t;
+            ctx.reportProgress({ value: k / pairs.length, commandName: "切图 " + item.name });
+            if (w < 1 || h < 1) { skipped.push(item.name + "（边界框尺寸无效）"); continue; }
+            for (const layer of all) layer.visible = original.get(layer.id);
+            isolate(copy, item.path); // also turns the object itself on, even if it was hidden
+            if (item.outer && (item.outer.l < box.l || item.outer.t < box.t || item.outer.r > box.r || item.outer.b > box.b)) clipped.push(item.name);
+            // Read the visible composite inside the frame; areas outside the canvas stay transparent.
+            const rgba = new Uint8Array(w * h * 4);
+            const src = { left: Math.max(0, box.l), top: Math.max(0, box.t), right: Math.min(docW, box.r), bottom: Math.min(docH, box.b) };
+            let profile = "";
+            if (src.right > src.left && src.bottom > src.top) {
+              const result = await imaging.getPixels({ documentID: copy.id, sourceBounds: src, colorSpace: "RGB", componentSize: 8, applyAlpha: false });
+              const image = result.imageData;
+              try {
+                profile = image.colorProfile || "";
+                const data = await image.getData({ chunky: true }), iw = image.width, ih = image.height, c = image.components;
+                const sb = result.sourceBounds || src, ox = Number(sb.left) - box.l, oy = Number(sb.top) - box.t;
+                for (let y = 0; y < ih; y++) {
+                  const ty = oy + y; if (ty < 0 || ty >= h) continue;
+                  for (let x = 0; x < iw; x++) {
+                    const tx = ox + x; if (tx < 0 || tx >= w) continue;
+                    const si = (y * iw + x) * c, di = (ty * w + tx) * 4;
+                    rgba[di] = data[si]; rgba[di + 1] = data[si + 1]; rgba[di + 2] = data[si + 2];
+                    rgba[di + 3] = c === 4 ? data[si + 3] : 255;
+                  }
+                }
+              } finally { image.dispose(); }
+            }
+            const fileName = uniqueName(safeFileName(item.name));
+            const out = await app.documents.add({ name: fileName.replace(/\.png$/i, ""), width: w, height: h, resolution, mode: "RGBColorMode", fill: "transparent" });
+            try {
+              const target = Array.from(out.layers)[0];
+              const options = { width: w, height: h, components: 4, chunky: true, colorSpace: "RGB" };
+              if (profile) options.colorProfile = profile;
+              const imageData = await imaging.createImageDataFromBuffer(rgba, options);
+              try {
+                await imaging.putPixels({ documentID: out.id, layerID: target.id, imageData, targetBounds: { left: 0, top: 0 }, replace: true, commandName: "写入切图像素" });
+              } finally { imageData.dispose(); }
+              const file = await exportFolder.createFile(fileName, { overwrite: false });
+              await out.saveAs.png(file, { compression: 6, interlaced: false, method: ps.constants.PNGMethod.QUICK }, true);
+              saved.push(fileName);
+            } finally {
+              await out.close(ps.constants.SaveOptions.DONOTSAVECHANGES);
+            }
+          }
+        } finally {
+          if (copy) await copy.close(ps.constants.SaveOptions.DONOTSAVECHANGES);
+          try { app.activeDocument = doc; } catch (_) {}
+        }
+      }, { commandName: "按边界框切图" });
+      let text = "已切出 " + saved.length + " 张 PNG，保存在：" + (fs.getNativePath(exportFolder) || exportFolder.name) + "。";
+      if (skipped.length) text += "\n跳过（没找到对应边界框）：" + skipped.join("、");
+      if (clipped.length) text += "\n注意：这些对象比边界框大，超出部分已被裁掉：" + clipped.join("、");
+      say(text, skipped.length || clipped.length ? "error" : "ok");
+    } catch (error) {
+      say("切图失败：" + String(error.message || error) + "。原文件没有被修改。", "error");
+      console.error("[Bounds Frame export]", error);
+    } finally { setBusy(false); }
   }
 
   async function freshSnapshot(precise) {
@@ -518,6 +671,12 @@ module.exports = function initBoundsFrame(root) {
   });
   onActivate($("bfUseMax"), useLargest);
   onActivate($("bfGenerate"), create);
+  onActivate($("bfExport"), exportByFrames);
+  onActivate($("bfFolder"), async () => {
+    if (busy) return;
+    try { if (await chooseFolder()) say("保存文件夹已设置。", "ok"); }
+    catch (error) { say("选择文件夹失败：" + String(error.message || error), "error"); }
+  });
 
   try {
     ps.action.addNotificationListener(["select", "open", "close"], () => scheduleLive());
@@ -530,4 +689,5 @@ module.exports = function initBoundsFrame(root) {
   renderChips();
   syncChoices();
   liveSelection();
+  restoreFolder();
 };

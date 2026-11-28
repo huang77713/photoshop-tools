@@ -324,11 +324,19 @@ html, body {width:100%;height:100%;padding:0;margin:0;background:#2b2b2b;color:#
         </div>
       </div>
       <div class="bf-section">
+        <div class="bf-section-title">按边界框切图</div>
+        <div class="bf-row bf-folder-row">
+          <div id="bfFolderPath" class="bf-folder-path">尚未选择文件夹</div>
+          <div id="bfFolder" class="bf-btn bf-btn-small bf-gap" role="button" tabindex="0">选择文件夹</div>
+        </div>
+        <div class="bf-note">选中要切的对象（可多选），按同层级里「对象名 - 边界框」的范围导出透明 PNG，文件名为图层名；底框和其他图层不会出现在图里，原文件不变。</div>
+      </div>
+      <div class="bf-section">
         <div class="bf-section-title">选项</div>
         <div id="bfGroup" class="bf-check-row" role="checkbox" tabindex="0" aria-checked="false"><span class="bf-check-box"></span><span>原对象与矩形框自动成组</span></div>
         <div id="bfPrecise" class="bf-check-row" role="checkbox" tabindex="0" aria-checked="true"><span class="bf-check-box"></span><span>精确测量可见像素（复杂文件较慢）</span></div>
       </div>
-    </div><div class="bf-footer"><div id="bfGenerate" class="bf-btn bf-btn-primary" role="button" tabindex="0">生成矢量边界框</div><div id="bfStatus" class="bf-status">请选择图层或组。</div></div>
+    </div><div class="bf-footer"><div class="bf-row bf-actions"><div id="bfGenerate" class="bf-btn bf-btn-primary" role="button" tabindex="0">生成边界框</div><div id="bfExport" class="bf-btn bf-btn-export bf-gap" role="button" tabindex="0">按边界框切图</div></div><div id="bfStatus" class="bf-status">请选择图层或组。</div></div>
     </div></div>
     <div id="textLayerManagerView" style="display:none">
       <div class="tlm-section">
